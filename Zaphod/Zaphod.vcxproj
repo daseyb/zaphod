@@ -70,19 +70,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DirectionalLight.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Objects\BaseObject.cpp" />
     <ClCompile Include="Objects\Box.cpp" />
     <ClCompile Include="Objects\Sphere.cpp" />
+    <ClCompile Include="PointLight.cpp" />
     <ClCompile Include="Rendering\Camera.cpp" />
     <ClCompile Include="Rendering\Raytracer.cpp" />
     <ClCompile Include="Rendering\Scene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="Intersection.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="Objects\BaseObject.h" />
     <ClInclude Include="Objects\Box.h" />
     <ClInclude Include="Objects\Sphere.h" />
+    <ClInclude Include="PointLight.h" />
     <ClInclude Include="Rendering\Camera.h" />
     <ClInclude Include="Rendering\Raytracer.h" />
     <ClInclude Include="Rendering\Scene.h" />

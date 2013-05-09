@@ -5,11 +5,15 @@
 
 class BaseObject;
 class Camera;
+class Light;
+
 class Scene
 {
-	std::vector<BaseObject*> sceneObjects;
-	clock_t prevTime;
-	clock_t initTime;
+	std::vector<BaseObject*> m_SceneObjects;
+	std::vector<Light*> m_SceneLights;
+
+	clock_t m_PrevTime;
+	clock_t m_InitTime;
 	Camera* m_pCamera;
 
 public:

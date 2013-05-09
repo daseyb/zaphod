@@ -4,40 +4,51 @@
 #include "../Objects/Sphere.h"
 #include "../Objects/Box.h"
 #include "Camera.h"
+#include "../Light.h"
+#include "../DirectionalLight.h"
+#include "../PointLight.h"
 
 using namespace DirectX::SimpleMath;
 
 Scene::Scene(Camera* _cam)
 {
-	sceneObjects = std::vector<BaseObject*>();
+	m_SceneObjects = std::vector<BaseObject*>();
 	Sphere* testSphere = new Sphere(1, Vector3(0,0,0));
 	Box* testBox = new Box(Vector3(0, 0, 0), 1, 1, 1);
 	Box* testBox2 = new Box(Vector3(0, -3, 0), 8, 0.1f, 8);
 	testBox2->SetDiffuse(Color(1, 0, 0));
 
-	sceneObjects.push_back(testSphere);
-	sceneObjects.push_back(testBox);
-	sceneObjects.push_back(testBox2);
-	initTime = clock();
+	m_SceneObjects.push_back(testSphere);
+	m_SceneObjects.push_back(testBox);
+	m_SceneObjects.push_back(testBox2);
+	m_InitTime = clock();
+
+	DirectionalLight* testLight = new DirectionalLight(Color(1, 1, 1), 0.2f, Vector3(1,-1,-1));
+	PointLight* pointTest = new PointLight(Color(1, 0.0f, 1), 0.6f, Vector3(2, 3, -2), 10);
+
+	m_SceneLights = std::vector<Light*>();
+	m_SceneLights.push_back(testLight);
+	m_SceneLights.push_back(pointTest);
 
 	m_pCamera = _cam;
-	m_pCamera->SetPosition(Vector3(0,0,-10));
+	m_pCamera->SetPosition(Vector3(0,2,10));
+	m_pCamera->SetRotation(0, -0.3, 0);
 }
 
 void Scene::Update()
 {
 	clock_t time = clock();	
-	double deltaTime = (double)(time - prevTime)/CLOCKS_PER_SEC;
-	double totalTime = (double)(time - initTime)/CLOCKS_PER_SEC;
+	double deltaTime = (double)(time - m_PrevTime)/CLOCKS_PER_SEC;
+	double totalTime = (double)(time - m_InitTime)/CLOCKS_PER_SEC;
 
-	sceneObjects[0]->SetPosition(Vector3(-5 * cosf(totalTime), 0, -5 * sinf(totalTime)));
+	m_SceneObjects[1]->SetPosition(Vector3(-5 * cosf(totalTime), 0, -5 * sinf(totalTime)));
 
 	//m_pCamera->SetPosition(Vector3(0,0, sinf(totalTime) * 5 + 10));
-	m_pCamera->SetRotation(sinf(totalTime*2)/2 + 3.141f,0, 0);
+	//m_pCamera->SetRotation(sinf(totalTime*2)/2 + 3.141f,0, 0);
 
 	//m_pCamera->LookAt(Vector3(0, 0, 10), Vector3(0,0,0), Vector3(0,-1,0));
 
-	prevTime = time;
+	m_PrevTime = time;
 }
 
 Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray)
@@ -47,7 +58,7 @@ Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray)
 	Intersection intersect;
 	bool intersectFound = false;
 
-	for(auto iter = sceneObjects.begin(); iter != sceneObjects.end(); iter++)
+	for(auto iter = m_SceneObjects.begin(); iter != m_SceneObjects.end(); iter++)
 	{
 		if((*iter)->Intersect(_ray, intersect))
 		{
@@ -67,48 +78,65 @@ Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray)
 	}
 	else
 	{
-		Vector3 lightDir(-1,1,1);
-		lightDir.Normalize();
-
-		Ray shadowRay(intersect.position + lightDir * 0.001f, lightDir);
-		bool inShadow = false;
-		for(auto iter = sceneObjects.begin(); iter != sceneObjects.end(); iter++)
+		Color retColor = Color(0,0,0);
+		Color ambientColor = Color(0.05f, 0.05f, 0.05f);
+		
+		for(auto light = m_SceneLights.begin(); light != m_SceneLights.end(); light++)
 		{
-			if((*iter)->Intersect(shadowRay, intersect))
+			Vector3 lightDir = (*light)->GetDirection(minIntersect.position);
+			Ray shadowRay(minIntersect.position + lightDir * 0.0001f, lightDir);
+			bool inShadow = false;
+			for(auto obj = m_SceneObjects.begin(); obj != m_SceneObjects.end(); obj++)
 			{
-				inShadow = true;
-				break;
+				if((*obj)->Intersect(shadowRay, intersect))
+				{
+					inShadow = true;
+					break;
+				}
 			}
+			
+			float diffuseFactor = 0;
+			if(!inShadow)
+			{
+				diffuseFactor = minIntersect.normal.Dot(lightDir);
+				if(diffuseFactor < 0)
+					diffuseFactor = 0;
+			}
+
+			float dist = (*light)->GetDistance(minIntersect.position);
+			float range = (*light)->GetRange();
+			if(dist > range)
+				dist = range;
+			float strength = (range - dist)/range;
+
+			Color diffuse = diffuseFactor * strength * (*light)->GetColor();
+
+			retColor += minIntersect.color * diffuse;
 		}
 
-		float dot = 0;
-		if(inShadow)
-		{
-			dot = 0.15f;
-		}
-		else
-		{
-			dot = minIntersect.normal.Dot(lightDir);
-			if(dot < 0)
-				dot = 0;
+		retColor += minIntersect.color * ambientColor;
+		retColor.Saturate();
+		return retColor;
 
-			if(dot < 0.15f)
-				dot = 0.15f;
-		}
-
-		return minIntersect.color * dot;
 	}
 }
 
 
 Scene::~Scene(void)
 {
-	for(auto iter = sceneObjects.begin(); iter != sceneObjects.end(); iter++)
+	for(auto iter = m_SceneObjects.begin(); iter != m_SceneObjects.end(); iter++)
 	{
 		delete (*iter);
 		(*iter) = nullptr;
 	}
-	sceneObjects.clear();
+	m_SceneObjects.clear();
+
+	for(auto iter = m_SceneLights.begin(); iter != m_SceneLights.end(); iter++)
+	{
+		delete (*iter);
+		(*iter) = nullptr;
+	}
+	m_SceneLights.clear();
 
 	m_pCamera = nullptr;
 }
