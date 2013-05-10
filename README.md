@@ -8,3 +8,5 @@ platforms later.
 May aim is it to implement a functional 3D renderer using raytracing. This includes soft shadows, mesh lights, textured
 models and some more. I'll also try to keep all that in realtime, though I might sacrifice that constraint in exchange
 for cool features.
+
+![Hard Shadows](bonus2113.github.com/zaphod/img/hard_shadows.png)
