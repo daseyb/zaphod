@@ -73,6 +73,8 @@ void Raytracer::RenderPart(int _x, int _y, int _width, int _height)
 void Raytracer::Render(void)
 {
 	m_pScene->Update();
+
+	//Spawn rendering threads (hard coded for now)
 	const int THREAD_COUNT = 8;
 
 	int width = m_Width/4;
@@ -101,13 +103,13 @@ sf::Uint8* Raytracer::GetPixels(void) const
 Ray Raytracer::GetRay(int _x, int _y) const
 {
 	float fovx = M_PI * m_FOV / 180; //Horizontal FOV
-	float fovy = M_PI * 55 / 180; //(float)m_Width/m_Width * m_FOV; //Vertical FOV
+	float fovy = M_PI * 55 / 180; //Vertical FOV (hard coded to 55)
 
 	float halfWidth = m_Width/2;
 	float halfHeight = m_Height/2;
 
-	float alpha = tanf(fovx/2)*((_x - halfWidth)/halfWidth);
-	float beta =  tanf(fovy/2)*((halfHeight - _y)/halfHeight);
+	float alpha = tanf(fovx/2)*((_x - halfWidth)/halfWidth); //horizontal offset
+	float beta =  tanf(fovy/2)*((halfHeight - _y)/halfHeight); //vertical offset
 
 	Matrix viewMatrix = m_pCamera->GetViewMatrix();
 	Vector3 pos = viewMatrix.Translation();

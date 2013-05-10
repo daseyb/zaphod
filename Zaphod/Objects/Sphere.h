@@ -13,6 +13,6 @@ public:
 	~Sphere(void);
 	void SetRadius(float _radius);
 	void SetPosition(DirectX::SimpleMath::Vector3 _pos) override;
-	bool Intersect(const DirectX::SimpleMath::Ray& _ray, Intersection& _intersect) override;
+	bool Intersect(const DirectX::SimpleMath::Ray& _ray, Intersection& _intersect) const override;
 };
 

@@ -1,29 +1,26 @@
 #include <SFML/Graphics.hpp>
-#include <stdlib.h>
 #include "Rendering/Raytracer.h"
 
 const int WIDTH = 850;
 const int HEIGHT = 480;
 
-int GetRand(int _min, int _max)
-{
-	return _min + ( rand() % (_max - _min + 1));
-}
-
 int main()
 {
-	srand( (unsigned) time(NULL) ) ; 
-
+	//Initialize the window
     sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "CPU Raytracer");
 
+	//The array of pixels we want to fill (32 bit per pixel, 8 bit per channel RGBA)
 	sf::Uint8* pixels = new sf::Uint8[WIDTH * HEIGHT * 4];
 
+	//The texture we write the pixels into
 	sf::Texture tex;
 	tex.create(WIDTH, HEIGHT);
 
+	//We need a sprite for rendering the texture with SFML
 	sf::Sprite renderSprite;
 	renderSprite.setTexture(tex);
 
+	//Initialize the Raytrcer class with width, height and horizontal FOV
 	Raytracer rt;
 	rt.Initialize(WIDTH, HEIGHT, 90);
 	
@@ -38,8 +35,10 @@ int main()
 
         window.clear();
 
+		//Update the pixel array
 		rt.Render();
 
+		//Write the updated pixels to the texture
 		tex.update(rt.GetPixels());
 		
 		window.draw(renderSprite);

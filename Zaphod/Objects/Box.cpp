@@ -32,7 +32,7 @@ void Box::SetPosition(Vector3 _pos)
 	m_Box.Center = _pos;
 }
 
-bool Box::Intersect(const Ray& _ray, Intersection& _intersect)
+bool Box::Intersect(const Ray& _ray, Intersection& _intersect) const
 {
 	float dist;
 	if(_ray.Intersects(m_Box, dist))
@@ -41,6 +41,8 @@ bool Box::Intersect(const Ray& _ray, Intersection& _intersect)
 			return false;
 
 		_intersect.position = _ray.position + dist * _ray.direction;
+		
+		//Calculate normal (based on which axis the intersection point lies most)
 		Vector3 fromCenter = _intersect.position - Vector3(m_Box.Center.x, m_Box.Center.y, m_Box.Center.z);
 		fromCenter.x /= m_Box.Extents.x;
 		fromCenter.y /= m_Box.Extents.y;

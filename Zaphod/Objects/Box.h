@@ -14,6 +14,6 @@ public:
 	void SetExtendY(float _y);
 	void SetExtendZ(float _z);
 	void SetPosition(DirectX::SimpleMath::Vector3 _pos) override;
-	bool Intersect(const DirectX::SimpleMath::Ray& _ray, Intersection& _intersect) override;
+	bool Intersect(const DirectX::SimpleMath::Ray& _ray, Intersection& _intersect) const override;
 };
 

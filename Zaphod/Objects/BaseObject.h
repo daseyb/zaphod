@@ -5,6 +5,12 @@
 
 struct Intersection;
 
+/********************************************
+** BaseObject
+** Base class for all scene objects. Describes
+** a primitive and provides transformation
+** functionality.
+*********************************************/
 
 class BaseObject
 {
@@ -21,7 +27,6 @@ public:
 	DirectX::SimpleMath::Matrix GetTransform();
 	virtual void SetPosition(DirectX::SimpleMath::Vector3 _pos);
 	void SetMaterial(Material _mat);
-
-	virtual bool Intersect(const DirectX::SimpleMath::Ray& _ray, Intersection& _intersect) = 0;
+	virtual bool Intersect(const DirectX::SimpleMath::Ray& _ray, Intersection& _intersect) const = 0;
 };
 

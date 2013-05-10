@@ -1,6 +1,13 @@
 #pragma once
 #include "SimpleMath.h"
 
+/********************************************
+** Light
+** Base class for all lights. All lights have
+** a color and an intensity. Provides virtual
+** functions to implement specific behaviour.
+*********************************************/
+
 class Light
 {
 	DirectX::SimpleMath::Color m_Color;

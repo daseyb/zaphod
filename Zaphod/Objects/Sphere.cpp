@@ -21,7 +21,7 @@ void Sphere::SetPosition(DirectX::SimpleMath::Vector3 _pos)
 	m_Sphere.Center = _pos;
 }
 
-bool Sphere::Intersect(const Ray& _ray, Intersection& _intersect)
+bool Sphere::Intersect(const Ray& _ray, Intersection& _intersect) const
 {
 	float dist;
 	if(_ray.Intersects(m_Sphere, dist))
@@ -30,6 +30,7 @@ bool Sphere::Intersect(const Ray& _ray, Intersection& _intersect)
 			return false;
 
 		_intersect.position = _ray.position + dist * _ray.direction;
+		//Calculate normal based on direction from the center to the intersection point
 		_intersect.normal = _intersect.position - Vector3(m_Sphere.Center.x, m_Sphere.Center.y, m_Sphere.Center.z);
 		_intersect.normal.Normalize();
 		_intersect.material = m_Material;

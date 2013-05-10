@@ -1,6 +1,13 @@
 #pragma once
 #include "../SimpleMath.h"
 
+/********************************************
+** Camera
+** Implements a simple camera with position
+** and rotation. Provides functionality for
+** orientating teh viewport. 
+*********************************************/
+
 class Camera
 {
 private:

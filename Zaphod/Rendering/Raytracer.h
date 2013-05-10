@@ -5,6 +5,12 @@
 
 class Scene;
 
+/********************************************
+** Raytracer
+** Base class of this renderer, fills an array
+** of pixels based on the scenes content
+*********************************************/
+
 class Raytracer
 {
 private:
@@ -16,7 +22,10 @@ private:
 	int m_Width;
 	int m_Height;
 
+	//Get ray for the given X and Y coordinates
 	DirectX::SimpleMath::Ray GetRay(int _x, int _y) const;
+
+	//Render a part of the image (for multy threading)
 	void RenderPart(int _x, int _y, int _width, int _height);
 
 public:
