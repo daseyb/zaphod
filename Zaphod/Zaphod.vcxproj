@@ -85,6 +85,7 @@
     <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="Intersection.h" />
     <ClInclude Include="Light.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="Objects\BaseObject.h" />
     <ClInclude Include="Objects\Box.h" />
     <ClInclude Include="Objects\Sphere.h" />

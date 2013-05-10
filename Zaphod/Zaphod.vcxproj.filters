@@ -49,10 +49,10 @@
       <Filter>Rendering\Lights</Filter>
     </ClCompile>
     <ClCompile Include="DirectionalLight.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Rendering\Lights</Filter>
     </ClCompile>
     <ClCompile Include="PointLight.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Rendering\Lights</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -84,10 +84,13 @@
       <Filter>Rendering\Lights</Filter>
     </ClInclude>
     <ClInclude Include="DirectionalLight.h">
-      <Filter>Header Files</Filter>
+      <Filter>Rendering\Lights</Filter>
     </ClInclude>
     <ClInclude Include="PointLight.h">
-      <Filter>Header Files</Filter>
+      <Filter>Rendering\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

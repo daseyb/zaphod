@@ -32,7 +32,7 @@ bool Sphere::Intersect(const Ray& _ray, Intersection& _intersect)
 		_intersect.position = _ray.position + dist * _ray.direction;
 		_intersect.normal = _intersect.position - Vector3(m_Sphere.Center.x, m_Sphere.Center.y, m_Sphere.Center.z);
 		_intersect.normal.Normalize();
-		_intersect.color = m_Diffuse;
+		_intersect.material = m_Material;
 		return true;
 	}
 	return false;

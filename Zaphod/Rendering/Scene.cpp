@@ -15,19 +15,39 @@ Scene::Scene(Camera* _cam)
 	m_SceneObjects = std::vector<BaseObject*>();
 	Sphere* testSphere = new Sphere(1, Vector3(0,0,0));
 	Box* testBox = new Box(Vector3(0, 0, 0), 1, 1, 1);
-	Box* testBox2 = new Box(Vector3(0, -3, 0), 8, 0.1f, 8);
-	testBox2->SetDiffuse(Color(1, 0, 0));
+	Box* testBox2 = new Box(Vector3(0, -1.05f, 0), 20, 0.1f, 20);
+	
+	Material whiteMat;
+	whiteMat.DiffuseColor = Color(1.0f, 1.0f, 1.0f);
+	whiteMat.SpecularColor = Color(1,1,1);
+	whiteMat.ReflectionColor = Color(1,1,1);
+	whiteMat.DiffuseFactor = 1;
+	whiteMat.SpecularFactor = 1.0f;
+	whiteMat.ReflectionFactor = 0.3f;
+
+	testSphere->SetMaterial(whiteMat);
+	testBox->SetMaterial(whiteMat);
+
+	Material floorMat;
+	floorMat.DiffuseColor = Color(1.0f, 0.5f, 0.5f);
+	floorMat.SpecularColor = Color(1,1,1);
+	floorMat.ReflectionColor = Color(1,1,1);
+	floorMat.DiffuseFactor = 1;
+	floorMat.SpecularFactor = 0.0f;
+	floorMat.ReflectionFactor = 0.5f;
+
+	testBox2->SetMaterial(floorMat);
 
 	m_SceneObjects.push_back(testSphere);
 	m_SceneObjects.push_back(testBox);
 	m_SceneObjects.push_back(testBox2);
 	m_InitTime = clock();
 
-	DirectionalLight* testLight = new DirectionalLight(Color(1, 1, 1), 0.2f, Vector3(1,-1,-1));
-	PointLight* pointTest = new PointLight(Color(1, 0.0f, 1), 0.6f, Vector3(2, 3, -2), 10);
+	PointLight* pointTest = new PointLight(Color(1, 1.0f, 0.7f), 0.9f, Vector3(-2, 3, 2), 15);
+	PointLight* pointTest2 = new PointLight(Color(0.5f, 0.5f, 1.0f), 0.5f, Vector3(2, 2, -1), 30);
 
 	m_SceneLights = std::vector<Light*>();
-	m_SceneLights.push_back(testLight);
+	m_SceneLights.push_back(pointTest2);
 	m_SceneLights.push_back(pointTest);
 
 	m_pCamera = _cam;
@@ -79,7 +99,7 @@ Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray)
 	else
 	{
 		Color retColor = Color(0,0,0);
-		Color ambientColor = Color(0.05f, 0.05f, 0.05f);
+		Color ambientColor = Color(0.0f, 0.0f, 0.0f);
 		
 		for(auto light = m_SceneLights.begin(); light != m_SceneLights.end(); light++)
 		{
@@ -102,19 +122,41 @@ Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray)
 				if(diffuseFactor < 0)
 					diffuseFactor = 0;
 			}
+			else
+			{
+				continue;
+			}
 
 			float dist = (*light)->GetDistance(minIntersect.position);
 			float range = (*light)->GetRange();
 			if(dist > range)
 				dist = range;
-			float strength = (range - dist)/range;
+			float strength = pow((range - dist)/range, 2);
 
 			Color diffuse = diffuseFactor * strength * (*light)->GetColor();
+			Color specular(0,0,0);
+			Color reflection(0,0,0);
 
-			retColor += minIntersect.color * diffuse;
+			if(minIntersect.material.SpecularFactor > 0)
+			{
+				float specularFactor = pow(Vector3::Reflect(lightDir, minIntersect.normal).Dot(_ray.direction), 50);
+				if(specularFactor < 0)
+					specularFactor = 0;
+				else if(specularFactor > 1)
+					specularFactor = 1;
+
+				specular = specularFactor * minIntersect.material.SpecularColor * minIntersect.material.SpecularFactor;
+			}
+
+			if(minIntersect.material.ReflectionFactor > 0)
+			{
+				reflection = Intersect(Ray(minIntersect.position, Vector3::Reflect(_ray.direction, minIntersect.normal))) * minIntersect.material.ReflectionFactor;
+			}
+
+			retColor += (minIntersect.material.DiffuseColor * diffuse + specular)*(1.0f - minIntersect.material.ReflectionFactor) + reflection;
 		}
 
-		retColor += minIntersect.color * ambientColor;
+		retColor += minIntersect.material.DiffuseColor * ambientColor;
 		retColor.Saturate();
 		return retColor;
 

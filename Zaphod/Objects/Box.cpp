@@ -68,7 +68,7 @@ bool Box::Intersect(const Ray& _ray, Intersection& _intersect)
 			_intersect.normal = dotZ * Vector3(0,0,1);
 		_intersect.normal.Normalize();
 
-		_intersect.color = m_Diffuse;
+		_intersect.material = m_Material;
 
 		return true;
 	}
