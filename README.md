@@ -24,3 +24,6 @@ May 9th 13: Point lights
 
 ![Reflections](img/reflections.png)
 May 10th 13: Reflections
+
+![Refraction](img/transmission.png)
+May 14th 13: Refractions
