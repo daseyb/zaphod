@@ -1,6 +1,8 @@
 zaphod - A CPU Realtime Raytracer
 ======
 
+####Binary: [Download](http://dl.bintray.com/bonus2113/zaphod/Zaphod.exe?direct)
+
 ###About###
 
 This project is intented as a learning experience. Both to brush up my 3D math skills as well as practice writing a
