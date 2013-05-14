@@ -9,5 +9,7 @@ struct Material
 	float DiffuseFactor;
 	float SpecularFactor;
 	float ReflectionFactor;
+	float Transparency;
+	float IOR;
 };
 

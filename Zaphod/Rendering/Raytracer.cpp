@@ -58,7 +58,7 @@ void Raytracer::RenderPart(int _x, int _y, int _width, int _height)
 		{
 			int pixelIndex = (x + m_Width * y) * 4;
 			Ray current = GetRay(x, y);
-			Color col = m_pScene->Intersect(current);
+			Color col = m_pScene->Intersect(current, 5);
 
 			sf::Color newCol((sf::Uint8)(col.R() * 255), (sf::Uint8)(col.G() * 255), (sf::Uint8)(col.B() * 255), 255);
 			

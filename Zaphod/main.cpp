@@ -1,8 +1,8 @@
 #include <SFML/Graphics.hpp>
 #include "Rendering/Raytracer.h"
 
-const int WIDTH = 850;
-const int HEIGHT = 480;
+const int WIDTH = 1280;
+const int HEIGHT = 720;
 
 int main()
 {

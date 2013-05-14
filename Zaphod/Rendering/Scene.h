@@ -30,7 +30,7 @@ class Scene
 public:
 	Scene(Camera* _cam);
 	void Update();
-	DirectX::SimpleMath::Color Intersect(const DirectX::SimpleMath::Ray& _ray) const; 
+	DirectX::SimpleMath::Color Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth) const; 
 	~Scene(void);
 };
 
