@@ -27,3 +27,6 @@ May 10th 13: Reflections
 
 ![Refraction](img/transmission.png)
 May 14th 13: Refractions
+
+![Transparent Shadows](img/transparent_shadows.png)
+May 21st 13: Transparent shadows
