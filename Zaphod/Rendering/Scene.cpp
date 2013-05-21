@@ -148,20 +148,31 @@ Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth) const
 			//Cast shadow ray
 			Vector3 lightDir = (*light)->GetDirection(minIntersect.position);
 			Ray shadowRay(minIntersect.position + lightDir * 0.0001f, lightDir);
-
+			Color shadowColor = Color(1,1,1);
+			float shadowTransparency = 1;
 			bool inShadow = false;
 			for(auto obj = m_SceneObjects.begin(); obj != m_SceneObjects.end(); obj++)
 			{
 				if((*obj)->Intersect(shadowRay, intersect))
 				{
-					inShadow = true;
-					break;
+					if(intersect.material.Transparency == 0)
+					{
+						inShadow = true;
+						break;
+					}
+					else
+					{
+						shadowColor *= intersect.material.DiffuseColor;
+						shadowTransparency *= intersect.material.Transparency;
+					}
 				}
 			}
 
 			//In shadow, no lighting to be done
 			if(inShadow)
 				continue;
+
+			//ambientColor = ambientColor * (shadowColor*shadowTransparency);
 			
 			//Diffuse lighting
 			float diffuseFactor = minIntersect.normal.Dot(lightDir);
@@ -189,7 +200,7 @@ Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth) const
 				specular = specularFactor * minIntersect.material.SpecularColor * minIntersect.material.SpecularFactor;
 			}
 
-			retColor += (minIntersect.material.DiffuseColor * diffuse + specular);
+			retColor += (minIntersect.material.DiffuseColor * diffuse + specular) * (shadowTransparency * shadowColor);
 		}
 
 		//Angles for fresenel equations
