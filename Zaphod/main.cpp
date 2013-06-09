@@ -1,8 +1,8 @@
 #include <SFML/Graphics.hpp>
 #include "Rendering/Raytracer.h"
 
-const int WIDTH = 1280;
-const int HEIGHT = 720;
+const int WIDTH = 850;
+const int HEIGHT = 480;
 
 int main()
 {
@@ -23,6 +23,12 @@ int main()
 	//Initialize the Raytrcer class with width, height and horizontal FOV
 	Raytracer rt;
 	rt.Initialize(WIDTH, HEIGHT, 90);
+
+	//Update the pixel array
+	rt.Render();
+
+	//Write the updated pixels to the texture
+	tex.update(rt.GetPixels());
 	
     while (window.isOpen())
     {
@@ -34,16 +40,8 @@ int main()
         }
 
         window.clear();
-
-		//Update the pixel array
-		rt.Render();
-
-		//Write the updated pixels to the texture
-		tex.update(rt.GetPixels());
-		
 		window.draw(renderSprite);
         window.display();
     }
-
     return 0;
 }

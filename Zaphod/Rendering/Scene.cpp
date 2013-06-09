@@ -1,12 +1,14 @@
 #include "Scene.h"
-#include "../Intersection.h"
+#include "../Geometry/Intersection.h"
 #include "../Objects/BaseObject.h"
 #include "../Objects/Sphere.h"
 #include "../Objects/Box.h"
+#include "../Objects/Mesh.h"
 #include "Camera.h"
 #include "../Light.h"
 #include "../DirectionalLight.h"
 #include "../PointLight.h"
+#include "../ObjLoader.h"
 #include <stdlib.h>
 #include <iostream>
 
@@ -21,6 +23,8 @@ Scene::Scene(Camera* _cam)
 	//Build a few test objects and materials
 	Box* testBox = new Box(Vector3(0, 0, 0), 1, 1, 1);
 	Box* testBox2 = new Box(Vector3(0, -1.05f, 0), 20, 0.1f, 20);
+
+	Mesh* testMesh = new Mesh(Vector3(1.5f, 0.0f, 2), "Data\\test.obj");
 	
 	Material whiteMat;
 	whiteMat.DiffuseColor = Color(1.0f, 1.0f, 1.0f);
@@ -44,6 +48,7 @@ Scene::Scene(Camera* _cam)
 
 	testSphere->SetMaterial(transparentMat);
 	testBox->SetMaterial(whiteMat);
+	testMesh->SetMaterial(whiteMat);
 
 	Material floorMat;
 	floorMat.DiffuseColor = Color(1.0f, 0.5f, 0.5f);
@@ -57,19 +62,19 @@ Scene::Scene(Camera* _cam)
 
 	testBox2->SetMaterial(floorMat);
 
-	m_SceneObjects.push_back(testBox);
+	m_SceneObjects.push_back(testMesh);
 	m_SceneObjects.push_back(testSphere);
 	m_SceneObjects.push_back(testBox2);
 	
 	//Build a few test lights
-	PointLight* pointTest = new PointLight(Color(1, 1.0f, 0.7f), 0.9f, Vector3(-2, 3, 4), 40);
-	PointLight* pointTest2 = new PointLight(Color(0.5f, 0.5f, 1.0f), 0.5f, Vector3(2, 2, -1), 30);
+	PointLight* pointTest = new PointLight(Color(1, 1.0f, 0.7f), 0.9f, Vector3(-2, 3, 4), 80);
+	PointLight* pointTest2 = new PointLight(Color(0.5f, 0.5f, 1.0f), 0.5f, Vector3(2, 2, -3), 30);
 
 	m_SceneLights = std::vector<Light*>();
 	m_SceneLights.push_back(pointTest2);
 	m_SceneLights.push_back(pointTest);
 
-	m_SceneObjects[1]->SetPosition(Vector3(-0.5f, 0.0f, 4));
+	//m_SceneObjects[0]->SetPosition(Vector3(1.5f, 0.0f, 2));
 
 
 	//Set the start time

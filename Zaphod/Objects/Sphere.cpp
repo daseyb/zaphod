@@ -1,5 +1,5 @@
 #include "Sphere.h"
-#include "../Intersection.h"
+#include "../Geometry/Intersection.h"
 
 using namespace DirectX::SimpleMath;
 

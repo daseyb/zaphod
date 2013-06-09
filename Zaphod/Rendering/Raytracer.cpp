@@ -77,7 +77,9 @@ void Raytracer::Render(void)
 	//Spawn rendering threads (hard coded for now)
 	const int THREAD_COUNT = 8;
 
-	int width = m_Width/4;
+	RenderPart(0,0,m_Width, m_Height);
+
+	/*int width = m_Width/4;
 	int height = m_Height/2;
 
 	std::thread t[THREAD_COUNT];
@@ -92,7 +94,7 @@ void Raytracer::Render(void)
 	t[7] = std::thread(&Raytracer::RenderPart, this, 3 * width, 1*height, width, height);
 
 	for(int i = 0; i < THREAD_COUNT; i++)
-		t[i].join();
+		t[i].join();*/
 }
 
 sf::Uint8* Raytracer::GetPixels(void) const

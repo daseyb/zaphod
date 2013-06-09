@@ -1,0 +1,42 @@
+#include "Mesh.h"
+#include "..\Geometry\Intersection.h"
+#include "..\Geometry\Triangle.h"
+#include "..\ObjLoader.h"
+
+using namespace DirectX::SimpleMath;
+
+Mesh::Mesh(DirectX::SimpleMath::Vector3 _pos, const std::string& _file) {
+	if(LoadObj(_file, m_Triangles, m_Smooth)) {
+		m_Bounds = std::unique_ptr<Octree>(new Octree(m_Triangles, _pos));
+		SetPosition(_pos);	
+	}
+}
+
+Mesh::Mesh(Vector3 _pos, std::vector<Triangle> _tris, bool _smooth) {
+	m_Bounds = std::unique_ptr<Octree>(new Octree(m_Triangles, _pos));
+	m_Smooth = _smooth;
+	SetPosition(_pos);
+}
+
+
+Mesh::~Mesh(void) {
+}
+
+void Mesh::SetPosition(DirectX::SimpleMath::Vector3 _pos) {
+	BaseObject::SetPosition(_pos);
+}
+
+bool Mesh::Intersect(const Ray& _ray, Intersection& _intersect) const {
+	float minDist = FLT_MAX;
+	Triangle minTri;
+	Ray transformedRay = _ray;
+	//transformedRay.position -= m_Position;
+	bool intersectFound = m_Bounds->Intersect(transformedRay, minTri, minDist);
+
+	if(intersectFound) {
+		_intersect.material = m_Material;
+		_intersect.position = transformedRay.position + minDist * _ray.direction;
+		_intersect.normal = (minTri.v(0).Normal + minTri.v(1).Normal + minTri.v(2).Normal)/3;
+	}	
+	return intersectFound;
+}
