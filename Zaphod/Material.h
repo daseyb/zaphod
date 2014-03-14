@@ -11,5 +11,6 @@ struct Material
 	float ReflectionFactor;
 	float Transparency;
 	float IOR;
+	float Glossyness;
 };
 

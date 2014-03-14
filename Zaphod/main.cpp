@@ -23,6 +23,11 @@ int main()
 	//Initialize the Raytrcer class with width, height and horizontal FOV
 	Raytracer rt;
 	rt.Initialize(WIDTH, HEIGHT, 90);
+
+	//Update the pixel array
+	rt.Render();
+
+
 	
     while (window.isOpen())
     {
@@ -34,12 +39,10 @@ int main()
         }
 
         window.clear();
-
-		//Update the pixel array
-		rt.Render();
-
+		
 		//Write the updated pixels to the texture
 		tex.update(rt.GetPixels());
+		
 		
 		window.draw(renderSprite);
         window.display();

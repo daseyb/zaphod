@@ -1,7 +1,6 @@
 #define _USE_MATH_DEFINES
 #include "Raytracer.h"
 #include "Scene.h"
-#include <thread>
 
 using namespace DirectX::SimpleMath;
 
@@ -58,7 +57,7 @@ void Raytracer::RenderPart(int _x, int _y, int _width, int _height)
 		{
 			int pixelIndex = (x + m_Width * y) * 4;
 			Ray current = GetRay(x, y);
-			Color col = m_pScene->Intersect(current, 5);
+			Color col = m_pScene->Intersect(current, 3);
 
 			sf::Color newCol((sf::Uint8)(col.R() * 255), (sf::Uint8)(col.G() * 255), (sf::Uint8)(col.B() * 255), 255);
 			
@@ -75,24 +74,22 @@ void Raytracer::Render(void)
 	m_pScene->Update();
 
 	//Spawn rendering threads (hard coded for now)
-	const int THREAD_COUNT = 8;
 
-	int width = m_Width/4;
+	int width = m_Width/2;
 	int height = m_Height/2;
 
-	std::thread t[THREAD_COUNT];
 
-	t[0] = std::thread(&Raytracer::RenderPart, this, 0, 0, width, height);
-	t[1] = std::thread(&Raytracer::RenderPart, this, 0, height, width, height);
-	t[2] = std::thread(&Raytracer::RenderPart, this, 1 * width, 0*height, width, height);
-	t[3] = std::thread(&Raytracer::RenderPart, this, 1 * width, 1*height, width, height);
-	t[4] = std::thread(&Raytracer::RenderPart, this, 2 * width, 0*height, width, height);
+	m_Threads[0] = std::thread(&Raytracer::RenderPart, this, 0, 0, width, height);
+	m_Threads[1] = std::thread(&Raytracer::RenderPart, this, 0, height, width, height);
+	m_Threads[2] = std::thread(&Raytracer::RenderPart, this, 1 * width, 0*height, width, height);
+	m_Threads[3] = std::thread(&Raytracer::RenderPart, this, 1 * width, 1*height, width, height);
+	/*t[4] = std::thread(&Raytracer::RenderPart, this, 2 * width, 0*height, width, height);
 	t[5] = std::thread(&Raytracer::RenderPart, this, 2 * width, 1*height, width, height);
 	t[6] = std::thread(&Raytracer::RenderPart, this, 3 * width, 0*height, width, height);
-	t[7] = std::thread(&Raytracer::RenderPart, this, 3 * width, 1*height, width, height);
+	t[7] = std::thread(&Raytracer::RenderPart, this, 3 * width, 1*height, width, height);*/
 
-	for(int i = 0; i < THREAD_COUNT; i++)
-		t[i].join();
+	//for(int i = 0; i < THREAD_COUNT; i++)
+		//t[i].join();
 }
 
 sf::Uint8* Raytracer::GetPixels(void) const
