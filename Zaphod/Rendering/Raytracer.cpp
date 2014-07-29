@@ -28,6 +28,9 @@ bool Raytracer::Initialize(int _width, int _height, float _fov)
 
 void Raytracer::Shutdown(void)
 {
+	for (int i = 0; i < THREAD_COUNT; i++)
+		m_Threads[i].join();
+
 	if(m_Pixels)
 	{
 		delete[] m_Pixels;
@@ -52,22 +55,34 @@ void Raytracer::SetFOV(float _fov)
 	m_FOV = _fov;
 }
 
+Color Raytracer::ReadColorAt(int _x, int _y) const
+{
+	int pixelIndex = (_x + m_Width * _y) * 4;
+	return Color(m_Pixels[pixelIndex + 0], m_Pixels[pixelIndex + 1], m_Pixels[pixelIndex + 2], m_Pixels[pixelIndex + 3]) * 1.0f / 255;
+}
+
 void Raytracer::RenderPart(int _x, int _y, int _width, int _height)
 {
-	for(int x = _x; x < _x + _width; x++)
+	for (int i = 0; i < 200; i++)
 	{
-		for (int y = _y; y < _y + _height; y++)
+		for (int x = _x; x < _x + _width; x++)
 		{
-			int pixelIndex = (x + m_Width * y) * 4;
-			Ray current = GetRay(x, y);
-			Color col = m_pScene->Intersect(current, 5);
+			for (int y = _y; y < _y + _height; y++)
+			{
+				int pixelIndex = (x + m_Width * y) * 4;
+				Ray current = GetRay(x, y);
 
-			sf::Color newCol((sf::Uint8)(col.R() * 255), (sf::Uint8)(col.G() * 255), (sf::Uint8)(col.B() * 255), 255);
-			
-			m_Pixels[pixelIndex + 0] = newCol.r;
-			m_Pixels[pixelIndex + 1] = newCol.g;
-			m_Pixels[pixelIndex + 2] = newCol.b;
-			m_Pixels[pixelIndex + 3] = newCol.a;
+				Color col = ReadColorAt(x, y);
+				float factor = 1.0f - 1.0f / i;
+				col = col * factor + m_pScene->Intersect(current, 4) * (1.0f - factor);
+
+				sf::Color newCol((sf::Uint8)(col.R() * 255), (sf::Uint8)(col.G() * 255), (sf::Uint8)(col.B() * 255), 255);
+
+				m_Pixels[pixelIndex + 0] = newCol.r;
+				m_Pixels[pixelIndex + 1] = newCol.g;
+				m_Pixels[pixelIndex + 2] = newCol.b;
+				m_Pixels[pixelIndex + 3] = newCol.a;
+			}
 		}
 	}
 }
@@ -78,24 +93,17 @@ void Raytracer::Render(void)
 
 #ifdef MULTI_THREADED
 	//Spawn rendering threads (hard coded for now)
-	const int THREAD_COUNT = 8;
-
 	int width = m_Width/4;
 	int height = m_Height/2;
 
-	std::thread t[THREAD_COUNT];
-
-	t[0] = std::thread(&Raytracer::RenderPart, this, 0, 0, width, height);
-	t[1] = std::thread(&Raytracer::RenderPart, this, 0, height, width, height);
-	t[2] = std::thread(&Raytracer::RenderPart, this, 1 * width, 0*height, width, height);
-	t[3] = std::thread(&Raytracer::RenderPart, this, 1 * width, 1*height, width, height);
-	t[4] = std::thread(&Raytracer::RenderPart, this, 2 * width, 0*height, width, height);
-	t[5] = std::thread(&Raytracer::RenderPart, this, 2 * width, 1*height, width, height);
-	t[6] = std::thread(&Raytracer::RenderPart, this, 3 * width, 0*height, width, height);
-	t[7] = std::thread(&Raytracer::RenderPart, this, 3 * width, 1*height, width, height);
-
-	for(int i = 0; i < THREAD_COUNT; i++)
-		t[i].join();
+	m_Threads[0] = std::thread(&Raytracer::RenderPart, this, 0, 0, width, height);
+	m_Threads[1] = std::thread(&Raytracer::RenderPart, this, 0, height, width, height);
+	m_Threads[2] = std::thread(&Raytracer::RenderPart, this, 1 * width, 0 * height, width, height);
+	m_Threads[3] = std::thread(&Raytracer::RenderPart, this, 1 * width, 1 * height, width, height);
+	m_Threads[4] = std::thread(&Raytracer::RenderPart, this, 2 * width, 0 * height, width, height);
+	m_Threads[5] = std::thread(&Raytracer::RenderPart, this, 2 * width, 1 * height, width, height);
+	m_Threads[6] = std::thread(&Raytracer::RenderPart, this, 3 * width, 0 * height, width, height);
+	m_Threads[7] = std::thread(&Raytracer::RenderPart, this, 3 * width, 1 * height, width, height);
 #else
 	RenderPart(0,0,m_Width, m_Height);
 #endif
@@ -115,8 +123,8 @@ Ray Raytracer::GetRay(int _x, int _y) const
 	float halfWidth = m_Width/2;
 	float halfHeight = m_Height/2;
 
-	float alpha = tanf(fovx/2)*((_x - halfWidth)/halfWidth); //horizontal offset
-	float beta =  tanf(fovy/2)*((halfHeight - _y)/halfHeight); //vertical offset
+	float alpha = tanf(fovx/2)*((_x - halfWidth)/halfWidth) + ((float)rand()/RAND_MAX - 0.5f) * 0.01f; //horizontal offset
+	float beta = tanf(fovy / 2)*((halfHeight - _y) / halfHeight) + ((float)rand() / RAND_MAX - 0.5f) * 0.01f; //vertical offset
 
 	Matrix viewMatrix = m_pCamera->GetViewMatrix();
 	Vector3 pos = viewMatrix.Translation();

@@ -1,8 +1,9 @@
 #include "Scene.h"
-#include "../Intersection.h"
+#include "../Geometry/Intersection.h"
 #include "../Objects/BaseObject.h"
 #include "../Objects/Sphere.h"
 #include "../Objects/Box.h"
+#include "../Objects/Mesh.h"
 #include "Camera.h"
 #include "../Light.h"
 #include "../DirectionalLight.h"
@@ -22,9 +23,13 @@ Scene::Scene(Camera* _cam)
 	Sphere* testSphere3 = new Sphere(2.5f, Vector3(-3.5f,0.5f,-1));
 
 	//Build a few test objects and materials
-	Box* testBox = new Box(Vector3(0, 0, 0), 12, 12, 12);
+	Box* testBox = new Box(Vector3(0, 10, -8), 20, 20, 0.1f);
 	Box* testBox2 = new Box(Vector3(0, -1.05f, 0), 20, 0.1f, 20);
-	
+	Box* testBox3 = new Box(Vector3(-8, 10, 0), 0.1f, 20, 20);
+	Box* testBox4 = new Box(Vector3( 8, 10, 0), 0.1f, 20, 20);
+	Box* testBox5 = new Box(Vector3(0, 10, 11), 20, 20, 0.1f);
+	Mesh* monkey = new Mesh(Vector3(-2, 0.25f, 6), "Data/test_smooth.obj");
+
 	Material whiteMat;
 	whiteMat.DiffuseColor = Color(1.0f, 1.0f, 1.0f);
 	whiteMat.SpecularColor = Color(1,1,1);
@@ -48,50 +53,62 @@ Scene::Scene(Camera* _cam)
 	testBox->SetMaterial(whiteMat);
 
 	Material floorMat;
-	floorMat.DiffuseColor = Color(1.0f, 1.0f, 0.5f);
+	floorMat.DiffuseColor = Color(1.0f, 1.0f, 1.0f);
 	floorMat.SpecularColor = Color(1,1,1);
 	floorMat.ReflectionColor = Color(1,1,1);
 	floorMat.DiffuseFactor = 1;
 	floorMat.SpecularFactor = 0.0f;
-	floorMat.ReflectionFactor = 0.5f;
+	floorMat.ReflectionFactor = 0.0f;
 	floorMat.Transparency = 0.0f;
 	floorMat.IOR = 1.0f;
 
-	Material chromeMat;
-	chromeMat.DiffuseColor = Color(0.5f, 0.5f, 0.5f);
-	chromeMat.SpecularColor = Color(1,1,1);
-	chromeMat.ReflectionColor = Color(1,1,1);
-	chromeMat.DiffuseFactor = 1;
-	chromeMat.SpecularFactor = 0.0f;
-	chromeMat.ReflectionFactor = 0.6f;
-	chromeMat.Transparency = 0.0f;
-	chromeMat.IOR = 1.0f;
-	chromeMat.Glossyness = 0.8f;
+	Material chromeMatBase;
+	chromeMatBase.DiffuseColor = Color(0.5f, 0.5f, 0.5f);
+	chromeMatBase.SpecularColor = Color(1, 1, 1);
+	chromeMatBase.ReflectionColor = Color(1, 1, 1);
+	chromeMatBase.DiffuseFactor = 0.4f;
+	chromeMatBase.SpecularFactor = 0.0f;
+	chromeMatBase.ReflectionFactor = 0.6f;
+	chromeMatBase.Transparency = 0.0f;
+	chromeMatBase.IOR = 1.0f;
+	chromeMatBase.Glossyness = 0.8f;
+
+	Material chromeMatRed = chromeMatBase;
+	chromeMatRed.DiffuseColor = Color(0.5f, 0.0f, 0.0f);
+
+	Material chromeMatBlue = chromeMatBase;
+	chromeMatBlue.DiffuseColor = Color(0.0f, 0.0f, 0.5f);
 
 	testBox2->SetMaterial(floorMat);
+	testBox3->SetMaterial(floorMat);
+	testBox4->SetMaterial(floorMat);
 	testSphere->SetMaterial(transparentMat);
+	monkey->SetMaterial(whiteMat);
+	testSphere2->SetMaterial(chromeMatBlue);
+	testSphere3->SetMaterial(chromeMatRed);
 
-	testSphere2->SetMaterial(chromeMat);
-	testSphere3->SetMaterial(chromeMat);
-
+	m_SceneObjects.push_back(monkey);
 	m_SceneObjects.push_back(testBox);
 	m_SceneObjects.push_back(testSphere);
 	m_SceneObjects.push_back(testBox2);
+	m_SceneObjects.push_back(testBox3);
+	m_SceneObjects.push_back(testBox4);
+	m_SceneObjects.push_back(testBox5);
 	m_SceneObjects.push_back(testSphere2);
 	m_SceneObjects.push_back(testSphere3);
 	
 	//Build a few test lights
-	PointLight* pointTest = new PointLight(Color(1, 1.0f, 0.7f), 1.9f, Vector3(-2, 3, 4), 40);
-	PointLight* pointTest2 = new PointLight(Color(0.5f, 0.5f, 1.0f), 0.5f, Vector3(2, 2, -1), 90);
+	PointLight* pointTest = new PointLight(Color(1.0, 0.5f, 0.0f), 1.9f, Vector3(0, 2, -6), 20);
+	PointLight* pointTest2 = new PointLight(Color(0.2f, 1.0f, 0.2f), 0.9f, Vector3(-2, 2, 2), 9);
+	PointLight* pointTest3 = new PointLight(Color(0.0f, 0.66f, 1.0f), 1.5f, Vector3(0, 2, 10), 20);
 
 	DirectionalLight* dirTest = new DirectionalLight(Color(1, 1, 1), 0.2f, Vector3(-1, -1, -2));
 
 	m_SceneLights = std::vector<Light*>();
 	m_SceneLights.push_back(pointTest2);
 	m_SceneLights.push_back(pointTest);
-	m_SceneLights.push_back(dirTest);
-
-	m_SceneObjects[1]->SetPosition(Vector3(-0.5f, 0.0f, 4));
+	m_SceneLights.push_back(pointTest3);
+	//m_SceneLights.push_back(dirTest);
 
 
 	//Set the start time
@@ -138,7 +155,8 @@ Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth) const
 	if(_depth < 0)
 		return Color(0,0,0);
 
-	const int SHADOW_SAMPLES = 15;
+	const int SHADOW_SAMPLES = 5;
+	const int GLOSSY_SAMPLES = 2;
 
 	float minDist = FLT_MAX;
 	Intersection minIntersect;
@@ -171,12 +189,15 @@ Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth) const
 		Color ambientColor = Color(0.0f, 0.0f, 0.0f);
 		
 		//For each light
-		for(auto light = m_SceneLights.begin(); light != m_SceneLights.end(); light++)
+		for(auto light : m_SceneLights)
 		{
 			Color shadowColor = Color(1,1,1);
 			float shadowTransparency = 1;
 			bool inShadow = false;
-			Vector3 lightDir = (*light)->GetDirection(minIntersect.position);
+			Vector3 lightDir = light->GetDirection(minIntersect.position);
+			float lightDist = light->GetDistance(minIntersect.position);
+			Intersection shadowIntersect;
+
 			int inShadowCount = 0;
 			for(int i = 0; i < SHADOW_SAMPLES; i++) {
 				//Cast shadow ray
@@ -186,17 +207,17 @@ Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth) const
 
 				for(auto obj = m_SceneObjects.begin(); obj != m_SceneObjects.end(); obj++)
 				{
-					if((*obj)->Intersect(shadowRay, intersect))
+					if ((*obj)->Intersect(shadowRay, shadowIntersect) && (shadowIntersect.position - minIntersect.position).Length() < lightDist)
 					{
-						if(intersect.material.Transparency == 0)
+						if (shadowIntersect.material.Transparency == 0)
 						{
 							inShadow = true;
 							break;
 						}
 						else
 						{
-							shadowColor *= intersect.material.DiffuseColor;
-							shadowTransparency *= intersect.material.Transparency;
+							shadowColor *= shadowIntersect.material.DiffuseColor;
+							shadowTransparency *= shadowIntersect.material.Transparency;
 						}
 					}
 				}
@@ -216,13 +237,12 @@ Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth) const
 			if(diffuseFactor < 0)
 				diffuseFactor = 0;
 
-			float dist = (*light)->GetDistance(minIntersect.position);
-			float range = (*light)->GetRange();
-			if(dist > range)
-				dist = range;
-			float strength = pow((range - dist)/range, 2);
+			float range = light->GetRange();
+			if (lightDist > range)
+				lightDist = range;
+			float strength = pow((range - lightDist) / range, 2);
 
-			Color diffuse = diffuseFactor * strength * (*light)->GetColor();
+			Color diffuse = diffuseFactor * strength * light->GetColor();
 			Color specular(0,0,0);
 
 			//Specular lighting
@@ -251,18 +271,17 @@ Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth) const
 			reflection = Intersect(Ray(minIntersect.position + reflectionDir * 0.001f, reflectionDir) , _depth - 1);
 			oi = acos(reflectionDir.Dot(-_ray.direction))/2;
 			if(minIntersect.material.Glossyness > 0) {
-				for(int i = 0; i < 4; i++) {
+				for (int i = 0; i < GLOSSY_SAMPLES; i++) {
 					reflectionDir = RandomOffset(Vector3::Reflect(_ray.direction, minIntersect.normal), minIntersect.material.Glossyness);
 					reflectionDir.Normalize();
 					reflection += Intersect(Ray(minIntersect.position + reflectionDir * 0.001f, reflectionDir) , _depth - 1) * minIntersect.material.Glossyness;
 				}
 
-				reflection *= 1.0f/5;
+				reflection *= 1.0f / GLOSSY_SAMPLES;
 			}
 		}
 
 		
-
 		Color refraction(0,0,0);
 		bool totalReflection = true;
 		if(minIntersect.material.Transparency > 0)

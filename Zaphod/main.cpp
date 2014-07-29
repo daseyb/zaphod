@@ -1,5 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include "Rendering/Raytracer.h"
+#include <ctime>
+#include <string>
 
 const int WIDTH = 1280;
 const int HEIGHT = 720;
@@ -27,6 +29,7 @@ int main()
 	//Update the pixel array
 	rt.Render();
 
+	time_t now = time(0);
 
 	
     while (window.isOpen())
@@ -42,11 +45,13 @@ int main()
 		
 		//Write the updated pixels to the texture
 		tex.update(rt.GetPixels());
-		
-		
+
+		//tex.copyToImage().saveToFile("Output" + std::string(ctime(&now)) + ".png");
 		window.draw(renderSprite);
         window.display();
     }
+
+	rt.Shutdown();
 
     return 0;
 }

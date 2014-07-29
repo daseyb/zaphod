@@ -16,7 +16,7 @@ class Scene;
 class Raytracer
 {
 private:
-	static const int THREAD_COUNT = 4;
+	static const int THREAD_COUNT = 8;
 
 	sf::Uint8* m_Pixels;
 	Camera* m_pCamera;
@@ -34,6 +34,8 @@ private:
 
 	//Render a part of the image (for multy threading)
 	void RenderPart(int _x, int _y, int _width, int _height);
+
+	DirectX::SimpleMath::Color ReadColorAt(int _x, int _y) const;
 
 public:
 	Raytracer(void);

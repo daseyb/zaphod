@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2014 Laurent Gomila (laurent.gom@gmail.com)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -72,6 +72,13 @@ public :
     ////////////////////////////////////////////////////////////
     /// \brief Construct the text from a string, font and size
     ///
+    /// Note that if the used font is a bitmap font, it is not
+    /// scalable, thus not all requested sizes will be available
+    /// to use. This needs to be taken into consideration when
+    /// setting the character size. If you need to display text
+    /// of a certain size, make sure the corresponding bitmap
+    /// font that supports that size is used.
+    ///
     /// \param string         Text assigned to the string
     /// \param font           Font used to draw the string
     /// \param characterSize  Base size of characters, in pixels
@@ -121,6 +128,13 @@ public :
     /// \brief Set the character size
     ///
     /// The default size is 30.
+    ///
+    /// Note that if the used font is a bitmap font, it is not
+    /// scalable, thus not all requested sizes will be available
+    /// to use. This needs to be taken into consideration when
+    /// setting the character size. If you need to display text
+    /// of a certain size, make sure the corresponding bitmap
+    /// font that supports that size is used.
     ///
     /// \param size New character size, in pixels
     ///
@@ -275,21 +289,25 @@ private :
     virtual void draw(RenderTarget& target, RenderStates states) const;
 
     ////////////////////////////////////////////////////////////
-    /// \brief Update the text's geometry
+    /// \brief Make sure the text's geometry is updated
+    /// 
+    /// All the attributes related to rendering are cached, such
+    /// that the geometry is only updated when necessary.
     ///
     ////////////////////////////////////////////////////////////
-    void updateGeometry();
+    void ensureGeometryUpdate() const;
 
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    String        m_string;        ///< String to display
-    const Font*   m_font;          ///< Font used to display the string
-    unsigned int  m_characterSize; ///< Base size of characters, in pixels
-    Uint32        m_style;         ///< Text style (see Style enum)
-    Color         m_color;         ///< Text color
-    VertexArray   m_vertices;      ///< Vertex array containing the text's geometry
-    FloatRect     m_bounds;        ///< Bounding rectangle of the text (in local coordinates)
+    String              m_string;             ///< String to display
+    const Font*         m_font;               ///< Font used to display the string
+    unsigned int        m_characterSize;      ///< Base size of characters, in pixels
+    Uint32              m_style;              ///< Text style (see Style enum)
+    Color               m_color;              ///< Text color
+    mutable VertexArray m_vertices;           ///< Vertex array containing the text's geometry
+    mutable FloatRect   m_bounds;             ///< Bounding rectangle of the text (in local coordinates)
+    mutable bool        m_geometryNeedUpdate; ///< Does the geometry need to be recomputed?
 };
 
 } // namespace sf
@@ -329,6 +347,8 @@ private :
 /// Thus, a sf::Font must not be destructed while it is
 /// used by a sf::Text (i.e. never write a function that
 /// uses a local sf::Font instance for creating a text).
+///
+/// See also the note on coordinates and undistorted rendering in sf::Transformable.
 ///
 /// Usage example:
 /// \code

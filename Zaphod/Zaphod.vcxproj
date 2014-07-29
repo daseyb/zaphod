@@ -44,12 +44,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>D:\PC\Dario-PC\User\Dario\Documents\Games\Libaries\SFML32\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SFML_STATIC;GLEW_STATIC;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\PC\Dario-PC\User\Dario\Documents\Games\Libaries\SFML32\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-graphics-s-d.lib;sfml-window-s-d.lib;sfml-system-s-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\..\SFML-2.1\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sfml-graphics-s-d.lib;sfml-window-s-d.lib;sfml-system-s-d.lib;sndfile.lib;openal32.lib;jpeg.lib;glew.lib;freetype.lib;ws2_32.lib;gdi32.lib;opengl32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -59,23 +59,28 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\SFML-2.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SFML_STATIC;GLEW_STATIC;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(ProjectDir)\..\SFML-2.1\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-window-s.lib;sfml-graphics-s.lib;sfml-system-s.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>sfml-audio-s.lib;sfml-graphics-s.lib;sfml-network-s.lib;sfml-window-s.lib;sfml-system-s.lib;sndfile.lib;openal32.lib;jpeg.lib;glew.lib;freetype.lib;ws2_32.lib;gdi32.lib;opengl32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DirectionalLight.cpp" />
+    <ClCompile Include="Geometry\Octree.cpp" />
+    <ClCompile Include="Geometry\Triangle.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Node.cpp" />
     <ClCompile Include="Objects\BaseObject.cpp" />
     <ClCompile Include="Objects\Box.cpp" />
+    <ClCompile Include="Objects\Mesh.cpp" />
     <ClCompile Include="Objects\Sphere.cpp" />
+    <ClCompile Include="ObjLoader.cpp" />
     <ClCompile Include="PointLight.cpp" />
     <ClCompile Include="Rendering\Camera.cpp" />
     <ClCompile Include="Rendering\Raytracer.cpp" />
@@ -83,12 +88,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DirectionalLight.h" />
+    <ClInclude Include="Geometry\Octree.h" />
+    <ClInclude Include="Geometry\Triangle.h" />
     <ClInclude Include="Intersection.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Material.h" />
+    <ClInclude Include="Node.h" />
     <ClInclude Include="Objects\BaseObject.h" />
     <ClInclude Include="Objects\Box.h" />
+    <ClInclude Include="Objects\Mesh.h" />
     <ClInclude Include="Objects\Sphere.h" />
+    <ClInclude Include="ObjLoader.h" />
     <ClInclude Include="PointLight.h" />
     <ClInclude Include="Rendering\Camera.h" />
     <ClInclude Include="Rendering\Raytracer.h" />

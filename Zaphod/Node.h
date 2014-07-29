@@ -19,7 +19,7 @@ public:
 	Node(DirectX::BoundingBox _bounds, std::vector<Triangle> _parentPolys);
 	~Node(void);
 	DirectX::SimpleMath::Vector3 GetCenter() const;
-	bool Contains(const Triangle& _poly) const;
+	bool Contains(const DirectX::BoundingBox& _bounds, const Triangle& _poly) const;
 	bool Intersect(const DirectX::SimpleMath::Ray& _ray, Triangle& _out, float& _dist) const;
 	bool HasPolys(void) const;
 };

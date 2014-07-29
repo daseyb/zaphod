@@ -38,13 +38,13 @@ bool Mesh::Intersect(const Ray& _ray, Intersection& _intersect) const {
 	DirectX::XMMATRIX translationMatrix = DirectX::XMMatrixTranslation(-m_Position.x, -m_Position.y, -m_Position.z);
 	DirectX::XMMATRIX transform = DirectX::XMMatrixMultiply(rotationMatrix, translationMatrix);
 
-	//transformedRay.position = Vector3::Transform(_ray.position, translationMatrix);
+	transformedRay.position = Vector3::Transform(_ray.position, transform);
 
 	bool intersectFound = m_Bounds->Intersect(transformedRay, minTri, minDist);
 
 	if(intersectFound) {
 		_intersect.material = m_Material;
-		_intersect.position = transformedRay.position + minDist * _ray.direction;
+		_intersect.position = _ray.position + minDist * _ray.direction;
 		_intersect.normal = (minTri.v(0).Normal + minTri.v(1).Normal + minTri.v(2).Normal)/3;
 	}	
 	return intersectFound;

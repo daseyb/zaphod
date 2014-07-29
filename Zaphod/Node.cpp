@@ -1,5 +1,6 @@
 #include "Node.h"
 #include "Geometry\Triangle.h"
+#include <algorithm>
 
 using namespace DirectX::SimpleMath;
 
@@ -7,16 +8,10 @@ Node::Node(DirectX::BoundingBox _bounds, std::vector<Triangle> _polys) {
 	m_Bounds = _bounds;
 	m_Smallest = false;
 
-	m_Polys = std::vector<Triangle>();
+	m_Polys = _polys;
 	m_Children = std::vector<Node*>();
-
-	for(int i = 0; i < _polys.size(); i++) {
-		if(Contains(_polys[i])) {
-			m_Polys.push_back(_polys[i]);
-		}
-	}
 	
-	if(m_Polys.size() > MIN_POLYS_PER_NODE && false) {
+	if(m_Polys.size() > MIN_POLYS_PER_NODE) {
 		Devide();
 	} else  {
 		m_Smallest = true;		
@@ -35,36 +30,35 @@ Vector3 Node::GetCenter() const {
 	return Vector3(m_Bounds.Center.x, m_Bounds.Center.y, m_Bounds.Center.z);
 }
 
-bool Node::Contains(const Triangle& _poly) const {
-	return m_Bounds.Intersects(_poly.v(0).Position, _poly.v(1).Position, _poly.v(2).Position);
+bool Node::Contains(const DirectX::BoundingBox& _bounds, const Triangle& _poly) const {
+	return _bounds.Contains(_poly.v(0).Position) && _bounds.Contains(_poly.v(1).Position) && _bounds.Contains(_poly.v(2).Position);
 }
 
 bool Node::Intersect(const Ray& _ray, Triangle& _outTri, float& _outDist) const {
 	float dist;
 	if(_ray.Intersects(m_Bounds, dist)) {
+		dist = FLT_MAX;
 		_outDist = FLT_MAX;
 		bool intersectFound = false;
-		//If this node is a leaf
-		if(m_Smallest) {
-			Vector3 pos = Vector3(m_Bounds.Center.x, m_Bounds.Center.y, m_Bounds.Center.z);
-			//Test all triangles for intersection
-			for(unsigned int i = 0; i < m_Polys.size(); i++) {
-				Triangle tri = m_Polys[i];
-				if(_ray.Intersects(tri.v(0).Position + pos, tri.v(1).Position + pos, tri.v(2).Position + pos, dist) && dist > 0.001f && dist < _outDist) {
-					_outTri = tri;
-					_outDist = dist;
-					intersectFound = true;
-				}
+
+		Vector3 pos = Vector3(0, 0, 0);
+		//Test all triangles for intersection
+		for(unsigned int i = 0; i < m_Polys.size(); i++) {
+			Triangle tri = m_Polys[i];
+			if(_ray.Intersects(tri.v(0).Position + pos, tri.v(1).Position + pos, tri.v(2).Position + pos, dist) && dist > 0.001f && dist < _outDist) {
+				_outTri = tri;
+				_outDist = dist;
+				intersectFound = true;
 			}
-		} else {
-			//Otherwise test all children
-			for(int i = 0; i < m_Children.size(); i++) {
-				Triangle tri;
-				if(m_Children[i]->Intersect(_ray, tri, dist) && dist > 0.001f && dist < _outDist) {
-					_outTri = tri;
-					_outDist = dist;
-					intersectFound = true;
-				}
+		}
+
+		//Test all children
+		for(int i = 0; i < m_Children.size(); i++) {
+			Triangle tri;
+			if(m_Children[i]->Intersect(_ray, tri, dist) && dist > 0.001f && dist < _outDist) {
+				_outTri = tri;
+				_outDist = dist;
+				intersectFound = true;
 			}
 		}
 		return intersectFound;
@@ -107,9 +101,20 @@ void Node::Devide() {
 		extends.z = m_Bounds.Extents.z/2;
 
 		DirectX::BoundingBox childBounds(GetChildPos(i), extends);
-		Node* newChild = new Node(childBounds, m_Polys);
 
-		if(newChild->HasPolys())
-			m_Children.push_back(newChild);
+		auto childPolys = std::vector<Triangle>();
+
+		for (int i = m_Polys.size() - 1; i >= 0; i--) {
+			auto poly = m_Polys[i];
+			if (Contains(childBounds, poly)) {
+				childPolys.push_back(poly);
+				m_Polys.erase( std::remove(std::begin(m_Polys), std::end(m_Polys), poly), std::end(m_Polys));
+			}
+		}
+
+		if (childPolys.size() > 0) {
+			m_Children.push_back(new Node(childBounds, childPolys));
+		}
+
 	}
 }

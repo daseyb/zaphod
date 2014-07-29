@@ -25,6 +25,9 @@
     <Filter Include="Geometry">
       <UniqueIdentifier>{b16a6e88-8cb8-4ba7-a3d5-fc234c992c0f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{825eceb7-e222-412d-adb6-6c0549cf2772}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -57,20 +60,20 @@
     <ClCompile Include="PointLight.cpp">
       <Filter>Rendering\Lights</Filter>
     </ClCompile>
-    <ClCompile Include="ObjLoader.cpp">
-      <Filter>Objects</Filter>
-    </ClCompile>
-    <ClCompile Include="Objects\Mesh.cpp">
-      <Filter>Objects</Filter>
-    </ClCompile>
     <ClCompile Include="Geometry\Octree.cpp">
       <Filter>Geometry</Filter>
     </ClCompile>
     <ClCompile Include="Geometry\Triangle.cpp">
       <Filter>Geometry</Filter>
     </ClCompile>
+    <ClCompile Include="Objects\Mesh.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjLoader.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
     <ClCompile Include="Node.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Geometry</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -107,12 +110,6 @@
     <ClInclude Include="Material.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="ObjLoader.h">
-      <Filter>Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="Objects\Mesh.h">
-      <Filter>Objects</Filter>
-    </ClInclude>
     <ClInclude Include="Intersection.h">
       <Filter>Geometry</Filter>
     </ClInclude>
@@ -122,8 +119,14 @@
     <ClInclude Include="Geometry\Triangle.h">
       <Filter>Geometry</Filter>
     </ClInclude>
+    <ClInclude Include="Objects\Mesh.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjLoader.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
     <ClInclude Include="Node.h">
-      <Filter>Header Files</Filter>
+      <Filter>Geometry</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

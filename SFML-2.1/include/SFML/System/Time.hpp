@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2014 Laurent Gomila (laurent.gom@gmail.com)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -82,7 +82,7 @@ public :
     ////////////////////////////////////////////////////////////
     // Static member data
     ////////////////////////////////////////////////////////////
-    static const Time Zero; ///< Predefined "zero" time value 
+    static const Time Zero; ///< Predefined "zero" time value
 
 private :
 
@@ -398,6 +398,42 @@ SFML_SYSTEM_API Time& operator /=(Time& left, float right);
 ///
 ////////////////////////////////////////////////////////////
 SFML_SYSTEM_API Time& operator /=(Time& left, Int64 right);
+
+////////////////////////////////////////////////////////////
+/// \relates Time
+/// \brief Overload of binary / operator to compute the ratio of two time values
+///
+/// \param left  Left operand (a time)
+/// \param right Right operand (a time)
+///
+/// \return \a left divided by \a right
+///
+////////////////////////////////////////////////////////////
+SFML_SYSTEM_API float operator /(Time left, Time right);
+
+////////////////////////////////////////////////////////////
+/// \relates Time
+/// \brief Overload of binary % operator to compute remainder of a time value
+///
+/// \param left  Left operand (a time)
+/// \param right Right operand (a time)
+///
+/// \return \a left modulo \a right
+///
+////////////////////////////////////////////////////////////
+SFML_SYSTEM_API Time operator %(Time left, Time right);
+
+////////////////////////////////////////////////////////////
+/// \relates Time
+/// \brief Overload of binary %= operator to compute/assign remainder of a time value
+///
+/// \param left  Left operand (a time)
+/// \param right Right operand (a time)
+///
+/// \return \a left modulo \a right
+///
+////////////////////////////////////////////////////////////
+SFML_SYSTEM_API Time& operator %=(Time& left, Time right);
 
 } // namespace sf
 
