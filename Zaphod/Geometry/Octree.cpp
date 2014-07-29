@@ -4,7 +4,7 @@
 
 using namespace DirectX::SimpleMath;
 
-Octree::Octree(std::vector<Triangle> _polys, Vector3 _center) {
+Octree::Octree(std::vector<Triangle> _polys) {
 	float minX = FLT_MAX, maxX = FLT_MIN;
 	float minY = FLT_MAX, maxY = FLT_MIN;
 	float minZ = FLT_MAX, maxZ = FLT_MIN;

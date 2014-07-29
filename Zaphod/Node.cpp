@@ -16,7 +16,7 @@ Node::Node(DirectX::BoundingBox _bounds, std::vector<Triangle> _polys) {
 		}
 	}
 	
-	if(m_Polys.size() > MIN_POLYS_PER_NODE) {
+	if(m_Polys.size() > MIN_POLYS_PER_NODE && false) {
 		Devide();
 	} else  {
 		m_Smallest = true;		

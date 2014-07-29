@@ -18,13 +18,14 @@ Scene::Scene(Camera* _cam)
 {
 	//Initialize object lists
 	m_SceneObjects = std::vector<BaseObject*>();
-	Sphere* testSphere = new Sphere(1, Vector3(0,0.5f,0));
+	Sphere* testSphere = new Sphere(0.5f, Vector3(-1,0.5f,2));
 
 	//Build a few test objects and materials
 	Box* testBox = new Box(Vector3(0, 0, 0), 1, 1, 1);
 	Box* testBox2 = new Box(Vector3(0, -1.05f, 0), 20, 0.1f, 20);
 
 	Mesh* testMesh = new Mesh(Vector3(1.5f, 0.0f, 2), "Data\\test.obj");
+	testMesh->SetRotation(2, 0.3f, 0);
 	
 	Material whiteMat;
 	whiteMat.DiffuseColor = Color(1.0f, 1.0f, 1.0f);
@@ -257,9 +258,6 @@ Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth) const
 			rp *= rp;
 			r = 1.0f - (rs + rp)/2;
 		}
-
-		/*reflection *= (1.0f - r);
-		refraction *= r;*/
 
 		//Add ambient color;
 		retColor += (minIntersect.material.DiffuseColor * ambientColor);

@@ -7,13 +7,13 @@ using namespace DirectX::SimpleMath;
 
 Mesh::Mesh(DirectX::SimpleMath::Vector3 _pos, const std::string& _file) {
 	if(LoadObj(_file, m_Triangles, m_Smooth)) {
-		m_Bounds = std::unique_ptr<Octree>(new Octree(m_Triangles, _pos));
+		m_Bounds = std::unique_ptr<Octree>(new Octree(m_Triangles));
 		SetPosition(_pos);	
 	}
 }
 
 Mesh::Mesh(Vector3 _pos, std::vector<Triangle> _tris, bool _smooth) {
-	m_Bounds = std::unique_ptr<Octree>(new Octree(m_Triangles, _pos));
+	m_Bounds = std::unique_ptr<Octree>(new Octree(m_Triangles));
 	m_Smooth = _smooth;
 	SetPosition(_pos);
 }
@@ -26,11 +26,20 @@ void Mesh::SetPosition(DirectX::SimpleMath::Vector3 _pos) {
 	BaseObject::SetPosition(_pos);
 }
 
+void Mesh::SetRotation(float _yaw, float _pitch, float _roll) {
+	m_Rotation = Quaternion::CreateFromYawPitchRoll(_yaw, _pitch, _roll);
+}
+
 bool Mesh::Intersect(const Ray& _ray, Intersection& _intersect) const {
 	float minDist = FLT_MAX;
 	Triangle minTri;
 	Ray transformedRay = _ray;
-	//transformedRay.position -= m_Position;
+	DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationQuaternion(-m_Rotation);
+	DirectX::XMMATRIX translationMatrix = DirectX::XMMatrixTranslation(-m_Position.x, -m_Position.y, -m_Position.z);
+	DirectX::XMMATRIX transform = DirectX::XMMatrixMultiply(rotationMatrix, translationMatrix);
+
+	//transformedRay.position = Vector3::Transform(_ray.position, translationMatrix);
+
 	bool intersectFound = m_Bounds->Intersect(transformedRay, minTri, minDist);
 
 	if(intersectFound) {
