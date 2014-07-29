@@ -30,3 +30,6 @@ May 14th 13: Refractions
 
 ![Transparent Shadows](img/transparent_shadows.png)
 May 21st 13: Transparent shadows
+
+![Glossy Reflections](img/softshadows.png)
+March 14st 14: Glossy Reflections

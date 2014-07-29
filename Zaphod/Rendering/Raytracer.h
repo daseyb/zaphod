@@ -1,7 +1,9 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <thread>
 #include "../SimpleMath.h"
 #include "Camera.h"
+
 
 class Scene;
 
@@ -14,6 +16,8 @@ class Scene;
 class Raytracer
 {
 private:
+	static const int THREAD_COUNT = 4;
+
 	sf::Uint8* m_Pixels;
 	Camera* m_pCamera;
 	Scene* m_pScene;
@@ -24,6 +28,9 @@ private:
 
 	//Get ray for the given X and Y coordinates
 	DirectX::SimpleMath::Ray GetRay(int _x, int _y) const;
+
+	std::thread m_Threads[THREAD_COUNT];
+
 
 	//Render a part of the image (for multy threading)
 	void RenderPart(int _x, int _y, int _width, int _height);
