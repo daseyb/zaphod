@@ -32,4 +32,7 @@ May 14th 13: Refractions
 May 21st 13: Transparent shadows
 
 ![Glossy Reflections](img/softshadows.png)
-March 14st 14: Glossy Reflections
+March 14th 14: Glossy Reflections
+
+![Meshes](img/multi_sample.png)
+July 30th 14: Meshes and multi sampling
