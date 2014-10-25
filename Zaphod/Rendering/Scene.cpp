@@ -24,20 +24,27 @@ Scene::Scene(Camera* _cam)
 
 	//Build a few test objects and materials
 	Box* testBox = new Box(Vector3(0, 10, -8), 20, 20, 0.1f);
+	Box* lightBox = new Box(Vector3(0, 3, -7), 3, 3, 0.1f);
+	Sphere* lightBox2 = new Sphere(0.3f, Vector3(-3, -1, 4));
+	Sphere* lightBox3 = new Sphere(0.5f, Vector3(-3.5f, -1, 5));
+	Sphere* lightBox4 = new Sphere(0.2f, Vector3(-2.75, -1, 4.5f));
+
 	Box* testBox2 = new Box(Vector3(0, -1.05f, 0), 20, 0.1f, 20);
 	Box* testBox3 = new Box(Vector3(-8, 10, 0), 0.1f, 20, 20);
 	Box* testBox4 = new Box(Vector3( 8, 10, 0), 0.1f, 20, 20);
 	Box* testBox5 = new Box(Vector3(0, 10, 11), 20, 20, 0.1f);
-	Mesh* monkey = new Mesh(Vector3(0, 0, 0), "Data/CornellBox-Original.obj");
+	Mesh* monkey = new Mesh(Vector3(-3.5f, 0.5f, 4), "Data/test_smooth.obj");
 
 	Material whiteMat;
-	whiteMat.DiffuseColor = Color(0.0f, 0.0f, 0.0f);
-	whiteMat.Emittance = Color(2.0f, 2.0f, 2.0f);
+	whiteMat.DiffuseColor = Color(1.0f, 1.0f, 1.0f);
+
+	Material light = whiteMat;
+	light.DiffuseColor = Color(0, 0, 0);
+	light.Emittance = Color(9, 9, 9);
 
 	Material transparentMat;
 	transparentMat.DiffuseColor = Color(1.0f, 1.0f, 1.0f);
 
-	testBox->SetMaterial(whiteMat);
 
 	Material wallMat;
 	wallMat.DiffuseColor = Color(1.0f, 0.1f, 0.1f);
@@ -52,12 +59,16 @@ Scene::Scene(Camera* _cam)
 	chromeMatBase.DiffuseColor = Color(0.5f, 0.5f, 0.5f);
 
 	Material chromeMatRed = chromeMatBase;
-	chromeMatRed.DiffuseColor = Color(1.0f, 1.0f, 1.0f);
-	chromeMatRed.Roughness = 0;
+	chromeMatRed.DiffuseColor = Color(1.0f, 0.3f, 1.0f);
 
 	Material chromeMatBlue = chromeMatBase;
-	chromeMatBlue.DiffuseColor = Color(1.0f, 1.0f, 1.0f);
+	chromeMatBlue.DiffuseColor = Color(1.0f, 1.0f, 0.3f);
 
+	testBox->SetMaterial(whiteMat);
+	lightBox->SetMaterial(light);
+	lightBox2->SetMaterial(light);
+	lightBox3->SetMaterial(light);
+	lightBox4->SetMaterial(light);
 	testBox2->SetMaterial(floorMat);
 	testBox3->SetMaterial(wallMatGreen);
 	testBox4->SetMaterial(wallMat);
@@ -66,9 +77,12 @@ Scene::Scene(Camera* _cam)
 	testSphere2->SetMaterial(chromeMatBlue);
 	testSphere3->SetMaterial(chromeMatRed);
 
-	//m_SceneObjects.push_back(monkey);
+	m_SceneObjects.push_back(monkey);
 	m_SceneObjects.push_back(testBox);
-	//m_SceneObjects.push_back(testSphere);
+	m_SceneObjects.push_back(lightBox);
+	m_SceneObjects.push_back(lightBox2);
+	m_SceneObjects.push_back(lightBox3);
+	m_SceneObjects.push_back(lightBox4);
 	m_SceneObjects.push_back(testBox2);
 	m_SceneObjects.push_back(testBox3);
 	m_SceneObjects.push_back(testBox4);
@@ -128,7 +142,39 @@ Vector3 CosineSampleHemisphere(float u1, float u2)
 	const float x = r * cos(theta);
 	const float y = r * sin(theta);
 
-	return Vector3(x, y, sqrt(fmax(0.0f, 1 - u1)));
+	return Vector3(x, y, sqrt(fmax(0.0f, 1.0f - u1)));
+}
+
+Vector3 CosWeightedRandomHemisphereDirection2(Vector3 n)
+{
+	float Xi1 = (float)rand() / (float)RAND_MAX;
+	float Xi2 = (float)rand() / (float)RAND_MAX;
+
+	float  theta = acos(sqrt(1.0 - Xi1));
+	float  phi = 2.0 * 3.1415926535897932384626433832795 * Xi2;
+
+	float xs = sinf(theta) * cosf(phi);
+	float ys = cosf(theta);
+	float zs = sinf(theta) * sinf(phi);
+
+	Vector3 y(n.x, n.y, n.z);
+	Vector3 h = y;
+	if (fabs(h.x) <= fabs(h.y) && fabs(h.x) <= fabs(h.z))
+		h.x = 1.0;
+	else if (fabs(h.y) <= fabs(h.x) && fabs(h.y) <= fabs(h.z))
+		h.y = 1.0;
+	else
+		h.z = 1.0;
+
+
+	Vector3 x = (h.Cross(y));
+	x.Normalize();
+	Vector3 z = (x.Cross(y));
+	z.Normalize();
+
+	Vector3 direction = xs * x + ys * y + zs * z;
+	direction.Normalize();
+	return direction;
 }
 
 Vector3 RandomPointOnHemisphere() {
@@ -167,18 +213,24 @@ Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth) const
 	}
 
 	Color emittance = minIntersect.material.Emittance;
-	Vector3 dir = RandomPointOnHemisphere();
-	Vector3 offset = dir - Vector3(0, 0, 1);
-	Vector3 rayDir = minIntersect.normal + offset * minIntersect.material.Roughness;
-	rayDir.Normalize();
-	Ray diffuseRay = Ray(minIntersect.position + rayDir * 0.001f, rayDir);
-	Color reflected = Intersect(diffuseRay, _depth - 1);
+	Color reflected(0, 0, 0);
 
-	float cos_theta = rayDir.Dot(minIntersect.normal);
-	Color BRDF = 2 * minIntersect.material.DiffuseColor;
+	const int DIFFUSE_SAMPLES = 1;
+
+	for (int i = 0; i < DIFFUSE_SAMPLES; i++)  {
+		/*Vector3 dir = RandomPointOnHemisphere();
+		Vector3 offset = dir - Vector3(0, 0, 1);*/
+		Vector3 difDir = CosWeightedRandomHemisphereDirection2(minIntersect.normal); // +offset;
+		//difDir.Normalize();
+
+		Ray diffuseRay = Ray(minIntersect.position + difDir * 0.001f, difDir);
+		reflected += Intersect(diffuseRay, _depth - 1);
+	}
+
+
+	Color BRDF = minIntersect.material.DiffuseColor / DIFFUSE_SAMPLES;
 	
-	Color final = emittance + (BRDF * reflected);
-	return final;
+	return emittance + (BRDF * reflected);
 }
 
 

@@ -18,7 +18,8 @@ bool Raytracer::Initialize(int _width, int _height, float _fov)
 	m_Height = _height;
 	m_FOV = _fov;
 	m_Pixels = new sf::Uint8[m_Width * m_Height * 4];
-	
+	m_RawPixels = new Color[m_Width * m_Height * 4];
+
 	m_pCamera = new Camera();
 
 	m_pScene = new Scene(m_pCamera);
@@ -35,6 +36,12 @@ void Raytracer::Shutdown(void)
 	{
 		delete[] m_Pixels;
 		m_Pixels = nullptr;
+	}
+
+	if (m_RawPixels)
+	{
+		delete[] m_RawPixels;
+		m_RawPixels = nullptr;
 	}
 
 	if(m_pCamera)
@@ -63,23 +70,26 @@ Color Raytracer::ReadColorAt(int _x, int _y) const
 
 void Raytracer::RenderPart(int _x, int _y, int _width, int _height)
 {
-	for (int i = 0; i < 400; i++)
+	for (int i = 0; i < 3000; i++)
 	{
 		for (int x = _x; x < _x + _width; x++)
 		{
 			for (int y = _y; y < _y + _height; y++)
 			{
 				int pixelIndex = (x + m_Width * y) * 4;
-				Ray current = GetRay(x, y);
+				if (i == 0) {
+					m_RawPixels[x + m_Width * y] = Color(0, 0, 0);
+ 				}
 
-				Color col = ReadColorAt(x, y);
-				float factor = 1.0f - 1.0f / i;
-				Color rayColor = m_pScene->Intersect(current, 4);
-				rayColor.Saturate();
+				Ray ray = GetRay(x, y);
 
-				col = col * factor + rayColor * (1.0f - factor);
+				Color rayColor = m_pScene->Intersect(ray, 4);
 
-				sf::Color newCol((sf::Uint8)(col.R() * 255), (sf::Uint8)(col.G() * 255), (sf::Uint8)(col.B() * 255), 255);
+				m_RawPixels[x + m_Width * y] += rayColor;
+				Color current = m_RawPixels[x + m_Width * y] / (i+1);
+				current.Saturate();
+
+				sf::Color newCol((sf::Uint8)(current.R() * 255), (sf::Uint8)(current.G() * 255), (sf::Uint8)(current.B() * 255), 255);
 
 				m_Pixels[pixelIndex + 0] = newCol.r;
 				m_Pixels[pixelIndex + 1] = newCol.g;
@@ -88,6 +98,7 @@ void Raytracer::RenderPart(int _x, int _y, int _width, int _height)
 			}
 		}
 	}
+
 }
 
 void Raytracer::Render(void)
@@ -120,14 +131,16 @@ sf::Uint8* Raytracer::GetPixels(void) const
 
 Ray Raytracer::GetRay(int _x, int _y) const
 {
+	float x = _x + ((float)rand() / RAND_MAX - 0.5f) * 2;
+	float y = _y + ((float)rand() / RAND_MAX - 0.5f) * 2;
 	float fovx =  M_PI * m_FOV / 180; //Horizontal FOV
 	float fovy =  M_PI * 55 / 180; //Vertical FOV (hard coded to 55)
 
 	float halfWidth = m_Width/2;
 	float halfHeight = m_Height/2;
 
-	float alpha = tanf(fovx / 2)*((_x - halfWidth) / halfWidth) + ((float)rand() / RAND_MAX - 0.5f) * 0.01f; //horizontal offset
-	float beta = tanf(fovy / 2)*((halfHeight - _y) / halfHeight) + ((float)rand() / RAND_MAX - 0.5f) * 0.01f; //vertical offset
+	float alpha = tanf(fovx / 2)*((x - halfWidth) / halfWidth);
+	float beta = tanf(fovy / 2)*((halfHeight - y) / halfHeight);
 
 	Matrix viewMatrix = m_pCamera->GetViewMatrix();
 	Vector3 pos = viewMatrix.Translation();

@@ -19,6 +19,7 @@ private:
 	static const int THREAD_COUNT = 8;
 
 	sf::Uint8* m_Pixels;
+	DirectX::SimpleMath::Color* m_RawPixels;
 	Camera* m_pCamera;
 	Scene* m_pScene;
 
