@@ -63,7 +63,7 @@ Color Raytracer::ReadColorAt(int _x, int _y) const
 
 void Raytracer::RenderPart(int _x, int _y, int _width, int _height)
 {
-	for (int i = 0; i < 200; i++)
+	for (int i = 0; i < 400; i++)
 	{
 		for (int x = _x; x < _x + _width; x++)
 		{
@@ -74,7 +74,10 @@ void Raytracer::RenderPart(int _x, int _y, int _width, int _height)
 
 				Color col = ReadColorAt(x, y);
 				float factor = 1.0f - 1.0f / i;
-				col = col * factor + m_pScene->Intersect(current, 3) * (1.0f - factor);
+				Color rayColor = m_pScene->Intersect(current, 4);
+				rayColor.Saturate();
+
+				col = col * factor + rayColor * (1.0f - factor);
 
 				sf::Color newCol((sf::Uint8)(col.R() * 255), (sf::Uint8)(col.G() * 255), (sf::Uint8)(col.B() * 255), 255);
 

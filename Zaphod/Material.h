@@ -4,13 +4,8 @@
 struct Material
 {
 	DirectX::SimpleMath::Color DiffuseColor;
-	DirectX::SimpleMath::Color SpecularColor;
-	DirectX::SimpleMath::Color ReflectionColor;
-	float DiffuseFactor;
-	float SpecularFactor;
-	float ReflectionFactor;
-	float Transparency;
-	float IOR;
-	float Glossyness;
+	DirectX::SimpleMath::Color Emittance;
+	float Roughness;
+	Material() : Roughness(1), DiffuseColor(0, 0, 0), Emittance(0, 0, 0) { }
 };
 
