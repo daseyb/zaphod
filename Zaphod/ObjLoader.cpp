@@ -8,6 +8,11 @@ using namespace DirectX::SimpleMath;
 bool LoadObj(const std::string& _file, std::vector<Triangle>& _outTris, bool& smooth) {
 	std::ifstream file;
 	file.open(_file);
+
+	if (!file.is_open()) {
+		return false;
+	}
+
 	std::vector<unsigned int> vertexIndices, normalIndices, uvIndices;
 	std::vector<Vector3> tempVertices;
 	std::vector<Vector3> tempNormals;
@@ -68,13 +73,25 @@ bool LoadObj(const std::string& _file, std::vector<Triangle>& _outTris, bool& sm
 		v2.Position = tempVertices[vertexIndices[i*3 + 1]];
 		v3.Position = tempVertices[vertexIndices[i*3 + 2]];
 
-		v1.Normal	= tempNormals[normalIndices[i*3 + 0]];
-		v2.Normal	= tempNormals[normalIndices[i*3 + 1]];
-		v3.Normal	= tempNormals[normalIndices[i*3 + 2]];
+		if (tempNormals.size() > 0) {
+			v1.Normal = tempNormals[normalIndices[i * 3 + 0]];
+			v2.Normal = tempNormals[normalIndices[i * 3 + 1]];
+			v3.Normal = tempNormals[normalIndices[i * 3 + 2]];
+		} else {
+			Vector3 faceNormal = (v2.Position - v1.Position).Cross(v3.Position - v1.Position);
+			faceNormal.Normalize();
+			v1.Normal = v2.Normal = v3.Normal = faceNormal;
+		}
 
-		v1.UV		= tempUvs[uvIndices[i*3 + 0]];
-		v2.UV		= tempUvs[uvIndices[i*3 + 1]];
-		v3.UV		= tempUvs[uvIndices[i*3 + 2]];
+		if (tempUvs.size() > 0) {
+			v1.UV = tempUvs[uvIndices[i * 3 + 0]];
+			v2.UV = tempUvs[uvIndices[i * 3 + 1]];
+			v3.UV = tempUvs[uvIndices[i * 3 + 2]];
+		}
+		else {
+			v1.UV = v2.UV = v3.UV = Vector2(0, 0);
+		}
+
 
 		_outTris.push_back(Triangle(v1, v2, v3));
 	}

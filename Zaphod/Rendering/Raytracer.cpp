@@ -74,7 +74,7 @@ void Raytracer::RenderPart(int _x, int _y, int _width, int _height)
 
 				Color col = ReadColorAt(x, y);
 				float factor = 1.0f - 1.0f / i;
-				col = col * factor + m_pScene->Intersect(current, 4) * (1.0f - factor);
+				col = col * factor + m_pScene->Intersect(current, 3) * (1.0f - factor);
 
 				sf::Color newCol((sf::Uint8)(col.R() * 255), (sf::Uint8)(col.G() * 255), (sf::Uint8)(col.B() * 255), 255);
 
@@ -117,13 +117,13 @@ sf::Uint8* Raytracer::GetPixels(void) const
 
 Ray Raytracer::GetRay(int _x, int _y) const
 {
-	float fovx = M_PI * m_FOV / 180; //Horizontal FOV
-	float fovy = M_PI * 55 / 180; //Vertical FOV (hard coded to 55)
+	float fovx =  M_PI * m_FOV / 180; //Horizontal FOV
+	float fovy =  M_PI * 55 / 180; //Vertical FOV (hard coded to 55)
 
 	float halfWidth = m_Width/2;
 	float halfHeight = m_Height/2;
 
-	float alpha = tanf(fovx/2)*((_x - halfWidth)/halfWidth) + ((float)rand()/RAND_MAX - 0.5f) * 0.01f; //horizontal offset
+	float alpha = tanf(fovx / 2)*((_x - halfWidth) / halfWidth) + ((float)rand() / RAND_MAX - 0.5f) * 0.01f; //horizontal offset
 	float beta = tanf(fovy / 2)*((halfHeight - _y) / halfHeight) + ((float)rand() / RAND_MAX - 0.5f) * 0.01f; //vertical offset
 
 	Matrix viewMatrix = m_pCamera->GetViewMatrix();
