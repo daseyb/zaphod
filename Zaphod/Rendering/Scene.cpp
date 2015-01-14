@@ -8,9 +8,11 @@
 #include "../Light.h"
 #include "../DirectionalLight.h"
 #include "../PointLight.h"
+#include "../LightCache.h"
 #include <stdlib.h>
 #include <iostream>
 
+using namespace DirectX;
 using namespace DirectX::SimpleMath;
 
 Scene::Scene(Camera* _cam)
@@ -28,6 +30,8 @@ Scene::Scene(Camera* _cam)
 	Sphere* lightBox2 = new Sphere(0.3f, Vector3(-3, -1, 4));
 	Sphere* lightBox3 = new Sphere(0.5f, Vector3(-3.5f, -1, 5));
 	Sphere* lightBox4 = new Sphere(0.2f, Vector3(-2.75, -1, 4.5f));
+	
+	Box* lightBoxTop = new Box(Vector3(0, 5, 0), 20, 0.1f, 20);
 
 	Box* testBox2 = new Box(Vector3(0, -1.05f, 0), 20, 0.1f, 20);
 	Box* testBox3 = new Box(Vector3(-8, 10, 0), 0.1f, 20, 20);
@@ -39,8 +43,12 @@ Scene::Scene(Camera* _cam)
 	whiteMat.DiffuseColor = Color(1.0f, 1.0f, 1.0f);
 
 	Material light = whiteMat;
-	light.DiffuseColor = Color(0, 0, 0);
-	light.Emittance = Color(9, 9, 9);
+	light.DiffuseColor = Color(1, 1, 1);
+	light.Emittance = Color(2, 2, 2);
+
+	Material lightTop = whiteMat;
+	lightTop.DiffuseColor = Color(1, 1, 1);
+	lightTop.Emittance = Color(0.1f, 0.1f, 0.1f);
 
 	Material transparentMat;
 	transparentMat.DiffuseColor = Color(1.0f, 1.0f, 1.0f);
@@ -69,6 +77,7 @@ Scene::Scene(Camera* _cam)
 	lightBox2->SetMaterial(light);
 	lightBox3->SetMaterial(light);
 	lightBox4->SetMaterial(light);
+	lightBoxTop->SetMaterial(lightTop);
 	testBox2->SetMaterial(floorMat);
 	testBox3->SetMaterial(wallMatGreen);
 	testBox4->SetMaterial(wallMat);
@@ -77,12 +86,13 @@ Scene::Scene(Camera* _cam)
 	testSphere2->SetMaterial(chromeMatBlue);
 	testSphere3->SetMaterial(chromeMatRed);
 
-	m_SceneObjects.push_back(monkey);
+	//m_SceneObjects.push_back(monkey);
 	m_SceneObjects.push_back(testBox);
 	m_SceneObjects.push_back(lightBox);
 	m_SceneObjects.push_back(lightBox2);
 	m_SceneObjects.push_back(lightBox3);
 	m_SceneObjects.push_back(lightBox4);
+	m_SceneObjects.push_back(lightBoxTop);
 	m_SceneObjects.push_back(testBox2);
 	m_SceneObjects.push_back(testBox3);
 	m_SceneObjects.push_back(testBox4);
@@ -112,6 +122,7 @@ Scene::Scene(Camera* _cam)
 	m_pCamera->SetPosition(Vector3(0,2,10));
 	m_pCamera->SetRotation(0, -0.3, 0);
 
+	m_LightCache = new LightCache(BoundingBox(Vector3(0, 0, 0), Vector3(20, 20, 20)));
 	srand(time(NULL));
 }
 
@@ -182,11 +193,8 @@ Vector3 RandomPointOnHemisphere() {
 }
 
 //Intersect a ray with the scene (currently no optimization)
-Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth) const
+Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth, bool _isSecondary) const
 {
-	if(_depth < 0)
-		return Color(0,0,0);
-
 	float minDist = FLT_MAX;
 	Intersection minIntersect;
 	Intersection intersect;
@@ -212,8 +220,17 @@ Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth) const
 		return Color(0,0,0);
 	}
 
-	Color emittance = minIntersect.material.Emittance;
+
 	Color reflected(0, 0, 0);
+	float rnd = GetRnd();
+	int storedCount = 0;
+	if (_isSecondary && rnd < 1.0f / (_depth + 1) && m_LightCache->LookUp(minIntersect.position, &reflected, &storedCount) && GetRnd() < storedCount * 0.1f) {
+		return reflected;
+	} else if (_depth == 0) {
+		return Color(0, 0, 0);
+	}
+
+	Color emittance = minIntersect.material.Emittance;
 
 	const int DIFFUSE_SAMPLES = 1;
 
@@ -224,13 +241,17 @@ Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth) const
 		//difDir.Normalize();
 
 		Ray diffuseRay = Ray(minIntersect.position + difDir * 0.001f, difDir);
-		reflected += Intersect(diffuseRay, _depth - 1);
+		reflected += Intersect(diffuseRay, _depth - 1, true);
 	}
-
 
 	Color BRDF = minIntersect.material.DiffuseColor / DIFFUSE_SAMPLES;
 	
-	return emittance + (BRDF * reflected);
+	Color final = (emittance + (BRDF * reflected));
+
+	if (storedCount < 10) {
+		m_LightCache->AddPoint(minIntersect.position, final);
+	}
+	return final ;
 }
 
 

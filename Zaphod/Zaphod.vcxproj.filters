@@ -75,6 +75,12 @@
     <ClCompile Include="Node.cpp">
       <Filter>Geometry</Filter>
     </ClCompile>
+    <ClCompile Include="LightCache.cpp">
+      <Filter>Rendering\Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="LightCacheNode.cpp">
+      <Filter>Rendering\Lights</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SimpleMath.h">
@@ -127,6 +133,12 @@
     </ClInclude>
     <ClInclude Include="Node.h">
       <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="LightCache.h">
+      <Filter>Rendering\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="LightCacheNode.h">
+      <Filter>Rendering\Lights</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

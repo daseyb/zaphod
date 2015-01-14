@@ -6,6 +6,8 @@
 using namespace DirectX::SimpleMath;
 
 #define MULTI_THREADED
+#define SAMPLES 3000
+#define TILE_SIZE 128
 
 Raytracer::Raytracer(void)
 {
@@ -17,8 +19,8 @@ bool Raytracer::Initialize(int _width, int _height, float _fov)
 	m_Width = _width;
 	m_Height = _height;
 	m_FOV = _fov;
-	m_Pixels = new sf::Uint8[m_Width * m_Height * 4];
-	m_RawPixels = new Color[m_Width * m_Height * 4];
+	m_Pixels = new sf::Uint8[m_Width * m_Height * 4] { 0 };
+	m_RawPixels = new Color[m_Width * m_Height * 4] { Color(0, 0, 0) };
 
 	m_pCamera = new Camera();
 
@@ -70,20 +72,19 @@ Color Raytracer::ReadColorAt(int _x, int _y) const
 
 void Raytracer::RenderPart(int _x, int _y, int _width, int _height)
 {
-	for (int i = 0; i < 3000; i++)
+	assert(_x + _width <= m_Width);
+	assert(_y + _height <= m_Height);
+
+	for (int i = 0; i < SAMPLES; i++)
 	{
 		for (int x = _x; x < _x + _width; x++)
 		{
 			for (int y = _y; y < _y + _height; y++)
 			{
 				int pixelIndex = (x + m_Width * y) * 4;
-				if (i == 0) {
-					m_RawPixels[x + m_Width * y] = Color(0, 0, 0);
- 				}
-
 				Ray ray = GetRay(x, y);
 
-				Color rayColor = m_pScene->Intersect(ray, 4);
+				Color rayColor = m_pScene->Intersect(ray, 4, false);
 
 				m_RawPixels[x + m_Width * y] += rayColor;
 				Color current = m_RawPixels[x + m_Width * y] / (i+1);
@@ -98,7 +99,21 @@ void Raytracer::RenderPart(int _x, int _y, int _width, int _height)
 			}
 		}
 	}
+}
 
+void Raytracer::EmptyQueue() {
+	TileInfo toRender;
+	while (true) {
+		m_TileMutex.lock();
+		if (m_TilesToRender.size() == 0) {
+			m_TileMutex.unlock();
+			break;
+		}
+		toRender = m_TilesToRender.back();
+		m_TilesToRender.pop_back();
+		m_TileMutex.unlock();
+		RenderPart(toRender.X, toRender.Y, toRender.Width, toRender.Height);
+	}
 }
 
 void Raytracer::Render(void)
@@ -107,17 +122,30 @@ void Raytracer::Render(void)
 
 #ifdef MULTI_THREADED
 	//Spawn rendering threads (hard coded for now)
-	int width = m_Width/4;
-	int height = m_Height/2;
+	for (int x = 0; x < m_Width; x += TILE_SIZE) {
+		int width = __min(TILE_SIZE, (m_Width - x));
+		for (int y = 0; y < m_Height; y += TILE_SIZE) {
+			int height = __min(TILE_SIZE, (m_Height - y));
+			m_TilesToRender.push_back({x, y, width, height });
+		}
+	}
 
-	m_Threads[0] = std::thread(&Raytracer::RenderPart, this, 0, 0, width, height);
-	m_Threads[1] = std::thread(&Raytracer::RenderPart, this, 0, height, width, height);
-	m_Threads[2] = std::thread(&Raytracer::RenderPart, this, 1 * width, 0 * height, width, height);
-	m_Threads[3] = std::thread(&Raytracer::RenderPart, this, 1 * width, 1 * height, width, height);
-	m_Threads[4] = std::thread(&Raytracer::RenderPart, this, 2 * width, 0 * height, width, height);
-	m_Threads[5] = std::thread(&Raytracer::RenderPart, this, 2 * width, 1 * height, width, height);
-	m_Threads[6] = std::thread(&Raytracer::RenderPart, this, 3 * width, 0 * height, width, height);
-	m_Threads[7] = std::thread(&Raytracer::RenderPart, this, 3 * width, 1 * height, width, height);
+	for (int x = 0; x < m_Width; x++) {
+		for (int y = 0; y < m_Height; y++) {
+			m_RawPixels[x + m_Width * y] = Color(0, 0, 0);
+			int pixelIndex = (x + m_Width * y) * 4;
+			m_Pixels[pixelIndex + 0] = 0;
+			m_Pixels[pixelIndex + 1] = 0;
+			m_Pixels[pixelIndex + 2] = 0;
+			m_Pixels[pixelIndex + 3] = 0;
+		}
+	}
+
+	m_TileMutex.lock();
+	for (int i = 0; i < THREAD_COUNT; i++) {
+		m_Threads[i] = std::thread(&Raytracer::EmptyQueue, this);
+	}
+	m_TileMutex.unlock();
 #else
 	RenderPart(0,0,m_Width, m_Height);
 #endif

@@ -74,6 +74,8 @@
     <ClCompile Include="Geometry\Octree.cpp" />
     <ClCompile Include="Geometry\Triangle.cpp" />
     <ClCompile Include="Light.cpp" />
+    <ClCompile Include="LightCache.cpp" />
+    <ClCompile Include="LightCacheNode.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Node.cpp" />
     <ClCompile Include="Objects\BaseObject.cpp" />
@@ -92,6 +94,8 @@
     <ClInclude Include="Geometry\Triangle.h" />
     <ClInclude Include="Intersection.h" />
     <ClInclude Include="Light.h" />
+    <ClInclude Include="LightCache.h" />
+    <ClInclude Include="LightCacheNode.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Node.h" />
     <ClInclude Include="Objects\BaseObject.h" />

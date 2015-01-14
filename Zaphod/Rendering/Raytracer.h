@@ -3,7 +3,7 @@
 #include <thread>
 #include "../SimpleMath.h"
 #include "Camera.h"
-
+#include <mutex>
 
 class Scene;
 
@@ -16,7 +16,11 @@ class Scene;
 class Raytracer
 {
 private:
-	static const int THREAD_COUNT = 8;
+	static const int THREAD_COUNT = 7;
+	
+	struct TileInfo {
+		int X, Y, Width, Height;
+	};
 
 	sf::Uint8* m_Pixels;
 	DirectX::SimpleMath::Color* m_RawPixels;
@@ -31,12 +35,18 @@ private:
 	DirectX::SimpleMath::Ray GetRay(int _x, int _y) const;
 
 	std::thread m_Threads[THREAD_COUNT];
+	std::vector<TileInfo> m_TilesToRender;
+
+	std::mutex m_TileMutex;
 
 
 	//Render a part of the image (for multy threading)
 	void RenderPart(int _x, int _y, int _width, int _height);
 
+	void EmptyQueue();
+
 	DirectX::SimpleMath::Color ReadColorAt(int _x, int _y) const;
+
 
 public:
 	Raytracer(void);

@@ -6,6 +6,7 @@
 class BaseObject;
 class Camera;
 class Light;
+class LightCache;
 
 /********************************************
 ** Scene
@@ -14,7 +15,6 @@ class Light;
 ** those objects over time. Handles ray
 ** intersection queries.
 *********************************************/
-
 
 class Scene
 {
@@ -26,11 +26,11 @@ class Scene
 
 	//Pointer to the current renderer camera
 	Camera* m_pCamera;
-
+	LightCache* m_LightCache;
 public:
 	Scene(Camera* _cam);
 	void Update();
-	DirectX::SimpleMath::Color Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth) const; 
+	DirectX::SimpleMath::Color Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth, bool _isSecondary) const;
 	~Scene(void);
 };
 
