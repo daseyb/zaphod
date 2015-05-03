@@ -6,6 +6,7 @@
 using namespace DirectX::SimpleMath;
 
 Mesh::Mesh(DirectX::SimpleMath::Vector3 _pos, const std::string& _file) {
+  m_Bounds = nullptr;
 	if(LoadObj(_file, m_Triangles, m_Smooth)) {
 		m_Bounds = std::unique_ptr<Octree>(new Octree(m_Triangles));
 		SetPosition(_pos);	
@@ -31,6 +32,11 @@ void Mesh::SetRotation(float _yaw, float _pitch, float _roll) {
 }
 
 bool Mesh::Intersect(const Ray& _ray, Intersection& _intersect) const {
+
+  if (m_Bounds == nullptr) {
+    return false;
+  }
+
 	float minDist = FLT_MAX;
 	Triangle minTri;
 	Ray transformedRay = _ray;

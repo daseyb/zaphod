@@ -28,7 +28,7 @@ Scene::Scene(Camera* _cam)
 	Box* testBox3 = new Box(Vector3(-8, 10, 0), 0.1f, 20, 20);
 	Box* testBox4 = new Box(Vector3( 8, 10, 0), 0.1f, 20, 20);
 	Box* testBox5 = new Box(Vector3(0, 10, 11), 20, 20, 0.1f);
-	Mesh* monkey = new Mesh(Vector3(-2, 0.25f, 6), "Data/test_smooth.obj");
+	Mesh* monkey = new Mesh(Vector3(-2, 0.25f, 6), "Data/dragon.obj");
 
 	Material whiteMat;
 	whiteMat.DiffuseColor = Color(1.0f, 1.0f, 1.0f);

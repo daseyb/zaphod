@@ -8,6 +8,11 @@ using namespace DirectX::SimpleMath;
 bool LoadObj(const std::string& _file, std::vector<Triangle>& _outTris, bool& smooth) {
 	std::ifstream file;
 	file.open(_file);
+
+  if (!file.is_open()) {
+    return false;
+  }
+
 	std::vector<unsigned int> vertexIndices, normalIndices, uvIndices;
 	std::vector<Vector3> tempVertices;
 	std::vector<Vector3> tempNormals;
