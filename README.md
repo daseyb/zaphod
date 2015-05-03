@@ -36,3 +36,6 @@ March 14th 14: Glossy Reflections
 
 ![Meshes](img/multi_sample.png)
 July 30th 14: Meshes and multi sampling
+
+![Diffuse Rays](img/diffuse_rays.png)
+October 25th 14: Diffuse rays for global illumination
