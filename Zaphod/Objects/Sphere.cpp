@@ -39,6 +39,30 @@ bool Sphere::Intersect(const Ray& _ray, Intersection& _intersect) const
 	return false;
 }
 
+float Sphere::CalculateWeight()
+{
+  return 4 * m_Sphere.Radius * DirectX::XM_PI * DirectX::XM_PI;
+}
+
+Ray Sphere::Sample(std::default_random_engine rnd) const
+{
+  std::uniform_real_distribution<> dist(0, 1);
+  float omega = dist(rnd) *  DirectX::XM_2PI;
+  float phi = dist(rnd) *  DirectX::XM_PI;
+  
+  Ray result;
+  result.direction = Vector3(
+    sinf(phi) * cosf(omega),
+    sinf(phi) * sinf(omega),
+    cosf(phi));
+  result.position = result.direction * m_Sphere.Radius;
+
+  auto transform = GetTransform();
+  result.position = Vector3::Transform(result.position, transform);
+  result.direction = Vector3::TransformNormal(result.direction, transform);
+  return result;
+}
+
 
 Sphere::~Sphere(void)
 {

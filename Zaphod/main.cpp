@@ -6,8 +6,8 @@
 #include <chrono>
 #include <thread>
 
-const int WIDTH = 1280;
-const int HEIGHT = 720;
+const int WIDTH = 640;
+const int HEIGHT = 360;
 
 int main()
 {

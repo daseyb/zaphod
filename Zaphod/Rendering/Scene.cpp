@@ -96,7 +96,23 @@ Scene::Scene(Camera* _cam)
 	m_SceneObjects.push_back(testBox5);
 	m_SceneObjects.push_back(teddy);
 	
-	m_SceneLights = std::vector<Light*>();
+	m_SceneLights = std::vector<BaseObject*>();
+  
+  for (auto obj : m_SceneObjects) {
+    if (obj->GetMaterial().Emittance.ToVector3().LengthSquared() > 0.1f) {
+      m_SceneLights.push_back(obj);
+      m_LightWeights.push_back(obj->CalculateWeight());
+      m_LightIntervals.push_back(m_LightIntervals.size());
+    }
+  }
+  
+  m_LightIntervals.push_back(m_LightIntervals.size());
+
+  m_SampleDist = std::piecewise_constant_distribution<>(
+    std::begin(m_LightIntervals), 
+    std::end(m_LightIntervals), 
+    std::begin(m_LightWeights));
+
 
 	//Set the start time
 	m_InitTime = clock();
@@ -108,6 +124,7 @@ Scene::Scene(Camera* _cam)
 
 	m_LightCache = new LightCache(BoundingBox(Vector3(0, 0, 0), Vector3(20, 20, 20)));
 	srand(time(NULL));
+  m_Rnd = std::default_random_engine();
 }
 
 void Scene::Update()
@@ -172,6 +189,13 @@ Vector3 RandomPointOnHemisphere() {
 	return CosineSampleHemisphere(GetRnd(), GetRnd());
 }
 
+
+Ray Scene::SampleLight(std::default_random_engine _rnd) const {
+  int lightIndex = (int)m_SampleDist(_rnd);
+  auto light = m_SceneLights[lightIndex];
+  return light->Sample(_rnd);
+}
+
 //Intersect a ray with the scene (currently no optimization)
 Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth, bool _isSecondary) const
 {
@@ -215,21 +239,33 @@ Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth, bool _i
 	} else
 #endif
 
-
-
 	Color emittance = minIntersect.material.Emittance;
 
-	const int DIFFUSE_SAMPLES = 1;
+  if (emittance != Color(0, 0, 0, 1)) {
+    return emittance;
+  }
 
-	for (int i = 0; i < DIFFUSE_SAMPLES; i++)  {
-		Vector3 difDir = CosWeightedRandomHemisphereDirection2(minIntersect.normal);
-		Ray diffuseRay = Ray(minIntersect.position + difDir * 0.001f, difDir);
-		reflected += Intersect(diffuseRay, _depth - 1, true);
-	}
+  Vector3 difDir; 
+  
+  difDir = CosWeightedRandomHemisphereDirection2(minIntersect.normal);
+  Ray diffuseRay = Ray(minIntersect.position + difDir * 0.001f, difDir);
+  reflected += Intersect(diffuseRay, _depth - 1, true);
+  
+  auto lightSample = SampleLight(m_Rnd);
+  difDir = lightSample.position - minIntersect.position;
+  float dist = difDir.LengthSquared();
+  difDir.Normalize();
 
-	Color BRDF = minIntersect.material.DiffuseColor / DIFFUSE_SAMPLES;
+  diffuseRay = Ray(minIntersect.position + difDir * 0.001f, difDir);
+  float weight = minIntersect.normal.Dot(difDir) * lightSample.direction.Dot(-difDir);
+  weight /= dist;
+  weight = weight < 0 ? 0 : weight;
+  reflected += Intersect(diffuseRay, 1, true) * weight;
 	
-	Color final = (emittance + (BRDF * reflected));
+
+	Color BRDF = minIntersect.material.DiffuseColor;
+	
+	Color final = BRDF * reflected;
 
 #if USE_LIGHTCACHE
 	if (storedCount < 10) {

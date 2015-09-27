@@ -1,5 +1,6 @@
 #include "Box.h"
 #include "../Geometry/Intersection.h"
+#include <iterator>
 
 using namespace DirectX::SimpleMath;
 
@@ -31,6 +32,64 @@ void Box::SetPosition(Vector3 _pos)
 	BaseObject::SetPosition(_pos);
 	m_Box.Center = _pos;
 }
+
+float Box::CalculateWeight()
+{
+  m_SampleInterval[0] = 0;
+  m_SampleInterval[1] = 1;
+  m_SampleInterval[2] = 2;
+  m_SampleInterval[3] = 3;
+
+  m_SampleWeights[0] = m_Box.Extents.y * m_Box.Extents.z * 8;
+  m_SampleWeights[1] = m_Box.Extents.x * m_Box.Extents.z * 8;
+  m_SampleWeights[2] = m_Box.Extents.x * m_Box.Extents.y * 8;
+  
+  m_SampleDist = std::piecewise_constant_distribution<>(
+    std::begin(m_SampleInterval), std::end(m_SampleInterval), std::begin(m_SampleWeights));
+
+  return m_SampleWeights[0] + m_SampleWeights[1] + m_SampleWeights[2];
+}
+
+Ray Box::Sample(std::default_random_engine rnd) const {
+  auto axis = (int)m_SampleDist(rnd);
+  std::uniform_real_distribution<> dist(-1, 1);
+
+  int dir = dist(rnd) < 0.0f ? -1 : 1;
+  Ray result;
+  switch (axis)
+  {
+  case 0:
+    result.position = Vector3(
+      m_Box.Extents.x * dir,
+      m_Box.Extents.y * dist(rnd),
+      m_Box.Extents.z * dist(rnd));
+    result.direction = Vector3(dir, 0, 0);
+    break;
+  case 1:
+    result.position = Vector3(
+      m_Box.Extents.x * dist(rnd),
+      m_Box.Extents.y * dir,
+      m_Box.Extents.z * dist(rnd));
+    result.direction = Vector3(0, dir, 0);
+    break;
+  case 2:
+    result.position = Vector3(
+      m_Box.Extents.x * dist(rnd),
+      m_Box.Extents.y * dist(rnd),
+      m_Box.Extents.z * dir);
+    result.direction = Vector3(0, 0, dir);
+    break;
+  default:
+    assert(false);
+    break;
+  }
+
+  auto transform = GetTransform();
+  result.position = Vector3::Transform(result.position, transform);
+  result.direction = Vector3::TransformNormal(result.direction, transform);
+  return result;
+}
+
 
 bool Box::Intersect(const Ray& _ray, Intersection& _intersect) const
 {

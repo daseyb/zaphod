@@ -44,3 +44,15 @@ bool Mesh::Intersect(const Ray& _ray, Intersection& _intersect) const {
 	}	
 	return intersectFound;
 }
+
+
+float Mesh::CalculateWeight()
+{
+  return 0;
+}
+
+Ray Mesh::Sample(std::default_random_engine rnd) const
+{
+  return Ray();
+}
+

@@ -19,6 +19,12 @@ void BaseObject::SetMaterial(Material _mat)
 	m_Material = _mat;
 }
 
+Material BaseObject::GetMaterial() const
+{
+  return m_Material;
+}
+
+
 void BaseObject::SetRotation(Vector3 _rot)
 {
   m_Rotation = Quaternion::CreateFromYawPitchRoll(_rot.x, _rot.y, _rot.z);
