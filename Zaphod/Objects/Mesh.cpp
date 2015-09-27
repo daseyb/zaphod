@@ -22,30 +22,25 @@ Mesh::Mesh(Vector3 _pos, std::vector<Triangle> _tris, bool _smooth) {
 Mesh::~Mesh(void) {
 }
 
-void Mesh::SetPosition(DirectX::SimpleMath::Vector3 _pos) {
-	BaseObject::SetPosition(_pos);
-}
-
-void Mesh::SetRotation(float _yaw, float _pitch, float _roll) {
-	m_Rotation = Quaternion::CreateFromYawPitchRoll(_yaw, _pitch, _roll);
-}
-
 bool Mesh::Intersect(const Ray& _ray, Intersection& _intersect) const {
 	float minDist = FLT_MAX;
 	Triangle minTri;
 	Ray transformedRay = _ray;
-	DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationQuaternion(-m_Rotation);
-	DirectX::XMMATRIX translationMatrix = DirectX::XMMatrixTranslation(-m_Position.x, -m_Position.y, -m_Position.z);
-	DirectX::XMMATRIX transform = DirectX::XMMatrixMultiply(rotationMatrix, translationMatrix);
 
-	transformedRay.position = Vector3::Transform(_ray.position, transform);
+  auto transform = GetTransform();
+  auto invTransform = transform.Invert();
 
-	bool intersectFound = m_Bounds->Intersect(transformedRay, minTri, minDist);
+	transformedRay.position = Vector3::Transform(_ray.position, invTransform);
+  transformedRay.direction = Vector3::TransformNormal(_ray.direction, invTransform);
+  transformedRay.direction.Normalize();
+	
+  bool intersectFound = m_Bounds->Intersect(transformedRay, minTri, minDist);
 
 	if(intersectFound) {
 		_intersect.material = m_Material;
 		_intersect.position = _ray.position + minDist * _ray.direction;
-		_intersect.normal = (minTri.v(0).Normal + minTri.v(1).Normal + minTri.v(2).Normal)/3;
+		_intersect.normal = Vector3::TransformNormal((minTri.v(0).Normal + minTri.v(1).Normal + minTri.v(2).Normal)/3, transform);
+    _intersect.normal.Normalize();
 	}	
 	return intersectFound;
 }

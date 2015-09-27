@@ -3,23 +3,24 @@
 #include "SimpleMath.h"
 
 class Triangle;
-const int MIN_POLYS_PER_NODE = 10;
+const float MIN_NODE_SIZE = 0.01f;
+const int MAX_DEPTH = 7;
 
 class Node {
 private:
 	DirectX::BoundingBox m_Bounds;
-
 	bool m_Smallest;
+  int m_Depth;
+
 	std::vector<Node*> m_Children;
 	std::vector<Triangle> m_Polys;
 
 	DirectX::SimpleMath::Vector3 GetChildPos(int _index);
-	void Devide();
+	void Divide();
 public:
-	Node(DirectX::BoundingBox _bounds, std::vector<Triangle> _parentPolys);
+	Node(DirectX::BoundingBox _bounds, std::vector<Triangle> _parentPolys, int _depth);
 	~Node(void);
 	DirectX::SimpleMath::Vector3 GetCenter() const;
 	bool Contains(const DirectX::BoundingBox& _bounds, const Triangle& _poly) const;
 	bool Intersect(const DirectX::SimpleMath::Ray& _ray, Triangle& _out, float& _dist) const;
-	bool HasPolys(void) const;
 };

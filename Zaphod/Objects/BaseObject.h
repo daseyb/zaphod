@@ -24,9 +24,11 @@ public:
 	BaseObject(void);
 	~BaseObject(void);
 	
-	DirectX::SimpleMath::Matrix GetTransform();
-	virtual void SetPosition(DirectX::SimpleMath::Vector3 _pos);
-	void SetMaterial(Material _mat);
+	DirectX::SimpleMath::Matrix GetTransform() const;
+  virtual void SetRotation(DirectX::SimpleMath::Vector3 _rot);
+  virtual void SetPosition(DirectX::SimpleMath::Vector3 _pos);
+  virtual void SetScale(DirectX::SimpleMath::Vector3 _scale);
+  void SetMaterial(Material _mat);
 	virtual bool Intersect(const DirectX::SimpleMath::Ray& _ray, Intersection& _intersect) const = 0;
 };
 
