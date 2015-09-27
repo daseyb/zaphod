@@ -18,6 +18,6 @@ public:
 	~Mesh(void);
 	bool Intersect(const DirectX::SimpleMath::Ray& _ray, Intersection& _intersect) const override;
   float CalculateWeight() override;
-  DirectX::SimpleMath::Ray Sample(std::default_random_engine rnd) const override;
+  DirectX::SimpleMath::Ray Sample(std::default_random_engine& rnd) const override;
 };
 

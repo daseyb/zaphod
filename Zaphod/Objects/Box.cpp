@@ -35,23 +35,17 @@ void Box::SetPosition(Vector3 _pos)
 
 float Box::CalculateWeight()
 {
-  m_SampleInterval[0] = 0;
-  m_SampleInterval[1] = 1;
-  m_SampleInterval[2] = 2;
-  m_SampleInterval[3] = 3;
-
   m_SampleWeights[0] = m_Box.Extents.y * m_Box.Extents.z * 8;
   m_SampleWeights[1] = m_Box.Extents.x * m_Box.Extents.z * 8;
   m_SampleWeights[2] = m_Box.Extents.x * m_Box.Extents.y * 8;
   
-  m_SampleDist = std::piecewise_constant_distribution<>(
-    std::begin(m_SampleInterval), std::end(m_SampleInterval), std::begin(m_SampleWeights));
-
-  return m_SampleWeights[0] + m_SampleWeights[1] + m_SampleWeights[2];
+  m_SampleDist = std::discrete_distribution<>({ m_SampleWeights[0], m_SampleWeights[1], m_SampleWeights[2] });
+  m_Weight = m_SampleWeights[0] + m_SampleWeights[1] + m_SampleWeights[2];
+  return m_Weight;
 }
 
-Ray Box::Sample(std::default_random_engine rnd) const {
-  auto axis = (int)m_SampleDist(rnd);
+Ray Box::Sample(std::default_random_engine& rnd) const {
+  auto axis = m_SampleDist(rnd);
   std::uniform_real_distribution<> dist(-1, 1);
 
   int dir = dist(rnd) < 0.0f ? -1 : 1;

@@ -8,6 +8,7 @@ class BaseObject;
 class Camera;
 class Light;
 class LightCache;
+struct Intersection;
 
 /********************************************
 ** Scene
@@ -25,7 +26,7 @@ class Scene
   std::vector<float> m_LightIntervals;
 
   std::default_random_engine m_Rnd;
-  std::piecewise_constant_distribution<double> m_SampleDist;
+  std::discrete_distribution<int> m_SampleDist;
 
 	clock_t m_PrevTime;
 	clock_t m_InitTime;
@@ -36,8 +37,9 @@ class Scene
 public:
 	Scene(Camera* _cam);
 	void Update();
-  DirectX::SimpleMath::Ray SampleLight(std::default_random_engine _rnd) const;
-	DirectX::SimpleMath::Color Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth, bool _isSecondary) const;
+  DirectX::SimpleMath::Ray SampleLight(std::default_random_engine& _rnd, BaseObject** _outLight) const;
+  bool Trace(const DirectX::SimpleMath::Ray& _ray, Intersection& minIntersect) const;
+  DirectX::SimpleMath::Color Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth, bool _isSecondary, std::default_random_engine& _rnd) const;
 	~Scene(void);
 };
 

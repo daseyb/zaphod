@@ -7,9 +7,8 @@ class Box :
 {
 private:
 	DirectX::BoundingBox m_Box;
-  std::piecewise_constant_distribution<double> m_SampleDist;
+  std::discrete_distribution<int> m_SampleDist;
 
-  float m_SampleInterval[4];
   float m_SampleWeights[3];
 
 public:
@@ -21,6 +20,6 @@ public:
 	void SetPosition(DirectX::SimpleMath::Vector3 _pos) override;
 	bool Intersect(const DirectX::SimpleMath::Ray& _ray, Intersection& _intersect) const override;
   float CalculateWeight() override;
-  DirectX::SimpleMath::Ray Sample(std::default_random_engine rnd) const override;
+  DirectX::SimpleMath::Ray Sample(std::default_random_engine& rnd) const override;
 };
 

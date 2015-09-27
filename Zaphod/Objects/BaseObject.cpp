@@ -19,6 +19,11 @@ void BaseObject::SetMaterial(Material _mat)
 	m_Material = _mat;
 }
 
+float BaseObject::GetWeight() const
+{
+  return m_Weight;
+}
+
 Material BaseObject::GetMaterial() const
 {
   return m_Material;

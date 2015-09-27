@@ -41,10 +41,11 @@ bool Sphere::Intersect(const Ray& _ray, Intersection& _intersect) const
 
 float Sphere::CalculateWeight()
 {
-  return 4 * m_Sphere.Radius * DirectX::XM_PI * DirectX::XM_PI;
+  m_Weight = 4 * m_Sphere.Radius * DirectX::XM_PI * DirectX::XM_PI;
+  return m_Weight;
 }
 
-Ray Sphere::Sample(std::default_random_engine rnd) const
+Ray Sphere::Sample(std::default_random_engine& rnd) const
 {
   std::uniform_real_distribution<> dist(0, 1);
   float omega = dist(rnd) *  DirectX::XM_2PI;
