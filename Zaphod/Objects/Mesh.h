@@ -16,8 +16,8 @@ public:
 	Mesh(DirectX::SimpleMath::Vector3 _pos, const std::string& _file);
 	Mesh(DirectX::SimpleMath::Vector3 _pos, std::vector<Triangle> _tris, bool _smooth);
 	~Mesh(void);
-	void SetPosition(DirectX::SimpleMath::Vector3 _pos) override;
-	void SetRotation(float _yaw, float _pitch, float _roll);
 	bool Intersect(const DirectX::SimpleMath::Ray& _ray, Intersection& _intersect) const override;
+  float CalculateWeight() override;
+  DirectX::SimpleMath::Ray Sample(std::default_random_engine& rnd) const override;
 };
 

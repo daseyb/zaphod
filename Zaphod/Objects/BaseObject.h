@@ -2,6 +2,7 @@
 
 #include "../SimpleMath.h"
 #include "../Material.h"
+#include <random>
 
 struct Intersection;
 
@@ -19,14 +20,22 @@ protected:
 	DirectX::SimpleMath::Vector3 m_Position;
 	DirectX::SimpleMath::Quaternion m_Rotation;
 	Material m_Material;
+  float m_Weight;
 
 public: 
 	BaseObject(void);
 	~BaseObject(void);
 	
-	DirectX::SimpleMath::Matrix GetTransform();
-	virtual void SetPosition(DirectX::SimpleMath::Vector3 _pos);
-	void SetMaterial(Material _mat);
-	virtual bool Intersect(const DirectX::SimpleMath::Ray& _ray, Intersection& _intersect) const = 0;
+	DirectX::SimpleMath::Matrix GetTransform() const;
+  virtual void SetRotation(DirectX::SimpleMath::Vector3 _rot);
+  virtual void SetPosition(DirectX::SimpleMath::Vector3 _pos);
+  virtual void SetScale(DirectX::SimpleMath::Vector3 _scale);
+  virtual float CalculateWeight() = 0;
+  virtual DirectX::SimpleMath::Ray Sample(std::default_random_engine& rnd) const = 0;
+  
+  float GetWeight() const;
+  void SetMaterial(Material _mat);
+  Material GetMaterial() const;
+  virtual bool Intersect(const DirectX::SimpleMath::Ray& _ray, Intersection& _intersect) const = 0;
 };
 

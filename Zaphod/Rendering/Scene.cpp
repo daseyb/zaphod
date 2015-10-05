@@ -1,4 +1,4 @@
-#include "Scene.h"
+﻿#include "Scene.h"
 #include "../Geometry/Intersection.h"
 #include "../Objects/BaseObject.h"
 #include "../Objects/Sphere.h"
@@ -11,6 +11,9 @@
 #include "../LightCache.h"
 #include <stdlib.h>
 #include <iostream>
+#include <math.h>
+
+#define USE_LIGHTCACHE 0
 
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
@@ -20,9 +23,6 @@ Scene::Scene(Camera* _cam)
 	//Initialize object lists
 	m_SceneObjects = std::vector<BaseObject*>();
 	Sphere* testSphere = new Sphere(1, Vector3(0,0.5f,0));
-
-	Sphere* testSphere2 = new Sphere(2.5f, Vector3(3.5f,0.5f,2));
-	Sphere* testSphere3 = new Sphere(2.5f, Vector3(-3.5f,0.5f,-1));
 
 	//Build a few test objects and materials
 	Box* wallFront = new Box(Vector3(0, 10, -8), 20, 20, 0.1f);
@@ -40,6 +40,15 @@ Scene::Scene(Camera* _cam)
 	Box* wallRight = new Box(Vector3(8, 10, 0), 0.1f, 20, 20);
 	//Mesh* monkey = new Mesh(Vector3(-3.5f, 0.5f, 4), "Data/test_smooth.obj");
 
+	Mesh* teapot = new Mesh(Vector3(-3.5f, -1.25f, 3), "Data/teapot.obj");
+  teapot->SetRotation(Vector3(45, 0, 0));
+  
+  Mesh* teddy = new Mesh(Vector3(3, -1, -3), "Data/teddy.obj");
+  teddy->SetRotation(Vector3(45, 0, 0));
+
+  Mesh* teddyFront = new Mesh(Vector3(4, -1, 3), "Data/teddy.obj");
+  teddy->SetRotation(Vector3(-45, 0, 0));
+
 	Material whiteMat;
 	whiteMat.DiffuseColor = Color(1.0f, 1.0f, 1.0f);
 
@@ -50,6 +59,9 @@ Scene::Scene(Camera* _cam)
 	Material lightTop = whiteMat;
 	lightTop.DiffuseColor = Color(1, 1, 1);
 	lightTop.Emittance = Color(0.0f, 0.0f, 0.0f);
+
+  Material centerLight = lightTop;
+  centerLight.Emittance = Color(0.25f, 0.5f, 1) * 2;
 
 	Material transparentMat;
 	transparentMat.DiffuseColor = Color(1.0f, 1.0f, 1.0f);
@@ -112,18 +124,19 @@ Scene::Scene(Camera* _cam)
 	m_SceneObjects.push_back(testSphere2);
 	m_SceneObjects.push_back(testSphere3);
 	
-	//Build a few test lights
-	PointLight* pointTest = new PointLight(Color(1.0, 1.0f, 1.0f), 1.9f, Vector3(0, 2, -5), 15);
-	PointLight* pointTest2 = new PointLight(Color(0.2f, 1.0f, 0.2f), 0.9f, Vector3(-2, 2, 2), 5);
-	PointLight* pointTest3 = new PointLight(Color(0.0f, 0.66f, 1.0f), 2.5f, Vector3(0, 1.9f, 5), 10);
+	m_SceneLights = std::vector<BaseObject*>();
 
-	DirectionalLight* dirTest = new DirectionalLight(Color(1, 1, 1), 0.2f, Vector3(-1, -1, -2));
+  for (auto obj : m_SceneObjects) {
+    float emmittanceMagnitude = obj->GetMaterial().Emittance.ToVector3().LengthSquared();
+    if (emmittanceMagnitude > 0.1f) {
+      m_SceneLights.push_back(obj);
+      m_LightWeights.push_back(obj->CalculateWeight() + emmittanceMagnitude);
+    }
+  }
 
-	m_SceneLights = std::vector<Light*>();
-	//m_SceneLights.push_back(pointTest2);
-	m_SceneLights.push_back(pointTest);
-	//m_SceneLights.push_back(pointTest3);
-	//m_SceneLights.push_back(dirTest);
+  m_SampleDist = std::discrete_distribution<>(
+    std::begin(m_LightWeights), 
+    std::end(m_LightWeights));
 
 
 	//Set the start time
@@ -136,6 +149,7 @@ Scene::Scene(Camera* _cam)
 
 	m_LightCache = new LightCache(BoundingBox(Vector3(0, 0, 0), Vector3(20, 20, 20)));
 	srand(time(NULL));
+  m_Rnd = std::default_random_engine();
 }
 
 void Scene::Update()
@@ -148,12 +162,15 @@ void Scene::Update()
 	m_PrevTime = time;
 }
 
-float GetRnd()
+Vector3 CosWeightedRandomHemisphereDirection2(Vector3 n, std::default_random_engine& _rnd)
 {
-	return (float)rand()/RAND_MAX;
-}
+  std::uniform_real_distribution<float> dist = std::uniform_real_distribution<float>(0, 1);
+	float Xi1 = dist(_rnd);
+	float Xi2 = dist(_rnd);
 
-Vector3 HemisphereSample(float theta, float phi, Vector3 n) {
+	float  theta = acos(sqrt(1.0 - Xi1));
+	float  phi = 2.0 * 3.1415926535897932384626433832795 * Xi2;
+
 	float xs = sinf(theta) * cosf(phi);
 	float ys = cosf(theta);
 	float zs = sinf(theta) * sinf(phi);
@@ -221,34 +238,46 @@ Color BRDFPhong(const Scene& scene, int currentDepth, Intersection intersect, Ve
 	}
 
 
-	Ray specRay = Ray(intersect.position + w1 * 0.001f, w1);
-	return scene.Intersect(specRay, currentDepth - 1, true);
+Ray Scene::SampleLight(std::default_random_engine& _rnd, BaseObject** _outLight) const {
+  int lightIndex = (int)m_SampleDist(_rnd);
+  *_outLight = m_SceneLights[lightIndex];
+  return (*_outLight)->Sample(_rnd);
 }
 
-
-
-//Intersect a ray with the scene (currently no optimization)
-Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth, bool _isSecondary) const
+bool Scene::Trace(const DirectX::SimpleMath::Ray& _ray, Intersection& minIntersect) const
 {
 	float minDist = FLT_MAX;
-	Intersection minIntersect;
 	Intersection intersect;
 	bool intersectFound = false;
 
 	//Find the nearest intersection
-	for(auto iter = m_SceneObjects.begin(); iter != m_SceneObjects.end(); iter++)
+  for (auto obj : m_SceneObjects)
 	{
-		if((*iter)->Intersect(_ray, intersect))
+    if (obj->Intersect(_ray, intersect))
 		{
 			float dist = (intersect.position - _ray.position).LengthSquared();
-			if(dist < minDist)
+      if (dist < minDist)
 			{
 				minDist = dist;
 				intersectFound = true;
 				minIntersect = intersect;
+        minIntersect.hitObject = obj;
+      }
 			}
 		}
+
+  return intersectFound;
 	}
+
+//Intersect a ray with the scene (currently no optimization)
+Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth, bool _isSecondary, std::default_random_engine& _rnd) const
+{
+  if (_depth == 0) {
+    return Color(0, 0, 0);
+  }
+	
+  Intersection minIntersect;
+  bool intersectFound = Trace(_ray, minIntersect);
 
 	if(!intersectFound)
 	{
@@ -256,31 +285,59 @@ Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth, bool _i
 	}
 
 
-	Color reflected(0, 0, 0);
+	
+#if USE_LIGHTCACHE
 	float rnd = GetRnd();
 	int storedCount = 0;
-	
-	/*if (_isSecondary && rnd < 1.0f / (_depth + 1) && m_LightCache->LookUp(minIntersect.position, &reflected, &storedCount) && GetRnd() < storedCount * 0.1f) {
+	if (_isSecondary && rnd < 1.0f / (_depth + 1) && m_LightCache->LookUp(minIntersect.position, &reflected, &storedCount) && GetRnd() < storedCount * 0.1f) {
 		return reflected;
-	} else*/ if (_depth == 0) {
-		return Color(0, 0, 0);
-	}
+	} else
+#endif
 
 	Color emittance = minIntersect.material.Emittance;
 
-	const int DIFFUSE_SAMPLES = 1;
+  Color reflected(0, 0, 0);
+  Vector3 difDir; 
+  Color BRDF = minIntersect.material.DiffuseColor;
 
-	for (int i = 0; i < DIFFUSE_SAMPLES; i++)  {
-		reflected += BRDFPhong(*this, _depth, minIntersect, _ray.direction);
+  difDir = CosWeightedRandomHemisphereDirection2(minIntersect.normal, _rnd);
+  Ray diffuseRay = Ray(minIntersect.position + difDir * 0.001f, difDir);
+  reflected += Intersect(diffuseRay, _depth - 1, true, _rnd) * BRDF;
+  
+
+
+#if 0
+  BaseObject* sampledLight;
+  auto lightSample = SampleLight(_rnd, &sampledLight);
+  difDir = lightSample.position - minIntersect.position;
+  float dist = difDir.LengthSquared();
+  difDir.Normalize();
+  diffuseRay = Ray(minIntersect.position + difDir * 0.001f, difDir);
+
+  float weight = minIntersect.normal.Dot(difDir) * lightSample.direction.Dot(-difDir);
+  weight = weight < 0 ? 0 : weight;
+
+  if (weight > 0)
+  {
+    Intersection lightIntersect;
+    bool hitLight = Trace(diffuseRay, lightIntersect);
+
+    if (hitLight && lightIntersect.hitObject == sampledLight)
+    {
+      weight *= sampledLight->GetWeight();
+      weight /= dist;
+      reflected = (reflected + lightIntersect.material.Emittance * weight * BRDF)/2;
+    }
 	}
-
-	Color BRDF = minIntersect.material.DiffuseColor / DIFFUSE_SAMPLES;
+#endif
 	
-	Color final = (emittance + (BRDF * reflected));
+	Color final = emittance + reflected;
 
-	/*if (storedCount < 10) {
+#if USE_LIGHTCACHE
+	if (storedCount < 10) {
 		m_LightCache->AddPoint(minIntersect.position, final);
-	}*/
+	}
+#endif
 
 	return final ;
 }
@@ -288,19 +345,12 @@ Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth, bool _i
 
 Scene::~Scene(void)
 {
-	for(auto iter = m_SceneObjects.begin(); iter != m_SceneObjects.end(); iter++)
+	for(auto iter = m_SceneObjects.begin(); iter != m_SceneObjects.end(); ++iter)
 	{
 		delete (*iter);
 		(*iter) = nullptr;
 	}
 	m_SceneObjects.clear();
-
-	for(auto iter = m_SceneLights.begin(); iter != m_SceneLights.end(); iter++)
-	{
-		delete (*iter);
-		(*iter) = nullptr;
-	}
-	m_SceneLights.clear();
 
 	m_pCamera = nullptr;
 }

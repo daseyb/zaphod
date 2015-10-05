@@ -9,7 +9,7 @@ BaseObject::BaseObject(void)
 	m_Position = Vector3(0, 0, 0);
 }
 
-Matrix BaseObject::GetTransform()
+Matrix BaseObject::GetTransform() const
 {
 	return Matrix::CreateScale(m_Scale) * Matrix::CreateFromQuaternion(m_Rotation) * Matrix::CreateTranslation(m_Position);
 }
@@ -19,9 +19,29 @@ void BaseObject::SetMaterial(Material _mat)
 	m_Material = _mat;
 }
 
+float BaseObject::GetWeight() const
+{
+  return m_Weight;
+}
+
+Material BaseObject::GetMaterial() const
+{
+  return m_Material;
+}
+
+
+void BaseObject::SetRotation(Vector3 _rot)
+{
+  m_Rotation = Quaternion::CreateFromYawPitchRoll(_rot.x, _rot.y, _rot.z);
+}
+
 void BaseObject::SetPosition(Vector3 _pos)
 {
 	m_Position = _pos;
+}
+
+void BaseObject::SetScale(Vector3 _scale) {
+  m_Scale = _scale;
 }
 
 BaseObject::~BaseObject(void)

@@ -2,11 +2,13 @@
 #include "../SimpleMath.h"
 #include <vector>
 #include <time.h>
+#include <random>
 
 class BaseObject;
 class Camera;
 class Light;
 class LightCache;
+struct Intersection;
 
 /********************************************
 ** Scene
@@ -19,7 +21,12 @@ class LightCache;
 class Scene
 {
 	std::vector<BaseObject*> m_SceneObjects;
-	std::vector<Light*> m_SceneLights;
+	std::vector<BaseObject*> m_SceneLights;
+  std::vector<float> m_LightWeights;
+  std::vector<float> m_LightIntervals;
+
+  std::default_random_engine m_Rnd;
+  std::discrete_distribution<int> m_SampleDist;
 
 	clock_t m_PrevTime;
 	clock_t m_InitTime;
@@ -30,7 +37,9 @@ class Scene
 public:
 	Scene(Camera* _cam);
 	void Update();
-	DirectX::SimpleMath::Color Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth, bool _isSecondary) const;
+  DirectX::SimpleMath::Ray SampleLight(std::default_random_engine& _rnd, BaseObject** _outLight) const;
+  bool Trace(const DirectX::SimpleMath::Ray& _ray, Intersection& minIntersect) const;
+  DirectX::SimpleMath::Color Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth, bool _isSecondary, std::default_random_engine& _rnd) const;
 	~Scene(void);
 };
 

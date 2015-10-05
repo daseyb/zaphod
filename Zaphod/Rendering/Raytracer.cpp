@@ -6,8 +6,9 @@
 using namespace DirectX::SimpleMath;
 
 #define MULTI_THREADED
-#define SAMPLES 10000
-#define TILE_SIZE 256
+#define SAMPLES 500
+#define BOUNCES 5
+#define TILE_SIZE 128
 
 Raytracer::Raytracer(void)
 {
@@ -75,6 +76,9 @@ void Raytracer::RenderPart(int _x, int _y, int _width, int _height)
 	assert(_x + _width <= m_Width);
 	assert(_y + _height <= m_Height);
 
+  std::random_device d;
+  std::default_random_engine rnd(d());
+
 	for (int i = 0; i < SAMPLES; i++)
 	{
 		for (int x = _x; x < _x + _width; x++)
@@ -84,7 +88,7 @@ void Raytracer::RenderPart(int _x, int _y, int _width, int _height)
 				int pixelIndex = (x + m_Width * y) * 4;
 				Ray ray = GetRay(x, y);
 
-				Color rayColor = m_pScene->Intersect(ray, 4, false);
+				Color rayColor = m_pScene->Intersect(ray, BOUNCES, false, rnd);
 
 				m_RawPixels[x + m_Width * y] += rayColor;
 				Color current = m_RawPixels[x + m_Width * y] / (i+1);

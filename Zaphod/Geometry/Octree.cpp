@@ -1,4 +1,4 @@
-#include "Octree.h"
+﻿#include "Octree.h"
 #include "Triangle.h"
 #include "..\Node.h"
 
@@ -35,9 +35,8 @@ Octree::Octree(std::vector<Triangle> _polys) {
 
 	Vector3 extends = (max - min )/2;
 	Vector3 mid = (min + max)/2;
-	Vector3 boundPos = mid;
 
-	m_Root = new Node(DirectX::BoundingBox(boundPos, extends), _polys);
+	m_Root = new Node(DirectX::BoundingBox(mid, extends), _polys, 0);
 }
 
 bool Octree::Intersect(const Ray& _ray, Triangle& _out, float& _outDist) const {
@@ -45,7 +44,6 @@ bool Octree::Intersect(const Ray& _ray, Triangle& _out, float& _outDist) const {
 }
 
 Octree::~Octree(void) {
-	if(m_Root)
-		delete m_Root;
+	delete m_Root;
 	m_Root = nullptr;
 }

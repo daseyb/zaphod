@@ -3,9 +3,11 @@
 #include <ctime>
 #include <string>
 #include <memory>
+#include <chrono>
+#include <thread>
 
-const int WIDTH = 1280;
-const int HEIGHT = 720;
+const int WIDTH = 640;
+const int HEIGHT = 360;
 
 int main()
 {
@@ -36,6 +38,10 @@ int main()
         {
             if (event.type == sf::Event::Closed)
                 window.close();
+
+      if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::O) {
+        tex.copyToImage().saveToFile("Output.png");
+      }
         }
 
         //window.clear();
@@ -43,11 +49,10 @@ int main()
 		//Write the updated pixels to the texture
 		tex.update(rt.GetPixels());
 
-		//tex.copyToImage().saveToFile("Output.png");
 		window.draw(renderSprite);
         window.display();
-		_sleep(33);
-	}
+    std::this_thread::sleep_for(std::chrono::milliseconds(16));
+    }
 
 	rt.Shutdown();
 
