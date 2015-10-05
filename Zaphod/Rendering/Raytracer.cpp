@@ -6,8 +6,8 @@
 using namespace DirectX::SimpleMath;
 
 #define MULTI_THREADED
-#define SAMPLES 3000
-#define TILE_SIZE 128
+#define SAMPLES 10000
+#define TILE_SIZE 256
 
 Raytracer::Raytracer(void)
 {
@@ -89,6 +89,12 @@ void Raytracer::RenderPart(int _x, int _y, int _width, int _height)
 				m_RawPixels[x + m_Width * y] += rayColor;
 				Color current = m_RawPixels[x + m_Width * y] / (i+1);
 				current.Saturate();
+				/*Color x = current - Color(0.004f, 0.004f, 0.004f);
+				x.x = x.x < 0 ? 0 : x.x;
+				x.y = x.y < 0 ? 0 : x.y;
+				x.z = x.z < 0 ? 0 : x.z;
+
+				current = (x*(6.2f*x + Color(.5f, .5f, .5f))) / (x*(6.2f*x + Color(1.7f, 1.7f, 1.7f)) + Color(0.06f, 0.06f, 0.06f));*/
 
 				sf::Color newCol((sf::Uint8)(current.R() * 255), (sf::Uint8)(current.G() * 255), (sf::Uint8)(current.B() * 255), 255);
 

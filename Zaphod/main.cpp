@@ -46,7 +46,8 @@ int main()
 		//tex.copyToImage().saveToFile("Output.png");
 		window.draw(renderSprite);
         window.display();
-    }
+		_sleep(33);
+	}
 
 	rt.Shutdown();
 

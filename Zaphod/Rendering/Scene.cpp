@@ -25,7 +25,9 @@ Scene::Scene(Camera* _cam)
 	Sphere* testSphere3 = new Sphere(2.5f, Vector3(-3.5f,0.5f,-1));
 
 	//Build a few test objects and materials
-	Box* testBox = new Box(Vector3(0, 10, -8), 20, 20, 0.1f);
+	Box* wallFront = new Box(Vector3(0, 10, -8), 20, 20, 0.1f);
+	Box* wallBack = new Box(Vector3(0, 10, 12), 20, 20, 0.1f);
+
 	Box* lightBox = new Box(Vector3(0, 3, -7), 3, 3, 0.1f);
 	Sphere* lightBox2 = new Sphere(0.3f, Vector3(-3, -1, 4));
 	Sphere* lightBox3 = new Sphere(0.5f, Vector3(-3.5f, -1, 5));
@@ -33,38 +35,45 @@ Scene::Scene(Camera* _cam)
 	
 	Box* lightBoxTop = new Box(Vector3(0, 5, 0), 20, 0.1f, 20);
 
-	Box* testBox2 = new Box(Vector3(0, -1.05f, 0), 20, 0.1f, 20);
-	Box* testBox3 = new Box(Vector3(-8, 10, 0), 0.1f, 20, 20);
-	Box* testBox4 = new Box(Vector3( 8, 10, 0), 0.1f, 20, 20);
-	Box* testBox5 = new Box(Vector3(0, 10, 11), 20, 20, 0.1f);
-	Mesh* monkey = new Mesh(Vector3(-3.5f, 0.5f, 4), "Data/test_smooth.obj");
+	Box* floor = new Box(Vector3(0, -1.05f, 0), 20, 0.1f, 20);
+	Box* wallLeft = new Box(Vector3(-8, 10, 0), 0.1f, 20, 20);
+	Box* wallRight = new Box(Vector3(8, 10, 0), 0.1f, 20, 20);
+	//Mesh* monkey = new Mesh(Vector3(-3.5f, 0.5f, 4), "Data/test_smooth.obj");
 
 	Material whiteMat;
 	whiteMat.DiffuseColor = Color(1.0f, 1.0f, 1.0f);
 
 	Material light = whiteMat;
 	light.DiffuseColor = Color(1, 1, 1);
-	light.Emittance = Color(2, 2, 2);
+	light.Emittance = Color(1, 1, 1);
 
 	Material lightTop = whiteMat;
 	lightTop.DiffuseColor = Color(1, 1, 1);
-	lightTop.Emittance = Color(0.1f, 0.1f, 0.1f);
+	lightTop.Emittance = Color(0.0f, 0.0f, 0.0f);
 
 	Material transparentMat;
 	transparentMat.DiffuseColor = Color(1.0f, 1.0f, 1.0f);
 
-
 	Material wallMat;
-	wallMat.DiffuseColor = Color(1.0f, 0.1f, 0.1f);
+	wallMat.DiffuseColor = Color(0.9f, 0.2f, 0.2f);
 
 	Material wallMatGreen = wallMat;
-	wallMatGreen.DiffuseColor = Color(0.1f, 1.0f, 0.1f);
+	wallMatGreen.DiffuseColor = Color(0.2f, 0.9f, 0.2f);
+
+	Material wallMatBlue = wallMat;
+	wallMatBlue.DiffuseColor = Color(0.2f, 0.2f, 0.9f);
 
 	Material floorMat;
 	floorMat.DiffuseColor = Color(1.0f, 1.0f, 1.0f);
+	floorMat.Roughness = 0.025f;
+	floorMat.Kd = 0.1f;
+	floorMat.Ks = 0.9f;
 
 	Material chromeMatBase;
 	chromeMatBase.DiffuseColor = Color(0.5f, 0.5f, 0.5f);
+	chromeMatBase.Roughness = 1;
+	chromeMatBase.Kd = 1.0f;
+	chromeMatBase.Ks = 0.0f;
 
 	Material chromeMatRed = chromeMatBase;
 	chromeMatRed.DiffuseColor = Color(1.0f, 0.3f, 1.0f);
@@ -72,31 +81,34 @@ Scene::Scene(Camera* _cam)
 	Material chromeMatBlue = chromeMatBase;
 	chromeMatBlue.DiffuseColor = Color(1.0f, 1.0f, 0.3f);
 
-	testBox->SetMaterial(whiteMat);
 	lightBox->SetMaterial(light);
 	lightBox2->SetMaterial(light);
 	lightBox3->SetMaterial(light);
 	lightBox4->SetMaterial(light);
 	lightBoxTop->SetMaterial(lightTop);
-	testBox2->SetMaterial(floorMat);
-	testBox3->SetMaterial(wallMatGreen);
-	testBox4->SetMaterial(wallMat);
+
+	wallFront->SetMaterial(whiteMat);
+	wallBack->SetMaterial(wallMatBlue);
+
+	floor->SetMaterial(floorMat);
+	wallLeft->SetMaterial(wallMatGreen);
+	wallRight->SetMaterial(wallMat);
 	testSphere->SetMaterial(transparentMat);
-	monkey->SetMaterial(whiteMat);
+	//monkey->SetMaterial(whiteMat);
 	testSphere2->SetMaterial(chromeMatBlue);
 	testSphere3->SetMaterial(chromeMatRed);
 
 	//m_SceneObjects.push_back(monkey);
-	m_SceneObjects.push_back(testBox);
+	m_SceneObjects.push_back(wallFront);
+	m_SceneObjects.push_back(wallBack);
 	m_SceneObjects.push_back(lightBox);
 	m_SceneObjects.push_back(lightBox2);
 	m_SceneObjects.push_back(lightBox3);
 	m_SceneObjects.push_back(lightBox4);
 	m_SceneObjects.push_back(lightBoxTop);
-	m_SceneObjects.push_back(testBox2);
-	m_SceneObjects.push_back(testBox3);
-	m_SceneObjects.push_back(testBox4);
-	m_SceneObjects.push_back(testBox5);
+	m_SceneObjects.push_back(floor);
+	m_SceneObjects.push_back(wallLeft);
+	m_SceneObjects.push_back(wallRight);
 	m_SceneObjects.push_back(testSphere2);
 	m_SceneObjects.push_back(testSphere3);
 	
@@ -141,29 +153,7 @@ float GetRnd()
 	return (float)rand()/RAND_MAX;
 }
 
-Vector3 RandomOffset(Vector3 _dir, float _factor) {
-	return _dir + Vector3((GetRnd() - 0.5f) * 0.2f * _factor, (GetRnd() - 0.5f) * 0.2f * _factor, (GetRnd() - 0.5f) * 0.2f * _factor);
-}
-
-Vector3 CosineSampleHemisphere(float u1, float u2)
-{
-	const float r = sqrt(u1);
-	const float theta = 2 * 3.141592653 * u2;
-
-	const float x = r * cos(theta);
-	const float y = r * sin(theta);
-
-	return Vector3(x, y, sqrt(fmax(0.0f, 1.0f - u1)));
-}
-
-Vector3 CosWeightedRandomHemisphereDirection2(Vector3 n)
-{
-	float Xi1 = (float)rand() / (float)RAND_MAX;
-	float Xi2 = (float)rand() / (float)RAND_MAX;
-
-	float  theta = acos(sqrt(1.0 - Xi1));
-	float  phi = 2.0 * 3.1415926535897932384626433832795 * Xi2;
-
+Vector3 HemisphereSample(float theta, float phi, Vector3 n) {
 	float xs = sinf(theta) * cosf(phi);
 	float ys = cosf(theta);
 	float zs = sinf(theta) * sinf(phi);
@@ -177,7 +167,6 @@ Vector3 CosWeightedRandomHemisphereDirection2(Vector3 n)
 	else
 		h.z = 1.0;
 
-
 	Vector3 x = (h.Cross(y));
 	x.Normalize();
 	Vector3 z = (x.Cross(y));
@@ -188,9 +177,55 @@ Vector3 CosWeightedRandomHemisphereDirection2(Vector3 n)
 	return direction;
 }
 
-Vector3 RandomPointOnHemisphere() {
-	return CosineSampleHemisphere(GetRnd(), GetRnd());
+Vector3 CosWeightedRandomHemisphereDirection2(Vector3 n)
+{
+	float Xi1 = (float)rand() / (float)RAND_MAX;
+	float Xi2 = (float)rand() / (float)RAND_MAX;
+
+	float  theta = acos(sqrt(1.0 - Xi1));
+	float  phi = 2.0 * 3.1415926535897932384626433832795 * Xi2;
+
+	return HemisphereSample(theta, phi, n);
 }
+
+Color BRDFDiffuse(const Scene& scene, int currentDepth, Intersection intersect, Vector3 view) {
+	Vector3 difDir = CosWeightedRandomHemisphereDirection2(intersect.normal);
+	Ray diffuseRay = Ray(intersect.position + difDir * 0.001f, difDir);
+	return scene.Intersect(diffuseRay, currentDepth - 1, true) * XM_PI;
+}
+
+Color BRDFPhong(const Scene& scene, int currentDepth, Intersection intersect, Vector3 view) {
+	float u = GetRnd();
+	if (u < intersect.material.Kd) {
+		return BRDFDiffuse(scene, currentDepth, intersect, view);
+	}
+
+	float ksd = intersect.material.Kd + intersect.material.Ks;
+	if (ksd < u) {
+		return Color(0, 0, 0);
+	}
+
+	Vector3 w1;
+	Vector3 ref = Vector3::Reflect(view, -intersect.normal);
+
+	if (intersect.material.Roughness == 0) {
+		w1 = ref;
+	} else {
+		float n = 1.0f / intersect.material.Roughness;
+
+		float u1 = GetRnd(), u2 = GetRnd();
+		float theta = acosf(pow(u1, 1.0f / (n + 1)));
+		float phi = 2 * XM_PI * u2;
+
+		w1 = HemisphereSample(theta, phi, ref);
+	}
+
+
+	Ray specRay = Ray(intersect.position + w1 * 0.001f, w1);
+	return scene.Intersect(specRay, currentDepth - 1, true);
+}
+
+
 
 //Intersect a ray with the scene (currently no optimization)
 Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth, bool _isSecondary) const
@@ -224,9 +259,10 @@ Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth, bool _i
 	Color reflected(0, 0, 0);
 	float rnd = GetRnd();
 	int storedCount = 0;
-	if (_isSecondary && rnd < 1.0f / (_depth + 1) && m_LightCache->LookUp(minIntersect.position, &reflected, &storedCount) && GetRnd() < storedCount * 0.1f) {
+	
+	/*if (_isSecondary && rnd < 1.0f / (_depth + 1) && m_LightCache->LookUp(minIntersect.position, &reflected, &storedCount) && GetRnd() < storedCount * 0.1f) {
 		return reflected;
-	} else if (_depth == 0) {
+	} else*/ if (_depth == 0) {
 		return Color(0, 0, 0);
 	}
 
@@ -235,22 +271,17 @@ Color Scene::Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth, bool _i
 	const int DIFFUSE_SAMPLES = 1;
 
 	for (int i = 0; i < DIFFUSE_SAMPLES; i++)  {
-		/*Vector3 dir = RandomPointOnHemisphere();
-		Vector3 offset = dir - Vector3(0, 0, 1);*/
-		Vector3 difDir = CosWeightedRandomHemisphereDirection2(minIntersect.normal); // +offset;
-		//difDir.Normalize();
-
-		Ray diffuseRay = Ray(minIntersect.position + difDir * 0.001f, difDir);
-		reflected += Intersect(diffuseRay, _depth - 1, true);
+		reflected += BRDFPhong(*this, _depth, minIntersect, _ray.direction);
 	}
 
 	Color BRDF = minIntersect.material.DiffuseColor / DIFFUSE_SAMPLES;
 	
 	Color final = (emittance + (BRDF * reflected));
 
-	if (storedCount < 10) {
+	/*if (storedCount < 10) {
 		m_LightCache->AddPoint(minIntersect.position, final);
-	}
+	}*/
+
 	return final ;
 }
 

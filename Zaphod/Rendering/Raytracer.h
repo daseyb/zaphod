@@ -16,7 +16,7 @@ class Scene;
 class Raytracer
 {
 private:
-	static const int THREAD_COUNT = 7;
+	static const int THREAD_COUNT = 6;
 	
 	struct TileInfo {
 		int X, Y, Width, Height;
