@@ -7,6 +7,12 @@
 
 class Scene;
 
+#define MULTI_THREADED
+#define SAMPLES 2000
+#define BOUNCES 5
+#define TILE_SIZE 128
+#define THREAD_COUNT 6
+
 /********************************************
 ** Raytracer
 ** Base class of this renderer, fills an array
@@ -16,7 +22,6 @@ class Scene;
 class Raytracer
 {
 private:
-	static const int THREAD_COUNT = 6;
 	
 	struct TileInfo {
 		int X, Y, Width, Height;

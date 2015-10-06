@@ -5,11 +5,6 @@
 
 using namespace DirectX::SimpleMath;
 
-#define MULTI_THREADED
-#define SAMPLES 500
-#define BOUNCES 5
-#define TILE_SIZE 128
-
 Raytracer::Raytracer(void)
 {
 
