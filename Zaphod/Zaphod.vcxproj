@@ -84,7 +84,9 @@
     <ClCompile Include="Objects\Sphere.cpp" />
     <ClCompile Include="ObjLoader.cpp" />
     <ClCompile Include="PointLight.cpp" />
+    <ClCompile Include="Rendering\BidirectionalPathTracer.cpp" />
     <ClCompile Include="Rendering\Camera.cpp" />
+    <ClCompile Include="Rendering\PathTracer.cpp" />
     <ClCompile Include="Rendering\Raytracer.cpp" />
     <ClCompile Include="Rendering\Scene.cpp" />
   </ItemGroup>
@@ -92,7 +94,6 @@
     <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="Geometry\Octree.h" />
     <ClInclude Include="Geometry\Triangle.h" />
-    <ClInclude Include="Intersection.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="LightCache.h" />
     <ClInclude Include="LightCacheNode.h" />
@@ -104,7 +105,12 @@
     <ClInclude Include="Objects\Sphere.h" />
     <ClInclude Include="ObjLoader.h" />
     <ClInclude Include="PointLight.h" />
+    <ClInclude Include="Rendering\BidirectionalPathTracer.h" />
+    <ClInclude Include="Rendering\BRDFs.h" />
     <ClInclude Include="Rendering\Camera.h" />
+    <ClInclude Include="Rendering\Integrator.h" />
+    <ClInclude Include="Rendering\IntegratorFactory.h" />
+    <ClInclude Include="Rendering\PathTracer.h" />
     <ClInclude Include="Rendering\Raytracer.h" />
     <ClInclude Include="Rendering\Scene.h" />
     <ClInclude Include="SimpleMath.h" />

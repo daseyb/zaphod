@@ -2,6 +2,8 @@
 #include "Raytracer.h"
 #include "Scene.h"
 #include <thread>
+#include "Integrator.h"
+#include "IntegratorFactory.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -10,7 +12,7 @@ Raytracer::Raytracer(void)
 
 }
 
-bool Raytracer::Initialize(int _width, int _height, float _fov)
+bool Raytracer::Initialize(int _width, int _height, float _fov, std::string _integrator)
 {
 	m_Width = _width;
 	m_Height = _height;
@@ -18,9 +20,9 @@ bool Raytracer::Initialize(int _width, int _height, float _fov)
 	m_Pixels = new sf::Uint8[m_Width * m_Height * 4] { 0 };
 	m_RawPixels = new Color[m_Width * m_Height * 4] { Color(0, 0, 0) };
 
-	m_pCamera = new Camera();
-
-	m_pScene = new Scene(m_pCamera);
+	m_pCamera = std::make_unique<Camera>();
+	m_pScene = std::make_unique<Scene>(m_pCamera.get());
+	m_pIntegrator.reset(IntegratorFactory(_integrator, m_pScene.get()));
 
 	return true;
 }
@@ -40,18 +42,6 @@ void Raytracer::Shutdown(void)
 	{
 		delete[] m_RawPixels;
 		m_RawPixels = nullptr;
-	}
-
-	if(m_pCamera)
-	{
-		delete m_pCamera;
-		m_pCamera = nullptr;
-	}
-
-	if(m_pScene)
-	{
-		delete m_pScene;
-		m_pScene = nullptr;
 	}
 }
 
@@ -83,7 +73,7 @@ void Raytracer::RenderPart(int _x, int _y, int _width, int _height)
 				int pixelIndex = (x + m_Width * y) * 4;
 				Ray ray = GetRay(x, y);
 
-				Color rayColor = m_pScene->Intersect(ray, BOUNCES, false, rnd);
+				Color rayColor = m_pIntegrator->Intersect(ray, BOUNCES, false, rnd);
 
 				m_RawPixels[x + m_Width * y] += rayColor;
 				Color current = m_RawPixels[x + m_Width * y] / (i+1);

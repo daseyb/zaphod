@@ -40,7 +40,6 @@ public:
 	void Update();
 	DirectX::SimpleMath::Ray SampleLight(std::default_random_engine& _rnd, BaseObject** _outLight) const;
 	bool Trace(const DirectX::SimpleMath::Ray& _ray, Intersection& minIntersect) const;
-	DirectX::SimpleMath::Color Intersect(const DirectX::SimpleMath::Ray& _ray, int _depth, bool _isSecondary, std::default_random_engine& _rnd) const;
 	~Scene(void);
 };
 

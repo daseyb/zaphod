@@ -81,6 +81,12 @@
     <ClCompile Include="LightCacheNode.cpp">
       <Filter>Rendering\Lights</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\PathTracer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\BidirectionalPathTracer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SimpleMath.h">
@@ -116,9 +122,6 @@
     <ClInclude Include="Material.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Intersection.h">
-      <Filter>Geometry</Filter>
-    </ClInclude>
     <ClInclude Include="Geometry\Octree.h">
       <Filter>Geometry</Filter>
     </ClInclude>
@@ -139,6 +142,21 @@
     </ClInclude>
     <ClInclude Include="LightCacheNode.h">
       <Filter>Rendering\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\PathTracer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\BRDFs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Integrator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\IntegratorFactory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\BidirectionalPathTracer.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

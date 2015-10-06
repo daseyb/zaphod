@@ -24,7 +24,7 @@ int main()
 
 	//Initialize the Raytracer class with width, height and horizontal FOV
 	Raytracer rt;
-	rt.Initialize(WIDTH, HEIGHT, 90);
+	rt.Initialize(WIDTH, HEIGHT, 90, "BDPT");
 
 	//Update the pixel array
 	rt.Render();

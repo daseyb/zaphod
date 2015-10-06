@@ -6,6 +6,7 @@
 #include <mutex>
 
 class Scene;
+class Integrator;
 
 #define MULTI_THREADED
 #define SAMPLES 2000
@@ -29,8 +30,10 @@ private:
 
 	sf::Uint8* m_Pixels;
 	DirectX::SimpleMath::Color* m_RawPixels;
-	Camera* m_pCamera;
-	Scene* m_pScene;
+	
+	std::unique_ptr<Camera> m_pCamera;
+	std::unique_ptr<Scene> m_pScene;
+	std::unique_ptr<Integrator> m_pIntegrator;
 
 	float m_FOV;
 	int m_Width;
@@ -55,7 +58,7 @@ private:
 
 public:
 	Raytracer(void);
-	bool Initialize(int _width, int _height, float _fov);
+	bool Initialize(int _width, int _height, float _fov, std::string _integrator);
 	void Shutdown(void);
 	void SetFOV(float _fov);
 
