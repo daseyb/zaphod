@@ -87,6 +87,8 @@
     <ClCompile Include="Rendering\BidirectionalPathTracer.cpp" />
     <ClCompile Include="Rendering\Camera.cpp" />
     <ClCompile Include="Rendering\PathTracer.cpp" />
+    <ClCompile Include="Rendering\PhysicallyBasedCamera.cpp" />
+    <ClCompile Include="Rendering\PinholeCamera.cpp" />
     <ClCompile Include="Rendering\Raytracer.cpp" />
     <ClCompile Include="Rendering\Scene.cpp" />
   </ItemGroup>
@@ -109,8 +111,10 @@
     <ClInclude Include="Rendering\BRDFs.h" />
     <ClInclude Include="Rendering\Camera.h" />
     <ClInclude Include="Rendering\Integrator.h" />
-    <ClInclude Include="Rendering\IntegratorFactory.h" />
+    <ClInclude Include="Rendering\ComponentFactories.h" />
     <ClInclude Include="Rendering\PathTracer.h" />
+    <ClInclude Include="Rendering\PhysicallyBasedCamera.h" />
+    <ClInclude Include="Rendering\PinholeCamera.h" />
     <ClInclude Include="Rendering\Raytracer.h" />
     <ClInclude Include="Rendering\Scene.h" />
     <ClInclude Include="SimpleMath.h" />

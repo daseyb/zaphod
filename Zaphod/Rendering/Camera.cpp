@@ -1,12 +1,6 @@
 #include "Camera.h"
-
+using namespace DirectX;
 using namespace DirectX::SimpleMath;
-
-Camera::Camera(void)
-{
-	m_Position = Vector3(0,0,0);
-	m_Rotation = Quaternion::CreateFromYawPitchRoll(0, 0, 0);
-}
 
 void Camera::SetPosition(Vector3 _pos)
 {
@@ -35,8 +29,6 @@ Matrix Camera::GetViewMatrix(void) const
 	viewMat.Invert();
 	return viewMat;
 }
-
-
 
 Camera::~Camera(void)
 {

@@ -28,21 +28,21 @@ Scene::Scene(Camera* _cam)
 	Box* wallFront = new Box(Vector3(0, 10, -8), 20, 20, 0.1f);
 	Box* wallBack = new Box(Vector3(0, 10, 12), 20, 20, 0.1f);
 
-	Box* lightBox = new Box(Vector3(0, 4.5f, 0), 1, 0.1f, 1);
+	Box* lightBox = new Box(Vector3(0, 4.5f, 0), 3, 0.1f, 3);
 	Box* lightBoxTop = new Box(Vector3(0, 5, 0), 20, 0.1f, 20);
 
 	Box* floor = new Box(Vector3(0, -1.05f, 0), 20, 0.1f, 20);
 	Box* wallLeft = new Box(Vector3(-8, 10, 0), 0.1f, 20, 20);
 	Box* wallRight = new Box(Vector3(8, 10, 0), 0.1f, 20, 20);
 
-	Mesh* teapot = new Mesh(Vector3(-3.5f, 0, -4), "Data/test_smooth.obj");
-	teapot->SetRotation(Vector3(45, 0, -45));
-	teapot->SetScale(Vector3(3, 3, 3));
+	Mesh* teapot = new Mesh(Vector3(-5.0f, -0.5f, 4), "Data/cube.obj");
+	teapot->SetRotation(Vector3(45, -45, 0));
+	teapot->SetScale(Vector3(1, 1, 1));
 
-	Mesh* teddy = new Mesh(Vector3(3, 0, -3), "Data/test_smooth.obj");
+	Mesh* teddy = new Mesh(Vector3(3, 0, -3), "Data/cube.obj");
 	teddy->SetRotation(Vector3(45, 0, 0));
 
-	Mesh* teddyFront = new Mesh(Vector3(4, 0, 3), "Data/test_smooth.obj");
+	Mesh* teddyFront = new Mesh(Vector3(4, 0, 3), "Data/cube.obj");
 	teddyFront->SetRotation(Vector3(-45, 0, 0));
 
 	Material whiteMat;
@@ -50,7 +50,7 @@ Scene::Scene(Camera* _cam)
 
 	Material light = whiteMat;
 	light.DiffuseColor = Color(1, 1, 1);
-	light.Emittance = Color(10, 10, 10);
+	light.Emittance = Color(5, 5, 5);
 
 	Material lightTop = whiteMat;
 	lightTop.DiffuseColor = Color(1, 1, 1);
@@ -92,8 +92,8 @@ Scene::Scene(Camera* _cam)
 
 	lightBox->SetMaterial(light);
 	lightBoxTop->SetMaterial(lightTop);
-	wallFront->SetMaterial(mirror);
-	wallBack->SetMaterial(mirror);
+	wallFront->SetMaterial(whiteMat);
+	wallBack->SetMaterial(whiteMat);
 	floor->SetMaterial(floorMat);
 	wallLeft->SetMaterial(wallMatGreen);
 	wallRight->SetMaterial(wallMat);

@@ -1,9 +1,10 @@
 #define _USE_MATH_DEFINES
 #include "Raytracer.h"
 #include "Scene.h"
+#include "Camera.h"
 #include <thread>
 #include "Integrator.h"
-#include "IntegratorFactory.h"
+#include "ComponentFactories.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -12,15 +13,15 @@ Raytracer::Raytracer(void)
 
 }
 
-bool Raytracer::Initialize(int _width, int _height, float _fov, std::string _integrator)
+bool Raytracer::Initialize(int _width, int _height, std::string _integrator, Camera* _camera)
 {
+	m_IsShutDown = false;
 	m_Width = _width;
 	m_Height = _height;
-	m_FOV = _fov;
 	m_Pixels = new sf::Uint8[m_Width * m_Height * 4] { 0 };
 	m_RawPixels = new Color[m_Width * m_Height * 4] { Color(0, 0, 0) };
 
-	m_pCamera = std::make_unique<Camera>();
+	m_pCamera.reset(_camera);
 	m_pScene = std::make_unique<Scene>(m_pCamera.get());
 	m_pIntegrator.reset(IntegratorFactory(_integrator, m_pScene.get()));
 
@@ -29,6 +30,8 @@ bool Raytracer::Initialize(int _width, int _height, float _fov, std::string _int
 
 void Raytracer::Shutdown(void)
 {
+	m_IsShutDown = true;
+
 	for (int i = 0; i < THREAD_COUNT; i++)
 		m_Threads[i].join();
 
@@ -61,8 +64,8 @@ void Raytracer::RenderPart(int _x, int _y, int _width, int _height)
 	assert(_x + _width <= m_Width);
 	assert(_y + _height <= m_Height);
 
-  std::random_device d;
-  std::default_random_engine rnd(d());
+	std::random_device d;
+	std::default_random_engine rnd(d());
 
 	for (int i = 0; i < SAMPLES; i++)
 	{
@@ -70,13 +73,22 @@ void Raytracer::RenderPart(int _x, int _y, int _width, int _height)
 		{
 			for (int y = _y; y < _y + _height; y++)
 			{
-				int pixelIndex = (x + m_Width * y) * 4;
-				Ray ray = GetRay(x, y);
+				if (m_IsShutDown) {
+					return;
+				}
 
-				Color rayColor = m_pIntegrator->Intersect(ray, BOUNCES, false, rnd);
+				int pixelIndex = (x + m_Width * y) * 4;
+				float weight;
+				Ray ray = m_pCamera->GetRay(x, y, m_Width, m_Height, rnd, weight);
+
+				Color rayColor = Color(0, 0, 0);
+
+				if (weight > FLT_EPSILON) {
+					rayColor = m_pIntegrator->Intersect(ray, BOUNCES, false, rnd) * weight;
+				}
 
 				m_RawPixels[x + m_Width * y] += rayColor;
-				Color current = m_RawPixels[x + m_Width * y] / (i+1);
+				Color current = m_RawPixels[x + m_Width * y] / (i + 1);
 				current.Saturate();
 				/*Color x = current - Color(0.004f, 0.004f, 0.004f);
 				x.x = x.x < 0 ? 0 : x.x;
@@ -99,14 +111,15 @@ void Raytracer::RenderPart(int _x, int _y, int _width, int _height)
 void Raytracer::EmptyQueue() {
 	TileInfo toRender;
 	while (true) {
-		m_TileMutex.lock();
-		if (m_TilesToRender.size() == 0) {
-			m_TileMutex.unlock();
-			break;
+		{
+			std::lock_guard<std::mutex> lock(m_TileMutex);
+			if (m_TilesToRender.size() == 0) {
+				break;
+			}
+
+			toRender = m_TilesToRender.back();
+			m_TilesToRender.pop_back();
 		}
-		toRender = m_TilesToRender.back();
-		m_TilesToRender.pop_back();
-		m_TileMutex.unlock();
 		RenderPart(toRender.X, toRender.Y, toRender.Width, toRender.Height);
 	}
 }
@@ -150,27 +163,6 @@ void Raytracer::Render(void)
 sf::Uint8* Raytracer::GetPixels(void) const
 {
 	return m_Pixels;
-}
-
-Ray Raytracer::GetRay(int _x, int _y) const
-{
-	float x = _x + ((float)rand() / RAND_MAX - 0.5f) * 2;
-	float y = _y + ((float)rand() / RAND_MAX - 0.5f) * 2;
-	float fovx =  M_PI * m_FOV / 180; //Horizontal FOV
-	float fovy =  M_PI * 55 / 180; //Vertical FOV (hard coded to 55)
-
-	float halfWidth = m_Width/2;
-	float halfHeight = m_Height/2;
-
-	float alpha = tanf(fovx / 2)*((x - halfWidth) / halfWidth);
-	float beta = tanf(fovy / 2)*((halfHeight - y) / halfHeight);
-
-	Matrix viewMatrix = m_pCamera->GetViewMatrix();
-	Vector3 pos = viewMatrix.Translation();
-	Vector3 dir = alpha * viewMatrix.Right() + beta * viewMatrix.Up() + viewMatrix.Forward();
-	dir.Normalize();
-	
-	return Ray(pos, dir);
 }
 
 Raytracer::~Raytracer(void)

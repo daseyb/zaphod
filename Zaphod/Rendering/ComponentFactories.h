@@ -2,7 +2,7 @@
 #include "PathTracer.h"
 #include "BidirectionalPathTracer.h"
 
-Integrator* IntegratorFactory(std::string _integrator, Scene* _scene)
+inline Integrator* IntegratorFactory(std::string _integrator, Scene* _scene)
 {
 	if (_integrator == "PT")
 	{

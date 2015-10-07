@@ -2,9 +2,10 @@
 #include <SFML/Graphics.hpp>
 #include <thread>
 #include "../SimpleMath.h"
-#include "Camera.h"
 #include <mutex>
+#include <atomic>
 
+class Camera;
 class Scene;
 class Integrator;
 
@@ -39,14 +40,12 @@ private:
 	int m_Width;
 	int m_Height;
 
-	//Get ray for the given X and Y coordinates
-	DirectX::SimpleMath::Ray GetRay(int _x, int _y) const;
+	std::atomic<bool> m_IsShutDown;
 
 	std::thread m_Threads[THREAD_COUNT];
 	std::vector<TileInfo> m_TilesToRender;
 
 	std::mutex m_TileMutex;
-
 
 	//Render a part of the image (for multy threading)
 	void RenderPart(int _x, int _y, int _width, int _height);
@@ -55,10 +54,9 @@ private:
 
 	DirectX::SimpleMath::Color ReadColorAt(int _x, int _y) const;
 
-
 public:
 	Raytracer(void);
-	bool Initialize(int _width, int _height, float _fov, std::string _integrator);
+	bool Initialize(int _width, int _height, std::string _integrator, Camera* _camera);
 	void Shutdown(void);
 	void SetFOV(float _fov);
 

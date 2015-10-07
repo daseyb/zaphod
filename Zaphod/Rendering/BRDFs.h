@@ -40,6 +40,52 @@ inline Vector3 HemisphereSample(float theta, float phi, Vector3 n)
 	return direction;
 }
 
+inline Vector2 UniformSampleDisk(std::default_random_engine& _rnd) {
+	std::uniform_real_distribution<float> dist = std::uniform_real_distribution<float>(0, 1);
+	
+	float r = sqrtf(dist(_rnd));
+	float theta = 2.0f * XM_PI * dist(_rnd);
+	
+	return{ r*cosf(theta), r*sinf(theta) };
+}
+
+inline Vector2 ConcentricSampleDisk(std::default_random_engine& _rnd) {
+	std::uniform_real_distribution<float> dist = std::uniform_real_distribution<float>(-1, 1);
+
+	float r, theta;
+	float sx = dist(_rnd);
+	float sy = dist(_rnd);
+
+	if (sx == 0.0f && sy == 0.0f) {
+		return{ 0, 0 };
+	}
+
+	if (sx >= -sy) {
+		if (sx > sy) {
+			r = sx;
+			if (sy > 0.0) theta = sy / r;
+			else		  theta = 8.0f + sy / r;
+		}
+		else {
+			r = sy;
+			theta = 2.0 - sx / r;
+		}
+	}
+	else {
+		if (sx <= sy) {
+			r = -sx;
+			theta = 4.0 - sy / r;
+		}
+		else {
+			r = -sy;
+			theta = 6.0 + sx / r;
+		}
+	}
+	
+	theta *= XM_PI / 4.0f;
+	return{ r*cosf(theta), r*sinf(theta) };
+}
+
 inline Vector3 CosWeightedRandomHemisphereDirection2(Vector3 n, std::default_random_engine& _rnd)
 {
 	std::uniform_real_distribution<float> dist = std::uniform_real_distribution<float>(0, 1);

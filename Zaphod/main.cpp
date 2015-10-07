@@ -5,6 +5,8 @@
 #include <memory>
 #include <chrono>
 #include <thread>
+#include "Rendering\PinholeCamera.h"
+#include "Rendering\PhysicallyBasedCamera.h"
 
 const int WIDTH = 640;
 const int HEIGHT = 360;
@@ -24,7 +26,8 @@ int main()
 
 	//Initialize the Raytracer class with width, height and horizontal FOV
 	Raytracer rt;
-	rt.Initialize(WIDTH, HEIGHT, 90, "BDPT");
+	rt.Initialize(WIDTH, HEIGHT, "PT", new PhysicallyBasedCamera(5, 0.2f, 90));
+	//rt.Initialize(WIDTH, HEIGHT, 90, "PT", new PinholeCamera(90));
 
 	//Update the pixel array
 	rt.Render();
