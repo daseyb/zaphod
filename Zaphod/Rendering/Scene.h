@@ -24,9 +24,8 @@ class Scene
 	std::vector<BaseObject*> m_SceneObjects;
 	std::vector<BaseObject*> m_SceneLights;
 	std::vector<float> m_LightWeights;
-	std::vector<float> m_LightIntervals;
+	float m_TotalLightWeight;
 
-	std::default_random_engine m_Rnd;
 	std::discrete_distribution<int> m_SampleDist;
 
 	clock_t m_PrevTime;
@@ -38,7 +37,8 @@ class Scene
 public:
 	Scene(Camera* _cam);
 	void Update();
-	DirectX::SimpleMath::Ray SampleLight(std::default_random_engine& _rnd, BaseObject** _outLight) const;
+	DirectX::SimpleMath::Ray SampleLight(std::default_random_engine& _rnd, BaseObject** _outLight, float& le) const;
+	bool Test(DirectX::SimpleMath::Vector3 _p1, DirectX::SimpleMath::Vector3 _p2) const;
 	bool Trace(const DirectX::SimpleMath::Ray& _ray, Intersection& minIntersect) const;
 	~Scene(void);
 };

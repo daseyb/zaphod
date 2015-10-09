@@ -4,7 +4,7 @@
 #include "../Objects/Sphere.h"
 #include "../Objects/Box.h"
 #include "../Objects/Mesh.h"
-#include "Camera.h"
+#include "Cameras/Camera.h"
 #include "../Light.h"
 #include "../DirectionalLight.h"
 #include "../PointLight.h"
@@ -12,6 +12,10 @@
 #include <stdlib.h>
 #include <iostream>
 #include <math.h>
+#include "Materials/Material.h"
+#include "Materials/DiffuseMaterial.h"
+#include "Materials/SpecularMaterial.h"
+#include "Materials/EmissionMaterial.h"
 
 #define USE_LIGHTCACHE 0
 
@@ -22,7 +26,6 @@ Scene::Scene(Camera* _cam)
 {
 	//Initialize object lists
 	m_SceneObjects = std::vector<BaseObject*>();
-	Sphere* testSphere = new Sphere(1, Vector3(0, 0.5f, 0));
 
 	//Build a few test objects and materials
 	Box* wallFront = new Box(Vector3(0, 10, -8), 20, 20, 0.1f);
@@ -35,73 +38,42 @@ Scene::Scene(Camera* _cam)
 	Box* wallLeft = new Box(Vector3(-8, 10, 0), 0.1f, 20, 20);
 	Box* wallRight = new Box(Vector3(8, 10, 0), 0.1f, 20, 20);
 
-	Mesh* teapot = new Mesh(Vector3(-5.0f, -0.5f, 4), "Data/cube.obj");
-	teapot->SetRotation(Vector3(45, -45, 0));
+	Mesh* teapot = new Mesh(Vector3(-3.0f, -1.5f, 5), "Data/teapot.obj");
+	teapot->SetRotation(Vector3(0, 0, 0));
 	teapot->SetScale(Vector3(1, 1, 1));
 
 	Mesh* teddy = new Mesh(Vector3(3, 0, -3), "Data/cube.obj");
 	teddy->SetRotation(Vector3(45, 0, 0));
 
-	Mesh* teddyFront = new Mesh(Vector3(4, 0, 3), "Data/cube.obj");
+	Mesh* teddyFront = new Mesh(Vector3(4, -1, 3), "Data/teddy.obj");
 	teddyFront->SetRotation(Vector3(-45, 0, 0));
 
-	Material whiteMat;
-	whiteMat.DiffuseColor = Color(1.0f, 1.0f, 1.0f);
+	DiffuseMaterial whiteMat(Color(1.0f, 1.0f, 1.0f));
+	EmissionMaterial light(Color(5, 5, 5));
+	DiffuseMaterial lightTop(Color(1, 1, 1));
+	EmissionMaterial centerLight(Color(0.25f, 0.5f, 1) * 2);
+	SpecularMaterial mirror(Color(1, 1, 1), 0.01f, 0.99f, 0.00001f);
+	DiffuseMaterial wallMat(Color(0.9f, 0.2f, 0.2f));
+	DiffuseMaterial wallMatGreen(Color(0.2f, 0.9f, 0.2f));
+	SpecularMaterial floorMat(Color(1.0f, 1.0f, 1.0f), 0.1f, 0.9f, 0.9f);
 
-	Material light = whiteMat;
-	light.DiffuseColor = Color(1, 1, 1);
-	light.Emittance = Color(5, 5, 5);
-
-	Material lightTop = whiteMat;
-	lightTop.DiffuseColor = Color(1, 1, 1);
-
-	Material centerLight = lightTop;
-	centerLight.Emittance = Color(0.25f, 0.5f, 1) * 2;
-
-	Material mirror = { Color(1, 1, 1), Color(0, 0, 0), 0.01f, 0.99f, 0.00001f };
-
-	Material transparentMat;
-	transparentMat.DiffuseColor = Color(1.0f, 1.0f, 1.0f);
-
-	Material wallMat;
-	wallMat.DiffuseColor = Color(0.9f, 0.2f, 0.2f);
-
-	Material wallMatGreen = wallMat;
-	wallMatGreen.DiffuseColor = Color(0.2f, 0.9f, 0.2f);
-
-	Material wallMatBlue = wallMat;
-	wallMatBlue.DiffuseColor = Color(0.2f, 0.2f, 0.9f);
-
-	Material floorMat;
-	floorMat.DiffuseColor = Color(1.0f, 1.0f, 1.0f);
-	floorMat.Roughness = 0.9f;
-	floorMat.Kd = 0.1f;
-	floorMat.Ks = 0.9f;
-
-	Material chromeMatBase;
-	chromeMatBase.DiffuseColor = Color(0.5f, 0.5f, 0.5f);
-	chromeMatBase.Roughness = 0.3f;
-	chromeMatBase.Kd = 0.4f;
-	chromeMatBase.Ks = 0.6f;
-
-	Material chromeMatRed = chromeMatBase;
-	chromeMatRed.DiffuseColor = Color(1.0f, 0.3f, 1.0f);
-
-	Material chromeMatBlue = chromeMatBase;
+	SpecularMaterial chromeMatBase(Color(0.5f, 0.5f, 0.5f), 0.4f, 0.6f, 0.3f);
+	SpecularMaterial chromeMatRed = chromeMatBase;
+	chromeMatRed.DiffuseColor = Color(1.0f, 0.3f, 0.4f);
+	SpecularMaterial chromeMatBlue = chromeMatBase;
 	chromeMatBlue.DiffuseColor = Color(1.0f, 1.0f, 0.3f);
 
-	lightBox->SetMaterial(light);
-	lightBoxTop->SetMaterial(lightTop);
-	wallFront->SetMaterial(whiteMat);
-	wallBack->SetMaterial(whiteMat);
-	floor->SetMaterial(floorMat);
-	wallLeft->SetMaterial(wallMatGreen);
-	wallRight->SetMaterial(wallMat);
-	testSphere->SetMaterial(transparentMat);
+	lightBox->SetMaterial(&light);
+	lightBoxTop->SetMaterial(&lightTop);
+	wallFront->SetMaterial(&whiteMat);
+	wallBack->SetMaterial(&whiteMat);
+	floor->SetMaterial(&floorMat);
+	wallLeft->SetMaterial(&wallMatGreen);
+	wallRight->SetMaterial(&wallMat);
 
-	teddy->SetMaterial(chromeMatBlue);
-	teapot->SetMaterial(chromeMatRed);
-	teddyFront->SetMaterial(chromeMatRed);
+	teddy->SetMaterial(&chromeMatBlue);
+	teapot->SetMaterial(&mirror);
+	teddyFront->SetMaterial(&chromeMatRed);
 
 	m_SceneObjects.push_back(wallFront);
 	m_SceneObjects.push_back(wallBack);
@@ -116,18 +88,20 @@ Scene::Scene(Camera* _cam)
 
 	m_SceneLights = std::vector<BaseObject*>();
 
+	m_TotalLightWeight = 0;
+
 	for (auto obj : m_SceneObjects) {
-		float emmittanceMagnitude = obj->GetMaterial().Emittance.ToVector3().LengthSquared();
-		if (emmittanceMagnitude > 0.1f) {
+		if (obj->GetMaterial()->IsLight()) {
 			m_SceneLights.push_back(obj);
-			m_LightWeights.push_back(obj->CalculateWeight() + emmittanceMagnitude);
+			float weight = obj->CalculateWeight();
+			m_LightWeights.push_back(weight);
+			m_TotalLightWeight += weight;
 		}
 	}
 
 	m_SampleDist = std::discrete_distribution<>(
 		std::begin(m_LightWeights),
 		std::end(m_LightWeights));
-
 
 	//Set the start time
 	m_InitTime = clock();
@@ -138,8 +112,6 @@ Scene::Scene(Camera* _cam)
 	m_pCamera->SetRotation(0, -0.3, 0);
 
 	m_LightCache = new LightCache(BoundingBox(Vector3(0, 0, 0), Vector3(20, 20, 20)));
-	srand(time(NULL));
-	m_Rnd = std::default_random_engine();
 }
 
 void Scene::Update()
@@ -152,11 +124,25 @@ void Scene::Update()
 	m_PrevTime = time;
 }
 
-Ray Scene::SampleLight(std::default_random_engine& _rnd, BaseObject** _outLight) const
+Ray Scene::SampleLight(std::default_random_engine& _rnd, BaseObject** _outLight, float& le) const
 {
-  int lightIndex = (int)m_SampleDist(_rnd);
-  *_outLight = m_SceneLights[lightIndex];
-  return (*_outLight)->Sample(_rnd);
+	assert(m_SceneLights.size() > 0);
+	int lightIndex = (int)m_SampleDist(_rnd);
+	*_outLight = m_SceneLights[lightIndex];
+	le = m_LightWeights[lightIndex] / m_TotalLightWeight;
+	return (*_outLight)->Sample(_rnd);
+}
+
+bool Scene::Test(Vector3 _p1, Vector3 _p2) const {
+	auto dir = _p2 - _p1;
+	dir.Normalize();
+
+	Ray r = { _p1, dir };
+	Intersection intersect;
+	if (!Trace(r, intersect)) {
+		return false;
+	}
+	return Vector3::DistanceSquared(intersect.position, _p2) < FLT_EPSILON;
 }
 
 bool Scene::Trace(const DirectX::SimpleMath::Ray& _ray, Intersection& minIntersect) const
@@ -186,11 +172,10 @@ bool Scene::Trace(const DirectX::SimpleMath::Ray& _ray, Intersection& minInterse
 
 Scene::~Scene(void)
 {
-	for(auto iter = m_SceneObjects.begin(); iter != m_SceneObjects.end(); ++iter)
-	{
-		delete (*iter);
-		(*iter) = nullptr;
+	for(auto obj : m_SceneObjects) {
+		delete obj;
 	}
+
 	m_SceneObjects.clear();
 
 	m_pCamera = nullptr;

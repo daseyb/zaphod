@@ -5,8 +5,7 @@
 #include <memory>
 
 class Triangle;
-class Mesh :
-	public BaseObject
+class Mesh : public BaseObject
 {
 private:
 	std::vector<Triangle> m_Triangles;

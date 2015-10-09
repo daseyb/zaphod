@@ -1,7 +1,7 @@
 #pragma once
 #include "../SimpleMath.h"
 #include "Scene.h"
-#include "../Geometry/Intersection.h"
+
 
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
@@ -9,7 +9,6 @@ using namespace DirectX::SimpleMath;
 struct BRDFSample
 {
 	Vector3 Direction;
-	Color Color;
 	float PDF;
 };
 
@@ -99,26 +98,28 @@ inline Vector3 CosWeightedRandomHemisphereDirection2(Vector3 n, std::default_ran
 	return HemisphereSample(theta, phi, n);
 }
 
-inline BRDFSample BRDFDiffuse(const Scene& scene, int currentDepth, Intersection intersect, Vector3 view, std::default_random_engine& _rnd) {
-	return{ CosWeightedRandomHemisphereDirection2(intersect.normal, _rnd), intersect.material.DiffuseColor,  1 };
+inline BRDFSample BRDFDiffuse(Vector3 normal, Vector3 view, std::default_random_engine& _rnd) {
+	auto out = CosWeightedRandomHemisphereDirection2(normal, _rnd);
+	return{out, std::abs(out.Dot(view))};
 }
 
-inline BRDFSample BRDFPhong(const Scene& scene, int currentDepth, Intersection intersect, Vector3 view, std::default_random_engine& _rnd) {
+inline BRDFSample BRDFPhong(Vector3 normal, Vector3 view, float kd, float ks, float roughness, std::default_random_engine& _rnd) {
 	std::uniform_real_distribution<float> dist = std::uniform_real_distribution<float>(0, 1);
+
 	float u = dist(_rnd);
-	if (u < intersect.material.Kd) {
-		return BRDFDiffuse(scene, currentDepth, intersect, view, _rnd);
+	if (u < kd) {
+		return BRDFDiffuse(normal, view, _rnd);
 	}
 
-	float ksd = intersect.material.Kd + intersect.material.Ks;
+	float ksd = kd + ks;
 
 	Vector3 w1;
-	Vector3 ref = Vector3::Reflect(view, -intersect.normal);
+	Vector3 ref = Vector3::Reflect(view, -normal);
 
-	if (intersect.material.Roughness == 0) {
+	if (roughness == 0) {
 		w1 = ref;
 	} else {
-		float n = 1.0f / intersect.material.Roughness;
+		float n = 1.0f / roughness;
 
 		float u1 = dist(_rnd), u2 = dist(_rnd);
 		float theta = acosf(pow(u1, 1.0f / (n + 1)));
@@ -128,5 +129,5 @@ inline BRDFSample BRDFPhong(const Scene& scene, int currentDepth, Intersection i
 	}
 
 
-	return{ w1, intersect.material.DiffuseColor, 1 };
+	return{ w1, 1 };
 }

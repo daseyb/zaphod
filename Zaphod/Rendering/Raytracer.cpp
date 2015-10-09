@@ -1,9 +1,9 @@
 #define _USE_MATH_DEFINES
 #include "Raytracer.h"
 #include "Scene.h"
-#include "Camera.h"
+#include "Cameras/Camera.h"
 #include <thread>
-#include "Integrator.h"
+#include "Integrators/Integrator.h"
 #include "ComponentFactories.h"
 
 using namespace DirectX::SimpleMath;

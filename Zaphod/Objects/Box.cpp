@@ -123,7 +123,7 @@ bool Box::Intersect(const Ray& _ray, Intersection& _intersect) const
 			_intersect.normal = dotZ * Vector3(0,0,1);
 		_intersect.normal.Normalize();
 
-		_intersect.material = m_Material;
+		_intersect.material = m_Material.get();
 
 		return true;
 	}

@@ -10,8 +10,8 @@ class Scene;
 class Integrator;
 
 #define MULTI_THREADED
-#define SAMPLES 2000
-#define BOUNCES 5
+#define SAMPLES 100
+#define BOUNCES 4
 #define TILE_SIZE 128
 #define THREAD_COUNT 6
 

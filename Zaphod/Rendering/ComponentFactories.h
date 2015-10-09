@@ -1,6 +1,6 @@
 #pragma once
-#include "PathTracer.h"
-#include "BidirectionalPathTracer.h"
+#include "Integrators/PathTracer.h"
+#include "Integrators/BidirectionalPathTracer.h"
 
 inline Integrator* IntegratorFactory(std::string _integrator, Scene* _scene)
 {

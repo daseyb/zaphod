@@ -42,9 +42,6 @@
     <ClCompile Include="Objects\Sphere.cpp">
       <Filter>Objects</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\Camera.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\Raytracer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
@@ -81,11 +78,20 @@
     <ClCompile Include="LightCacheNode.cpp">
       <Filter>Rendering\Lights</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\PathTracer.cpp">
+    <ClCompile Include="Rendering\Integrators\BidirectionalPathTracer.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Integrators\PathTracer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\BidirectionalPathTracer.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Rendering\Cameras\Camera.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Cameras\PhysicallyBasedCamera.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Cameras\PinholeCamera.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -101,9 +107,6 @@
     <ClInclude Include="Objects\Sphere.h">
       <Filter>Objects</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\Camera.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\Raytracer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -118,9 +121,6 @@
     </ClInclude>
     <ClInclude Include="PointLight.h">
       <Filter>Rendering\Lights</Filter>
-    </ClInclude>
-    <ClInclude Include="Material.h">
-      <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Geometry\Octree.h">
       <Filter>Geometry</Filter>
@@ -143,19 +143,43 @@
     <ClInclude Include="LightCacheNode.h">
       <Filter>Rendering\Lights</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\PathTracer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\BRDFs.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\ComponentFactories.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\Intersection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\Integrator.h">
+    <ClInclude Include="Rendering\Materials\DiffuseMaterial.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\IntegratorFactory.h">
+    <ClInclude Include="Rendering\Materials\EmissionMaterial.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\BidirectionalPathTracer.h">
+    <ClInclude Include="Rendering\Materials\Material.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Integrators\BidirectionalPathTracer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Integrators\Integrator.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Integrators\PathTracer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Cameras\Camera.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Cameras\PhysicallyBasedCamera.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Cameras\PinholeCamera.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Materials\SpecularMaterial.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

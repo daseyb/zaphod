@@ -33,7 +33,7 @@ bool Sphere::Intersect(const Ray& _ray, Intersection& _intersect) const
 		//Calculate normal based on direction from the center to the intersection point
 		_intersect.normal = _intersect.position - Vector3(m_Sphere.Center.x, m_Sphere.Center.y, m_Sphere.Center.z);
 		_intersect.normal.Normalize();
-		_intersect.material = m_Material;
+		_intersect.material = m_Material.get();
 		return true;
 	}
 	return false;
