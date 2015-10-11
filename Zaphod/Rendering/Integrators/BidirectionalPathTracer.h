@@ -3,6 +3,7 @@
 #include "../../Geometry/Intersection.h"
 
 struct Material;
+class BaseObject;
 
 class BidirectionalPathTracer : public Integrator {
 private:
@@ -17,15 +18,16 @@ private:
 		Material* Material;
 		BaseObject* Prim;
 		float BrdfWeight;
-		float TotalWeight;
 		float RelativeWeight;
 	};
 
 	typedef std::vector<PathVertex> Path;
 
 	Path MakePath(const DirectX::SimpleMath::Ray& _startRay, int _depth, std::default_random_engine& _rnd) const;
-	float G(PathVertex & v0, PathVertex & v1) const;
-	DirectX::SimpleMath::Color EvalPath(Path& eye, int nEye, Path& light, int nLight) const;
+	float G(const PathVertex & v0, const PathVertex & v1) const;
+	DirectX::SimpleMath::Color EvalPath(const Path& eye, int nEye, const Path& light, int nLight) const;
+
+	DirectX::SimpleMath::Color IlluminatePoint(DirectX::SimpleMath::Vector3 pos, DirectX::SimpleMath::Vector3 normal, std::default_random_engine & _rnd) const;
 
 public:
 	BidirectionalPathTracer(Scene* scene) : Integrator(scene) {}

@@ -3,12 +3,12 @@
 #include <vector>
 #include <time.h>
 #include <random>
+#include "../Geometry/Intersection.h"
 
 class BaseObject;
 class Camera;
 class Light;
 class LightCache;
-struct Intersection;
 
 
 /********************************************
@@ -38,8 +38,20 @@ public:
 	Scene(Camera* _cam);
 	void Update();
 	DirectX::SimpleMath::Ray SampleLight(std::default_random_engine& _rnd, BaseObject** _outLight, float& le) const;
-	bool Test(DirectX::SimpleMath::Vector3 _p1, DirectX::SimpleMath::Vector3 _p2) const;
 	bool Trace(const DirectX::SimpleMath::Ray& _ray, Intersection& minIntersect) const;
+
+	inline bool Test(DirectX::SimpleMath::Vector3 _p1, DirectX::SimpleMath::Vector3 _p2) const {
+		auto dir = _p2 - _p1;
+		dir.Normalize();
+
+		DirectX::SimpleMath::Ray r = { _p1 + dir*0.001f, dir };
+		Intersection intersect;
+		if (!Trace(r, intersect)) {
+			return false;
+		}
+		return DirectX::SimpleMath::Vector3::DistanceSquared(intersect.position, _p2) < 0.1f;
+	}
+
 	~Scene(void);
 };
 

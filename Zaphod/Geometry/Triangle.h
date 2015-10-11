@@ -21,6 +21,10 @@ public:
 	Triangle(Vertex _v1, Vertex _v2, Vertex _v3);
 	bool operator==(const Triangle& rhs) const;
 	~Triangle(void);
-	Vertex v(int _index) const;
+	inline Vertex v(int _index) const {
+		if (_index < 0 || _index > 2)
+			return Vertex();
+		return m_Vertices[_index];
+	}
 };
 

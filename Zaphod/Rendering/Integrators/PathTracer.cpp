@@ -3,6 +3,7 @@
 #include "../Scene.h"
 #include "../BRDFs.h"
 #include "../Materials/Material.h"
+#include "../../Objects/BaseObject.h"
 
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
@@ -31,9 +32,30 @@ Color PathTracer::Intersect(const Ray & _ray, int _depth, bool _isSecondary, std
 	auto sample = minIntersect.material->Sample(minIntersect, _ray.direction, _rnd);
 
 	Ray diffuseRay = Ray(minIntersect.position + sample.Direction * 0.001f, sample.Direction);
-	reflected += Intersect(diffuseRay, _depth - 1, true, _rnd) * 
+	Color indirect = Intersect(diffuseRay, _depth - 1, true, _rnd) * 
 				 minIntersect.material->GetColor(minIntersect) * 
-				 std::abs(_ray.direction.Dot(minIntersect.normal))/sample.PDF;
+				 std::abs((diffuseRay.direction).Dot(minIntersect.normal))/sample.PDF;
 
-	return reflected;
+	BaseObject* sampledLight;
+	float Le;
+	Ray lightStart = m_Scene->SampleLight(_rnd, &sampledLight, Le);
+	lightStart.direction = CosWeightedRandomHemisphereDirection2(lightStart.direction, _rnd);
+
+	Vector3 v0 = diffuseRay.position;
+	Vector3 v1 = lightStart.position;
+
+	Vector3 w = v1 - v0;
+	Color direct = sampledLight->GetMaterial()->GetColor(Intersection());
+	float g = std::abs(minIntersect.normal.Dot(w)) * std::abs(lightStart.direction.Dot(-w)) / Vector3::DistanceSquared(v0, v1) * Le;
+
+	direct *= g;
+
+	if (!m_Scene->Test(v0, v1))
+	{
+		direct = Color(0.f);
+	}
+
+	float directW = g / (sample.PDF + g);
+
+	return indirect * (1.0f - directW) + direct * directW;
 }

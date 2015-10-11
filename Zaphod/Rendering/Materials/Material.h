@@ -1,7 +1,8 @@
 #pragma once
 #include "../../SimpleMath.h"
 #include "../BRDFs.h"
-#include "../../Geometry/Intersection.h"
+
+struct Intersection;
 
 struct Material {
 	inline virtual float Material::F(DirectX::SimpleMath::Vector3 _in, DirectX::SimpleMath::Vector3 _out) const { return 1.0f; }

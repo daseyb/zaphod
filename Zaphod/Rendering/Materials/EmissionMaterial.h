@@ -8,7 +8,7 @@ struct EmissionMaterial : public Material
 	EmissionMaterial(DirectX::SimpleMath::Color _color) : Emittance(_color) {};
 
 	inline virtual float F(DirectX::SimpleMath::Vector3 _in, DirectX::SimpleMath::Vector3 _out) const override {
-		return std::abs(_in.Dot(_out));
+		return XM_PI;
 	}
 
 	inline virtual BRDFSample Sample(const Intersection& _intersect, DirectX::SimpleMath::Vector3 _view, std::default_random_engine& _rnd) const override {

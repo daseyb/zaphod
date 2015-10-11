@@ -12,8 +12,8 @@ struct SpecularMaterial : public Material
 	}
 
 	inline virtual BRDFSample Sample(const Intersection& _intersect, DirectX::SimpleMath::Vector3 _view, std::default_random_engine& _rnd) const override {
-		//return BRDFDiffuse(_intersect.normal, _view, _rnd);
-		return BRDFPhong(_intersect.normal, _view, Kd, Ks, Roughness, _rnd);
+		return BRDFDiffuse(_intersect.normal, _view, _rnd);
+		//return BRDFPhong(_intersect.normal, _view, Kd, Ks, Roughness, _rnd);
 	}
 
 	inline virtual Color GetColor(const Intersection& _intersect) const override {

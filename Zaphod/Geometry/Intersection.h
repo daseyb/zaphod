@@ -1,8 +1,8 @@
 #pragma once
 #include "../SimpleMath.h"
-#include "../Rendering/Materials/Material.h"
 
-struct BaseObject;
+class BaseObject;
+struct Material;
 
 struct Intersection
 {
