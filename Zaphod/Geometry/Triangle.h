@@ -22,8 +22,6 @@ public:
 	bool operator==(const Triangle& rhs) const;
 	~Triangle(void);
 	inline Vertex v(int _index) const {
-		if (_index < 0 || _index > 2)
-			return Vertex();
 		return m_Vertices[_index];
 	}
 };

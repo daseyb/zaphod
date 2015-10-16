@@ -4,12 +4,14 @@
 
 using namespace DirectX::SimpleMath;
 
-Octree::Octree(std::vector<Triangle> _polys) {
+Octree::Octree(const std::vector<Triangle>& _polys) {
 	float minX = FLT_MAX, maxX = FLT_MIN;
 	float minY = FLT_MAX, maxY = FLT_MIN;
 	float minZ = FLT_MAX, maxZ = FLT_MIN;
 
-	for(unsigned int i = 0; i < _polys.size(); i++) {
+	std::vector<const Triangle*> polyPtrs(_polys.size());
+
+	for(size_t i = 0; i < _polys.size(); i++) {
 		Triangle tri = _polys[i];
 		for(int j = 0; j < 3; j++) {
 			Vertex v = tri.v(j);
@@ -28,6 +30,8 @@ Octree::Octree(std::vector<Triangle> _polys) {
 			if(v.Position.z < minZ)
 				minZ = v.Position.z;
 		}
+
+		polyPtrs[i] = &_polys[i];
 	}
 
 	Vector3 min = Vector3(minX, minY, minZ);
@@ -36,7 +40,8 @@ Octree::Octree(std::vector<Triangle> _polys) {
 	Vector3 extends = (max - min )/2;
 	Vector3 mid = (min + max)/2;
 
-	m_Root = new Node(DirectX::BoundingBox(mid, extends), _polys, 0);
+
+	m_Root = std::make_unique<Node>(DirectX::BoundingBox(mid, extends), polyPtrs, 0);
 }
 
 bool Octree::Intersect(const Ray& _ray, Triangle& _out, float& _outDist) const {
@@ -44,6 +49,5 @@ bool Octree::Intersect(const Ray& _ray, Triangle& _out, float& _outDist) const {
 }
 
 Octree::~Octree(void) {
-	delete m_Root;
-	m_Root = nullptr;
+
 }

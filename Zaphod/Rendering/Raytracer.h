@@ -10,10 +10,7 @@ class Scene;
 class Integrator;
 
 #define MULTI_THREADED
-#define SAMPLES 2000
-#define BOUNCES 5
-#define TILE_SIZE 128
-#define THREAD_COUNT 6
+#define BOUNCES 20
 
 /********************************************
 ** Raytracer
@@ -39,10 +36,13 @@ private:
 	float m_FOV;
 	int m_Width;
 	int m_Height;
+	int m_SPP;
+	int m_TileSize;
+	int m_ThreadCount;
 
 	std::atomic<bool> m_IsShutDown;
 
-	std::thread m_Threads[THREAD_COUNT];
+	std::vector<std::thread> m_Threads;
 	std::vector<TileInfo> m_TilesToRender;
 
 	std::mutex m_TileMutex;
@@ -50,18 +50,21 @@ private:
 	//Render a part of the image (for multy threading)
 	void RenderPart(int _x, int _y, int _width, int _height);
 
-	void EmptyQueue();
+	void EmptyQueue(int threadIndex);
 
 	DirectX::SimpleMath::Color ReadColorAt(int _x, int _y) const;
 
 public:
 	Raytracer(void);
-	bool Initialize(int _width, int _height, std::string _integrator, Camera* _camera);
+	bool Initialize(int _width, int _height, std::string _integrator, Camera* _camera, int _spp, int _tileSize,  int _threads, const char* scene);
 	void Shutdown(void);
 	void SetFOV(float _fov);
 
+	void Wait();
+
 	void Render(void);
 	sf::Uint8* GetPixels(void) const;
+	DirectX::SimpleMath::Color* GetRawPixels(void) const { return m_RawPixels; }
 
 	~Raytracer(void);
 };

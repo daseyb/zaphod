@@ -4,7 +4,8 @@
 
 class Triangle;
 const float MIN_NODE_SIZE = 0.01f;
-const int MAX_DEPTH = 7;
+const int MAX_DEPTH = 12;
+const int MIN_LEAF_COUNT = 8;
 
 class Node {
 private:
@@ -13,12 +14,12 @@ private:
   int m_Depth;
 
 	std::vector<Node*> m_Children;
-	std::vector<Triangle> m_Polys;
+	std::vector<const Triangle*> m_Polys;
 
 	DirectX::SimpleMath::Vector3 GetChildPos(int _index);
 	void Divide();
 public:
-	Node(DirectX::BoundingBox _bounds, std::vector<Triangle> _parentPolys, int _depth);
+	Node(DirectX::BoundingBox _bounds, std::vector<const Triangle*> _parentPolys, int _depth);
 	~Node(void);
 	DirectX::SimpleMath::Vector3 GetCenter() const;
 	bool Contains(const DirectX::BoundingBox& _bounds, const Triangle& _poly) const;
