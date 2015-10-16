@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "..\SimpleMath.h"
+#include <memory>
 
 class Triangle;
 class Node;
@@ -8,11 +9,10 @@ class Node;
 class Octree
 {
 private:
-	Node* m_Root;
+	std::unique_ptr<Node> m_Root;
 
 public:
-	Octree(void);
-	Octree(std::vector<Triangle> _polys);
+	Octree(const std::vector<Triangle>& _polys);
 	~Octree(void);
 	bool Intersect(const DirectX::SimpleMath::Ray& _ray, Triangle& _out, float& _outDist) const;
 };

@@ -8,6 +8,8 @@
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
 
+#define RUSSIAN_ROULETTE 0.9f
+
 //Intersect a ray with the scene (currently no optimization)
 Color PathTracer::Intersect(const Ray & _ray, int _depth, bool _isSecondary, std::default_random_engine & _rnd) const
 {
@@ -15,47 +17,46 @@ Color PathTracer::Intersect(const Ray & _ray, int _depth, bool _isSecondary, std
 		return Color(0, 0, 0);
 	}
 
-	Intersection minIntersect;
-	bool intersectFound = m_Scene->Trace(_ray, minIntersect);
+	Color L = Color(1, 1, 1);
 
-	if (!intersectFound)
-	{
-		return Color(0, 0, 0);
+	Ray currentRay = _ray;
+	std::uniform_real_distribution<float> dist(0, 1);
+
+	for (int i = 0; i < _depth; i++) {
+		Intersection minIntersect;
+		bool intersectFound = m_Scene->Trace(currentRay, minIntersect);
+
+		if (!intersectFound)
+		{
+			L *= 0;
+			break;
+		}
+
+		if (minIntersect.material->IsLight()) {
+			L *= minIntersect.material->GetColor(minIntersect);
+			break;
+		}
+
+		float weight = 1;
+
+		if (i > 2) {
+			if (dist(_rnd) > RUSSIAN_ROULETTE) {
+				break;
+			}
+			else {
+				weight = 1.0f / RUSSIAN_ROULETTE;
+			}
+		}
+
+		auto sample = minIntersect.material->Sample(minIntersect, _ray.direction, _rnd);
+
+		Ray diffuseRay = Ray(minIntersect.position + sample.Direction * 0.001f, sample.Direction);
+		
+		L *= minIntersect.material->GetColor(minIntersect) *
+			 std::abs((diffuseRay.direction).Dot(minIntersect.normal)) / sample.PDF * weight;
+
+		currentRay = diffuseRay;
 	}
 
-	if (minIntersect.material->IsLight()) {
-		return minIntersect.material->GetColor(minIntersect);
-	}
-
-	Color reflected(0, 0, 0);
-
-	auto sample = minIntersect.material->Sample(minIntersect, _ray.direction, _rnd);
-
-	Ray diffuseRay = Ray(minIntersect.position + sample.Direction * 0.001f, sample.Direction);
-	Color indirect = Intersect(diffuseRay, _depth - 1, true, _rnd) * 
-				 minIntersect.material->GetColor(minIntersect) * 
-				 std::abs((diffuseRay.direction).Dot(minIntersect.normal))/sample.PDF;
-
-	BaseObject* sampledLight;
-	float Le;
-	Ray lightStart = m_Scene->SampleLight(_rnd, &sampledLight, Le);
-	lightStart.direction = CosWeightedRandomHemisphereDirection2(lightStart.direction, _rnd);
-
-	Vector3 v0 = diffuseRay.position;
-	Vector3 v1 = lightStart.position;
-
-	Vector3 w = v1 - v0;
-	Color direct = sampledLight->GetMaterial()->GetColor(Intersection());
-	float g = std::abs(minIntersect.normal.Dot(w)) * std::abs(lightStart.direction.Dot(-w)) / Vector3::DistanceSquared(v0, v1) * Le;
-
-	direct *= g;
-
-	if (!m_Scene->Test(v0, v1))
-	{
-		direct = Color(0.f);
-	}
-
-	float directW = g / (sample.PDF + g);
-
-	return indirect * (1.0f - directW) + direct * directW;
+	return L;
 }

@@ -49,15 +49,7 @@ Scene::Scene(Camera* _cam)
 	Box* wallLeft = new Box(Vector3(-8, 10, 0), 0.1f, 20, 20);
 	Box* wallRight = new Box(Vector3(8, 10, 0), 0.1f, 20, 20);
 
-	Mesh* teapot = new Mesh(Vector3(-3.0f, -1.5f, 5), "Data/teapot.obj");
-	teapot->SetRotation(Vector3(0, 0, 0));
-	teapot->SetScale(Vector3(1, 1, 1));
-
-	Mesh* teddy = new Mesh(Vector3(0, 0, 0), "Data/sponza_merged.obj");
-	teddy->SetRotation(Vector3(0, 0, 0));
-
-	Mesh* teddyFront = new Mesh(Vector3(4, -1, 3), "Data/teapot.obj");
-	teddyFront->SetRotation(Vector3(-45, 0, 0));
+	Mesh* sponza = new Mesh(Vector3(0, 0, 0), "Data/sponza_merged.obj");
 
 	DiffuseMaterial whiteMat(Color(1.0f, 1.0f, 1.0f));
 	EmissionMaterial light(Color(5, 4.5, 4) * 2);
@@ -97,11 +89,9 @@ Scene::Scene(Camera* _cam)
 	wallLeft->SetMaterial(&wallMatGreen);
 	wallRight->SetMaterial(&wallMat);
 
-	teddy->SetMaterial(&whiteMat);
-	teapot->SetMaterial(&whiteMat);
-	teddyFront->SetMaterial(&chromeMatRed);
+	sponza->SetMaterial(&whiteMat);
 
-	m_SceneObjects.push_back(teddy);
+	m_SceneObjects.push_back(sponza);
 	m_SceneObjects.push_back(lightBoxFL);
 	m_SceneObjects.push_back(lightBoxFR);
 	m_SceneObjects.push_back(lightBoxBL);
