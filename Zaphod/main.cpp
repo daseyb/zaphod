@@ -6,8 +6,6 @@
 #include <iomanip>
 #include <sstream>
 
-//#define HEADLESS
-
 #include "Rendering/Raytracer.h"
 #include "Rendering/Cameras/PinholeCamera.h"
 #include "Rendering/Cameras/PhysicallyBasedCamera.h"
