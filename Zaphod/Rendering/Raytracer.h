@@ -1,9 +1,13 @@
 #pragma once
-#include <SFML/Graphics.hpp>
 #include <thread>
 #include "../SimpleMath.h"
 #include <mutex>
 #include <atomic>
+#include <vector>
+
+#ifndef HEADLESS
+#include <SFML/Graphics.hpp>
+#endif 
 
 class Camera;
 class Scene;
@@ -26,7 +30,10 @@ private:
 		int X, Y, Width, Height;
 	};
 
+#ifndef HEADLESS
 	sf::Uint8* m_Pixels;
+#endif
+
 	DirectX::SimpleMath::Color* m_RawPixels;
 	
 	std::unique_ptr<Camera> m_pCamera;
@@ -52,8 +59,6 @@ private:
 
 	void EmptyQueue(int threadIndex);
 
-	DirectX::SimpleMath::Color ReadColorAt(int _x, int _y) const;
-
 public:
 	Raytracer(void);
 	bool Initialize(int _width, int _height, std::string _integrator, Camera* _camera, int _spp, int _tileSize,  int _threads, const char* scene);
@@ -63,7 +68,11 @@ public:
 	void Wait();
 
 	void Render(void);
+
+#ifndef HEADLESS
 	sf::Uint8* GetPixels(void) const;
+#endif
+
 	DirectX::SimpleMath::Color* GetRawPixels(void) const { return m_RawPixels; }
 
 	~Raytracer(void);

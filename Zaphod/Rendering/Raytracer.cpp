@@ -24,7 +24,11 @@ bool Raytracer::Initialize(int _width, int _height, std::string _integrator, Cam
 	m_ThreadCount = _threads;
 	m_Width = _width;
 	m_Height = _height;
+
+#ifndef HEADLESS
 	m_Pixels = new sf::Uint8[m_Width * m_Height * 4] { 0 };
+#endif
+	
 	m_RawPixels = new Color[m_Width * m_Height * 4] { Color(0, 0, 0) };
 
 	m_pCamera.reset(_camera);
@@ -55,11 +59,13 @@ void Raytracer::Shutdown(void)
 		Wait();
 	}
 
-	if(m_Pixels)
+#ifndef HEADLESS
+	if (m_Pixels)
 	{
 		delete[] m_Pixels;
 		m_Pixels = nullptr;
 	}
+#endif
 
 	if (m_RawPixels)
 	{
@@ -71,12 +77,6 @@ void Raytracer::Shutdown(void)
 void Raytracer::SetFOV(float _fov)
 {
 	m_FOV = _fov;
-}
-
-Color Raytracer::ReadColorAt(int _x, int _y) const
-{
-	int pixelIndex = (_x + m_Width * _y) * 4;
-	return Color(m_Pixels[pixelIndex + 0], m_Pixels[pixelIndex + 1], m_Pixels[pixelIndex + 2], m_Pixels[pixelIndex + 3]) * 1.0f / 255;
 }
 
 void Raytracer::RenderPart(int _x, int _y, int _width, int _height)
@@ -107,17 +107,13 @@ void Raytracer::RenderPart(int _x, int _y, int _width, int _height)
 				Color* pixelAddress = m_RawPixels + x + m_Width *y;
 				*pixelAddress += rayColor;
 
+#ifndef HEADLESS
 				Color current = m_RawPixels[x + m_Width * y] / (i + 1);
 				current.Saturate();
-				/*Color x = current - Color(0.004f, 0.004f, 0.004f);
-				x.x = x.x < 0 ? 0 : x.x;
-				x.y = x.y < 0 ? 0 : x.y;
-				x.z = x.z < 0 ? 0 : x.z;
-
-				current = (x*(6.2f*x + Color(.5f, .5f, .5f))) / (x*(6.2f*x + Color(1.7f, 1.7f, 1.7f)) + Color(0.06f, 0.06f, 0.06f));*/
 
 				sf::Color newCol((sf::Uint8)(current.R() * 255), (sf::Uint8)(current.G() * 255), (sf::Uint8)(current.B() * 255), 255);
 				memcpy(m_Pixels + pixelIndex, &newCol, 4);
+#endif
 			}
 		}
 
@@ -151,7 +147,10 @@ void Raytracer::Render(void)
 	m_pScene->Update();
 	
 	memset(m_RawPixels, 0, m_Height*m_Width*sizeof(Color));
+
+#ifndef HEADLESS
 	memset(m_Pixels, 0, m_Height*m_Width*sizeof(sf::Uint8) * 4);
+#endif
 
 #ifdef MULTI_THREADED
 	std::cout << "Start rendering..." << std::endl;
@@ -179,10 +178,12 @@ void Raytracer::Render(void)
 
 }
 
+#ifndef HEADLESS
 sf::Uint8* Raytracer::GetPixels(void) const
 {
 	return m_Pixels;
 }
+#endif
 
 Raytracer::~Raytracer(void)
 {
