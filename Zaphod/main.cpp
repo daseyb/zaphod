@@ -6,6 +6,8 @@
 #include <iomanip>
 #include <sstream>
 
+#include "stb_image_write.h"
+
 #include "Rendering/Raytracer.h"
 #include "Rendering/Cameras/PinholeCamera.h"
 #include "Rendering/Cameras/PhysicallyBasedCamera.h"
@@ -22,7 +24,7 @@ std::string get_time_string() {
 #include <SFML/Graphics.hpp>
 int display_windw(int width, int height, const Raytracer& rt) {
 	//Initialize the window
-	sf::RenderWindow window(sf::VideoMode(width, height), "CPU Raytracer");
+	sf::RenderWindow window(sf::VideoMode(width, height), "zaphod");
 
 	//The texture we write the pixels into
 	sf::Texture tex;
@@ -31,7 +33,6 @@ int display_windw(int width, int height, const Raytracer& rt) {
 	//We need a sprite for rendering the texture with SFML
 	sf::Sprite renderSprite;
 	renderSprite.setTexture(tex);
-	time_t now = time(0);
 
 	while (window.isOpen())
 	{
@@ -42,7 +43,7 @@ int display_windw(int width, int height, const Raytracer& rt) {
 				window.close();
 
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::O) {
-				tex.copyToImage().saveToFile(get_time_string() + ".png");
+				stbi_write_hdr((get_time_string() + ".hdr").c_str(), width, height, 4, (float*)rt.GetRawPixels());
 			}
 		}
 
@@ -58,9 +59,6 @@ int display_windw(int width, int height, const Raytracer& rt) {
 
 	return 0;
 }
-#else
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
 #endif
 
 int main(int argc, char** argv)
