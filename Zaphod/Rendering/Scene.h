@@ -35,7 +35,7 @@ class Scene
 	Camera* m_pCamera;
 	LightCache* m_LightCache;
 public:
-	Scene(Camera* _cam);
+	Scene(Camera* _cam, const char* _sceneFile);
 	void Update();
 	DirectX::SimpleMath::Ray SampleLight(std::default_random_engine& _rnd, BaseObject** _outLight, float& le) const;
 	bool Trace(const DirectX::SimpleMath::Ray& _ray, Intersection& minIntersect) const;

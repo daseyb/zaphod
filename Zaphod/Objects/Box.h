@@ -11,7 +11,7 @@ private:
 	float m_SampleWeights[3];
 
 public:
-	Box(DirectX::SimpleMath::Vector3 _pos, float _extendX, float _extendY, float _extendZ);
+	Box(DirectX::SimpleMath::Vector3 _pos, DirectX::SimpleMath::Vector3 _extends);
 	~Box(void);
 	void SetExtendX(float _x);
 	void SetExtendY(float _y);

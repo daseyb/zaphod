@@ -34,7 +34,7 @@ bool Raytracer::Initialize(int _width, int _height, std::string _integrator, Cam
 
 	m_pCamera.reset(_camera);
 	std::cout << "Loading scene..." << std::endl;
-	m_pScene = std::make_unique<Scene>(m_pCamera.get());
+	m_pScene = std::make_unique<Scene>(m_pCamera.get(), scene);
 	m_pIntegrator.reset(IntegratorFactory(_integrator, m_pScene.get()));
 
 	return true;
