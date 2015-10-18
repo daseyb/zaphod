@@ -6,7 +6,8 @@
 #include "Integrators/Integrator.h"
 #include "ComponentFactories.h"
 #include <iostream>
-#include <omp.h>
+#include <omp.h>
+
 using namespace DirectX::SimpleMath;
 
 Raytracer::Raytracer(void)
