@@ -4,12 +4,10 @@
 
 using namespace DirectX::SimpleMath;
 
-Box::Box(Vector3 _pos, float _extendX, float _extendY, float _extendZ)
+Box::Box(Vector3 _pos, Vector3 _extends)
 {
 	SetPosition(_pos);
-	SetExtendX(_extendX);
-	SetExtendY(_extendY);
-	SetExtendZ(_extendZ);
+	m_Box.Extents = _extends;
 }
 
 void Box::SetExtendX(float _x)

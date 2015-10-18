@@ -10,7 +10,7 @@ bool LoadObj(const std::string& _file, std::vector<Triangle>& _outTris, bool& sm
 	file.open(_file);
 
 	if (!file.is_open()) {
-		return false;
+		throw "Could not open file " + _file;
 	}
 
 	std::vector<unsigned int> vertexIndices, normalIndices, uvIndices;

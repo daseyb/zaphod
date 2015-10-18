@@ -3,7 +3,7 @@
 
 using namespace DirectX::SimpleMath;
 
-Sphere::Sphere(float _radius, Vector3 _position)
+Sphere::Sphere(Vector3 _position, float _radius)
 {
 	m_Sphere = DirectX::BoundingSphere(_position, _radius);
 	SetRadius(_radius);

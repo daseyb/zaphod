@@ -8,7 +8,7 @@ private:
 	DirectX::BoundingSphere m_Sphere;
 
 public:
-	Sphere(float _radius, DirectX::SimpleMath::Vector3 _position);
+	Sphere(DirectX::SimpleMath::Vector3 _position, float _radius);
 	~Sphere(void);
 	void SetRadius(float _radius);
 	void SetPosition(DirectX::SimpleMath::Vector3 _pos) override;

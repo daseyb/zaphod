@@ -69,7 +69,7 @@ int main(int argc, char** argv)
 	int tile_size = std::stoi(argv[4]);
 	int thread_count = std::stoi(argv[5]);
 
-	const char* scene_file = argv[3];
+	const char* scene_file = argv[6];
 
 	//Initialize the Raytracer class with width, height and horizontal FOV
 	Raytracer rt;
