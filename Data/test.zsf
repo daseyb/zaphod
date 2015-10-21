@@ -1,0 +1,13 @@
+Material light
+  type: emission
+  color: 1 1 1
+  strength: 10
+
+Object lamp
+  type: box
+  material: light
+  position: 0 0 -5
+  extends: 1 1 1
+
+Camera cam
+  position: 0 0 0

@@ -1,0 +1,70 @@
+Material white
+  type: diffuse
+  color: 1 1 1
+
+Material green
+  type: diffuse
+  color: 0 1 0
+
+Material red
+  type: diffuse
+  color: 1 0 0
+  
+Material lightMat
+  type: emission
+  color: 1 1 1
+  strength: 1
+
+Object floor
+  type: box
+  material: white
+  position: 0 -1 0
+  extends: 5 1 5
+  
+Object ceiling
+  type: box
+  material: white
+  position: 0 11 0
+  extends: 5 1 5
+  
+Object wallBack
+  type: box
+  material: white
+  position: 0 5 -6
+  extends: 5 10 1
+  
+Object wallLeft
+  type: box
+  material: red
+  position: -6 5 0
+  extends: 1 10 5
+  
+Object wallRight
+  type: box
+  material: green
+  position: 6 5 0
+  extends: 1 10 5
+
+Object light
+  type: box
+  material: lightMat
+  position: 0 10 0
+  extends: 3 0.2 3
+  
+Object cubeLeft
+  type: box
+  material: white
+  position: -2 3 -2
+  extends: 1.5 3 1.5
+  rotation: 0 0.5 0
+
+Object cubeRight
+  type: box
+  material: white
+  position: 2 2 2
+  extends: 1.5 2 1.5
+  rotation: 0 -0.2 0
+  
+Camera mainCamera
+  position: 0 5 20
+  rotation: 0 0 0

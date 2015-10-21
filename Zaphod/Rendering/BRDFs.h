@@ -100,7 +100,7 @@ inline Vector3 CosWeightedRandomHemisphereDirection2(Vector3 n, std::default_ran
 
 inline BRDFSample BRDFDiffuse(Vector3 normal, Vector3 view, std::default_random_engine& _rnd) {
 	auto out = CosWeightedRandomHemisphereDirection2(normal, _rnd);
-	return{out, XM_PI};
+	return{out, 1.0f/out.Dot(normal)};
 }
 
 inline BRDFSample BRDFPhong(Vector3 normal, Vector3 view, float kd, float ks, float roughness, std::default_random_engine& _rnd) {

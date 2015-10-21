@@ -1,6 +1,7 @@
 Material centerLight
   type: emission 
   color: 0.5 1.0 2.0
+  strength: 1
 
 Material mirror
   type: specular
@@ -16,18 +17,21 @@ Material white
 Material light
   type: emission
   color: 10 9 8
+  strength: 1
   
 Material dimLight
   type: emission
   color: 9 6 3
-  
+  strength: 1
+    
 Material sky
   type: emission
-  color: 30 35 40
+  color: 50 45 30
+  strength: 1
 
 Object sponza
   type: mesh
-  file: Data/sponza_merged.obj
+  file: Data/cube.obj
   position: 0 0 0
   rotation: 0 0 0
   scale: 1 1 1

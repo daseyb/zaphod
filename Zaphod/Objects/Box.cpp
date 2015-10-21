@@ -7,6 +7,7 @@ using namespace DirectX::SimpleMath;
 Box::Box(Vector3 _pos, Vector3 _extends)
 {
 	SetPosition(_pos);
+	m_Box.Center = _pos;
 	m_Box.Extents = _extends;
 }
 
@@ -86,7 +87,11 @@ Ray Box::Sample(std::default_random_engine& rnd) const {
 bool Box::Intersect(const Ray& _ray, Intersection& _intersect) const
 {
 	float dist;
-	if(_ray.Intersects(m_Box, dist))
+	Ray ray = _ray;
+	auto transform = GetTransform();
+	//ray.position = Vector3::Transform(_ray.position, transform);
+	//ray.direction = Vector3::TransformNormal(_ray.direction, transform);
+	if(ray.Intersects(m_Box, dist))
 	{
 		if(dist < 0.001f)
 			return false;
