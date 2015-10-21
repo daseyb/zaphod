@@ -39,7 +39,7 @@ Color PathTracer::Intersect(const Ray & _ray, int _depth, bool _isSecondary, std
 
 		float weight = 1;
 
-		if (i > 2) {
+		if (i > 4) {
 			if (dist(_rnd) > RUSSIAN_ROULETTE) {
 				break;
 			}
@@ -53,7 +53,7 @@ Color PathTracer::Intersect(const Ray & _ray, int _depth, bool _isSecondary, std
 		Ray diffuseRay = Ray(minIntersect.position + sample.Direction * 0.001f, sample.Direction);
 		
 		L *= minIntersect.material->GetColor(minIntersect) *
-			 std::abs((diffuseRay.direction).Dot(minIntersect.normal)) / sample.PDF * weight;
+			 std::abs((diffuseRay.direction).Dot(minIntersect.normal)) * sample.PDF * weight;
 
 		currentRay = diffuseRay;
 	}

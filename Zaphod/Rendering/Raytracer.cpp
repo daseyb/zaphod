@@ -87,9 +87,14 @@ void Raytracer::RenderPart(int _x, int _y, int _width, int _height)
 
 	std::random_device d;
 	std::default_random_engine rnd(d());
+	
+	int max_threads = std::thread::hardware_concurrency() - 1;
+	int threads_per_tile = max_threads / m_ThreadCount;
+	if (threads_per_tile == 0) threads_per_tile = 1;
 
 	for (int i = 0; i < m_SPP; i++)
 	{
+		omp_set_num_threads(threads_per_tile);
 		#pragma omp parallel for
 		for (int x = _x; x < _x + _width; x++)
 		{

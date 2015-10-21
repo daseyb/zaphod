@@ -73,7 +73,7 @@ int main(int argc, char** argv)
 
 	//Initialize the Raytracer class with width, height and horizontal FOV
 	Raytracer rt;
-	rt.Initialize(width, height, "PT", new PhysicallyBasedCamera(5, 0.025f, 90), spp, tile_size, thread_count, scene_file);
+	rt.Initialize(width, height, argv[7], new PhysicallyBasedCamera(5, 0.001f, 50), spp, tile_size, thread_count, scene_file);
 
 	//Update the pixel array
 	rt.Render();

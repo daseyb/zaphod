@@ -19,7 +19,7 @@ private:
 public:
 	Camera() : m_Position(), m_Rotation() { };
 	void SetPosition(DirectX::SimpleMath::Vector3 _pos);
-	void SetRotation(float _yaw, float _pitch, float _roll);
+	void SetRotation(DirectX::SimpleMath::Vector3 _rot);
 	void LookAt(DirectX::SimpleMath::Vector3 _eye, DirectX::SimpleMath::Vector3 _target, DirectX::SimpleMath::Vector3 _up);
 	DirectX::SimpleMath::Matrix GetViewMatrix(void) const;
 

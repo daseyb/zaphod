@@ -148,11 +148,11 @@ Color BidirectionalPathTracer::Intersect(const Ray & _ray, int _depth, bool _isS
 	Color directWt(1.0f, 1.0f, 1.0f);
 	for (i = 1; i <= eyePath.size(); ++i)
 	{
-		// Handle direct lighting for bidirectional integrator
+		/*// Handle direct lighting for bidirectional integrator
 		directWt *= 1.0f/eyePath[i - 1].RelativeWeight;
 		Color col = eyePath[i - 1].Material->GetColor(eyePath[i - 1].Intersect);
 		L += directWt * col * IlluminatePoint(eyePath[i - 1].Pos, eyePath[i - 1].Normal, _rnd) / i;
-		directWt *= col * std::abs(eyePath[i - 1].Out.Dot(eyePath[i - 1].Normal)) / eyePath[i - 1].BrdfWeight;
+		directWt *= col * std::abs(eyePath[i - 1].Out.Dot(eyePath[i - 1].Normal)) / eyePath[i - 1].BrdfWeight;*/
 
 		for (j = 1; j <= lightPath.size(); ++j)
 		{

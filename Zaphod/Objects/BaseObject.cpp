@@ -34,7 +34,7 @@ Material* BaseObject::GetMaterial() const
 
 void BaseObject::SetRotation(Vector3 _rot)
 {
-	m_Rotation = Quaternion::CreateFromYawPitchRoll(_rot.x, _rot.y, _rot.z);
+	m_Rotation = Quaternion::CreateFromRotationMatrix(Matrix::CreateRotationX(_rot.x) * Matrix::CreateRotationY(_rot.y) * Matrix::CreateRotationZ(_rot.z));
 }
 
 void BaseObject::SetPosition(Vector3 _pos)

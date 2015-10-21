@@ -7,13 +7,9 @@ void Camera::SetPosition(Vector3 _pos)
 	m_Position = _pos;
 }
 
-void Camera::SetRotation(float _yaw, float _pitch, float _roll)
+void Camera::SetRotation(Vector3 _rot)
 {
-	m_Yaw = _yaw;
-	m_Pitch = _pitch;
-	m_Roll = _roll;
-
-	m_Rotation = Quaternion::CreateFromYawPitchRoll(m_Yaw, m_Pitch, m_Roll);
+	m_Rotation = Quaternion::CreateFromRotationMatrix(Matrix::CreateRotationX(_rot.x) * Matrix::CreateRotationY(_rot.y) * Matrix::CreateRotationZ(_rot.z));
 }
 
 void Camera::LookAt(DirectX::SimpleMath::Vector3 _eye, DirectX::SimpleMath::Vector3 _target, DirectX::SimpleMath::Vector3 _up)
