@@ -3,43 +3,36 @@ Material centerLight
   color: 0.5 1.0 2.0
   strength: 1
 
-Material mirror
-  type: specular
-  color: 1 1 1  
-  kd: 0.01 
-  ks: 0.99 
-  roughness: 0.000001
-  
 Material white
   type: diffuse
-  color: 1 1 1
+  color: 0.8 0.8 0.8
   
 Material light
   type: emission
-  color: 10 9 8
-  strength: 1
+  color: 1.2 1 1
+  strength: 5
   
 Material dimLight
   type: emission
-  color: 9 6 3
-  strength: 1
+  color: 3 1 1
+  strength: 3
     
 Material sky
   type: emission
-  color: 50 45 30
-  strength: 1
+  color: 0.75 0.75 1
+  strength: 3
 
 Object sponza
   type: mesh
-  file: Data/cube.obj
+  file: sponza_merged.obj
   position: 0 0 0
   rotation: 0 0 0
   scale: 1 1 1
   material: white
   
 Camera mainCamera
-  position: 0 2 5
-  rotation: 0 0.3 0
+  position: 0 2 7
+  rotation: 0.15 0 0
   
 Object lightBoxFL
   type: box

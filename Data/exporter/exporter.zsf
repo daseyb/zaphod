@@ -31,6 +31,10 @@ Material Material.001
   color: 0.800000 0.800000 0.800000 
   type: diffuse 
 
+Material Material.002 
+  color: 0.000000 0.000000 0.000000 
+  type: diffuse 
+
 Material WallBack 
   color: 0.800000 0.800000 0.800000 
   type: diffuse 
@@ -71,7 +75,14 @@ Object Plane.002
   type: mesh 
   file: Plane.002.obj 
   material: Light 
-  position: 0.000000 0.000000 6.907407 
+  position: 0.000000 0.000000 7.716071 
+  rotation: 0.000000 0.000000 0.000000 
+  scale: 1.292555 1.292555 1.292555 
+
+Object Plane.003 
+  type: mesh 
+  file: Plane.003.obj 
+  position: 0.000000 0.000000 0.000000 
   rotation: 0.000000 0.000000 0.000000 
   scale: 1.000000 1.000000 1.000000 
 
