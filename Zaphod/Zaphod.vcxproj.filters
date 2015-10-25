@@ -48,15 +48,6 @@
     <ClCompile Include="Rendering\Scene.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Light.cpp">
-      <Filter>Rendering\Lights</Filter>
-    </ClCompile>
-    <ClCompile Include="DirectionalLight.cpp">
-      <Filter>Rendering\Lights</Filter>
-    </ClCompile>
-    <ClCompile Include="PointLight.cpp">
-      <Filter>Rendering\Lights</Filter>
-    </ClCompile>
     <ClCompile Include="Geometry\Octree.cpp">
       <Filter>Geometry</Filter>
     </ClCompile>
@@ -65,18 +56,6 @@
     </ClCompile>
     <ClCompile Include="Objects\Mesh.cpp">
       <Filter>Objects</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjLoader.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Node.cpp">
-      <Filter>Geometry</Filter>
-    </ClCompile>
-    <ClCompile Include="LightCache.cpp">
-      <Filter>Rendering\Lights</Filter>
-    </ClCompile>
-    <ClCompile Include="LightCacheNode.cpp">
-      <Filter>Rendering\Lights</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\Integrators\BidirectionalPathTracer.cpp">
       <Filter>Rendering</Filter>
@@ -92,6 +71,18 @@
     </ClCompile>
     <ClCompile Include="Rendering\Cameras\PinholeCamera.cpp">
       <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry\Node.cpp">
+      <Filter>Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Accelerators\LightCache.cpp">
+      <Filter>Rendering\Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Accelerators\LightCacheNode.cpp">
+      <Filter>Rendering\Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\ObjLoader.cpp">
+      <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -113,15 +104,6 @@
     <ClInclude Include="Rendering\Scene.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Light.h">
-      <Filter>Rendering\Lights</Filter>
-    </ClInclude>
-    <ClInclude Include="DirectionalLight.h">
-      <Filter>Rendering\Lights</Filter>
-    </ClInclude>
-    <ClInclude Include="PointLight.h">
-      <Filter>Rendering\Lights</Filter>
-    </ClInclude>
     <ClInclude Include="Geometry\Octree.h">
       <Filter>Geometry</Filter>
     </ClInclude>
@@ -130,18 +112,6 @@
     </ClInclude>
     <ClInclude Include="Objects\Mesh.h">
       <Filter>Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjLoader.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Node.h">
-      <Filter>Geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="LightCache.h">
-      <Filter>Rendering\Lights</Filter>
-    </ClInclude>
-    <ClInclude Include="LightCacheNode.h">
-      <Filter>Rendering\Lights</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\BRDFs.h">
       <Filter>Rendering</Filter>
@@ -182,7 +152,19 @@
     <ClInclude Include="Rendering\Materials\SpecularMaterial.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="stb_image_write.h">
+    <ClInclude Include="Geometry\Node.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Accelerators\LightCache.h">
+      <Filter>Rendering\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Accelerators\LightCacheNode.h">
+      <Filter>Rendering\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\ObjLoader.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\stb_image_write.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
