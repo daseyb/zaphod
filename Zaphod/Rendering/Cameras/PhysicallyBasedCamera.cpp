@@ -11,7 +11,7 @@ Ray PhysicallyBasedCamera::GetRay(int _x, int _y, int _w, int _h,
 
   float x = _x + dist(_rnd);
   float y = _y + dist(_rnd);
-  float fovx =  m_FOV; // Horizontal FOV
+  float fovx = m_FOV;          // Horizontal FOV
   float fovy = fovx * _h / _w; // Vertical FOV
 
   float halfWidth = _w / 2;
@@ -25,21 +25,25 @@ Ray PhysicallyBasedCamera::GetRay(int _x, int _y, int _w, int _h,
       alpha * Vector3(1, 0, 0) + beta * Vector3(0, 1, 0) + Vector3(0, 0, -1);
   dir.Normalize();
 
-  Vector2 lensPos = ConcentricSampleDisk(_rnd) * m_LensRadius;
-  float ft = m_FocalDistance / -dir.z;
+  Ray result{pos, dir};
 
-  Vector3 pFocus = dir * ft;
+  if (m_FocalDistance > 0 && m_LensRadius > 0) {
+    Vector2 lensPos = ConcentricSampleDisk(_rnd) * m_LensRadius;
+    float ft = m_FocalDistance / -dir.z;
 
-  Ray result;
+    Vector3 pFocus = dir * ft;
 
-  result.position = Vector3(lensPos.x, lensPos.y, 0);
-  result.direction = pFocus - result.position;
-  result.direction.Normalize();
+    result.position = Vector3(lensPos.x, lensPos.y, 0);
+    result.direction = pFocus - result.position;
+    result.direction.Normalize();
+  }
+
+  // Aproximate geometric term for sensor
+  weight = std::abs(result.direction.Dot(Vector3(0, 0, 1)));
 
   Matrix viewMatrix = GetViewMatrix();
   result.position = Vector3::Transform(result.position, viewMatrix);
   result.direction = Vector3::TransformNormal(result.direction, viewMatrix);
 
-  weight = 1;
   return result;
 }
