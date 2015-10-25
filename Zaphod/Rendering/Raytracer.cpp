@@ -7,13 +7,14 @@
 #include "ComponentFactories.h"
 #include <iostream>
 #include <omp.h>
+#include "../IO/SceneLoader.h"
 
 using namespace DirectX::SimpleMath;
 
 Raytracer::Raytracer(void) {}
 
 bool Raytracer::Initialize(int _width, int _height, std::string _integrator,
-                           Camera *_camera, int _spp, int _tileSize,
+                           int _spp, int _tileSize,
                            int _threads, const char *scene) {
   std::cout << "Initializing renderer..." << std::endl;
 
@@ -30,9 +31,17 @@ bool Raytracer::Initialize(int _width, int _height, std::string _integrator,
 
   m_RawPixels = new Color[m_Width * m_Height * 4]{Color(0, 0, 0)};
 
-  m_pCamera.reset(_camera);
   std::cout << "Loading scene..." << std::endl;
-  m_pScene = std::make_unique<Scene>(m_pCamera.get(), scene);
+  Camera* cam = nullptr;
+  std::vector<BaseObject*> objects;
+  
+  if (!LoadScene(scene, objects, &cam)) {
+    return false;
+  }
+
+  m_pCamera.reset(cam);
+
+  m_pScene = std::make_unique<Scene>(m_pCamera.get(), objects);
   m_pIntegrator.reset(IntegratorFactory(_integrator, m_pScene.get()));
 
   return true;

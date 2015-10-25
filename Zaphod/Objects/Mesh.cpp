@@ -7,6 +7,7 @@ using namespace DirectX::SimpleMath;
 
 Mesh::Mesh(DirectX::SimpleMath::Vector3 _pos, const std::string &_file) {
   if (LoadObj(_file, m_Triangles, m_Smooth)) {
+    assert(m_Triangles.size() > 0);
     m_Bounds = std::unique_ptr<Octree>(new Octree(m_Triangles));
     SetPosition(_pos);
   }

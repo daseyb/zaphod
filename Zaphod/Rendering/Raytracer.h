@@ -60,7 +60,7 @@ private:
 public:
   Raytracer(void);
   bool Initialize(int _width, int _height, std::string _integrator,
-                  Camera *_camera, int _spp, int _tileSize, int _threads,
+                  int _spp, int _tileSize, int _threads,
                   const char *scene);
   void Shutdown(void);
   void SetFOV(float _fov);

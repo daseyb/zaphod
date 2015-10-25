@@ -78,6 +78,7 @@
   <ItemGroup>
     <ClCompile Include="Geometry\Octree.cpp" />
     <ClCompile Include="Geometry\Triangle.cpp" />
+    <ClCompile Include="IO\SceneLoader.cpp" />
     <ClCompile Include="Rendering\Accelerators\LightCache.cpp" />
     <ClCompile Include="Rendering\Accelerators\LightCacheNode.cpp" />
     <ClCompile Include="main.cpp" />
@@ -99,6 +100,7 @@
     <ClInclude Include="Geometry\Intersection.h" />
     <ClInclude Include="Geometry\Octree.h" />
     <ClInclude Include="Geometry\Triangle.h" />
+    <ClInclude Include="IO\SceneLoader.h" />
     <ClInclude Include="Rendering\Accelerators\LightCache.h" />
     <ClInclude Include="Rendering\Accelerators\LightCacheNode.h" />
     <ClInclude Include="Rendering\Materials\DiffuseMaterial.h" />
