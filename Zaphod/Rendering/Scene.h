@@ -35,7 +35,7 @@ class Scene {
   LightCache *m_LightCache;
 
 public:
-  Scene(Camera *_cam, const char *_sceneFile);
+  Scene(Camera *_cam, std::vector<BaseObject *>& sceneObjects);
   void Update();
   DirectX::SimpleMath::Ray SampleLight(std::default_random_engine &_rnd,
                                        BaseObject **_outLight, float &le) const;

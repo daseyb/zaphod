@@ -11,7 +11,7 @@ Ray PhysicallyBasedCamera::GetRay(int _x, int _y, int _w, int _h,
 
   float x = _x + dist(_rnd);
   float y = _y + dist(_rnd);
-  float fovx = M_PI * m_FOV / 180; // Horizontal FOV
+  float fovx =  m_FOV; // Horizontal FOV
   float fovy = fovx * _h / _w; // Vertical FOV
 
   float halfWidth = _w / 2;

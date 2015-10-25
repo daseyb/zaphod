@@ -60,21 +60,21 @@ inline Vector2 ConcentricSampleDisk(std::default_random_engine &_rnd) {
   if (sx >= -sy) {
     if (sx > sy) {
       r = sx;
-      if (sy > 0.0)
+      if (sy > 0.0f)
         theta = sy / r;
       else
         theta = 8.0f + sy / r;
     } else {
       r = sy;
-      theta = 2.0 - sx / r;
+      theta = 2.0f - sx / r;
     }
   } else {
     if (sx <= sy) {
       r = -sx;
-      theta = 4.0 - sy / r;
+      theta = 4.0f - sy / r;
     } else {
       r = -sy;
-      theta = 6.0 + sx / r;
+      theta = 6.0f + sx / r;
     }
   }
 
@@ -92,7 +92,7 @@ CosWeightedRandomHemisphereDirection2(Vector3 n,
   float Xi2 = (float)dist(_rnd);
 
   float theta = acos(sqrt(1.0 - Xi1));
-  float phi = 2.0 * XM_PI * Xi2;
+  float phi = 2.0f * XM_PI * Xi2;
 
   return HemisphereSample(theta, phi, n);
 }
