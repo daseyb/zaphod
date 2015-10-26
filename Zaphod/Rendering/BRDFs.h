@@ -91,7 +91,7 @@ CosWeightedRandomHemisphereDirection2(Vector3 n,
   float Xi1 = (float)dist(_rnd);
   float Xi2 = (float)dist(_rnd);
 
-  float theta = acos(sqrt(1.0 - Xi1));
+  float theta = acos(sqrt(1.0f - Xi1));
   float phi = 2.0f * XM_PI * Xi2;
 
   return HemisphereSample(theta, phi, n);

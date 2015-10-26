@@ -36,7 +36,7 @@ Vector3 Node::GetCenter() const {
 bool Node::Contains(const DirectX::BoundingBox &_bounds,
                     const Triangle &_poly) const {
   return _bounds.Contains(_poly.v(0).Position, _poly.v(1).Position,
-                          _poly.v(2).Position);
+                          _poly.v(2).Position) != DirectX::ContainmentType::DISJOINT;
 }
 
 bool Node::Intersect(const Ray &_ray, Triangle &_outTri,
@@ -103,6 +103,7 @@ Vector3 Node::GetChildPos(int _index) {
     return Vector3(-sizeX, -sizeY, -sizeZ) + pos; // bottom	bottom	bottom
   default:
     assert(false);
+    return Vector3(0.0f, 0.0f, 0.0f);
   }
 }
 
@@ -117,7 +118,7 @@ void Node::Divide() {
 
     auto childPolys = std::vector<const Triangle *>();
 
-    for (int j = 0; j < m_Polys.size(); j++) {
+    for (size_t j = 0; j < m_Polys.size(); j++) {
       auto poly = *m_Polys[j];
       if (childBounds.Contains(poly.v(0).Position, poly.v(1).Position,
                                poly.v(2).Position)) {

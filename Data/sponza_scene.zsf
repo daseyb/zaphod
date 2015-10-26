@@ -31,6 +31,10 @@ Object sponza
   material: white
   
 Camera mainCamera
+  type: physically_based 
+  fov: 0.857556 
+  dof_distance: 5.000000 
+  lense_radius: 0.000001 
   position: 0 2 7
   rotation: 0.15 0 0
   

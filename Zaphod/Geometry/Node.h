@@ -2,7 +2,7 @@
 #include <vector>
 #include "../SimpleMath.h"
 
-class Triangle;
+struct Triangle;
 const float MIN_NODE_SIZE = 0.01f;
 const int MAX_DEPTH = 12;
 const int MIN_LEAF_COUNT = 8;

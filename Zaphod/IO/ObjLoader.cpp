@@ -5,7 +5,7 @@
 
 using namespace DirectX::SimpleMath;
 
-bool LoadObj(const std::string &_file, std::vector<Triangle> &_outTris,
+bool LoadObj(const std::string &_file, std::vector<Triangle>& _tris, std::vector<Vector3>& _verts, std::vector<Vector3>& _normals, std::vector<Vector2>& _uvs,
              bool &smooth) {
   std::ifstream file;
   file.open(_file);
@@ -14,10 +14,7 @@ bool LoadObj(const std::string &_file, std::vector<Triangle> &_outTris,
     throw "Could not open file " + _file;
   }
 
-  std::vector<unsigned int> vertexIndices, normalIndices, uvIndices;
-  std::vector<Vector3> tempVertices;
-  std::vector<Vector3> tempNormals;
-  std::vector<Vector2> tempUvs;
+  std::vector<size_t> vertexIndices, normalIndices, uvIndices;
 
   while (!file.eof()) {
     std::string line;
@@ -30,19 +27,19 @@ bool LoadObj(const std::string &_file, std::vector<Triangle> &_outTris,
     if (lineHeader == "v") {
       Vector3 newVec;
       lineStream >> newVec.x >> newVec.y >> newVec.z;
-      tempVertices.push_back(newVec);
+      _verts.push_back(newVec);
     } else if (lineHeader == "vn") {
       Vector3 newNorm;
       lineStream >> newNorm.x >> newNorm.y >> newNorm.z;
-      tempNormals.push_back(newNorm);
+      _normals.push_back(newNorm);
     } else if (lineHeader == "vt") {
       Vector2 newUv;
       lineStream >> newUv.x >> newUv.y;
-      tempUvs.push_back(newUv);
+      _uvs.push_back(newUv);
     } else if (lineHeader == "f") {
-      unsigned int vertexIndex[3];
-      unsigned int normalIndex[3];
-      unsigned int uvIndex[3];
+      size_t vertexIndex[3];
+      size_t normalIndex[3];
+      size_t uvIndex[3];
 
       std::string v1, v2, v3;
       lineStream >> v1 >> v2 >> v3;
@@ -57,9 +54,11 @@ bool LoadObj(const std::string &_file, std::vector<Triangle> &_outTris,
         vertexIndices.push_back(vertexIndex[0] - 1);
         vertexIndices.push_back(vertexIndex[1] - 1);
         vertexIndices.push_back(vertexIndex[2] - 1);
+       
         normalIndices.push_back(normalIndex[0] - 1);
         normalIndices.push_back(normalIndex[1] - 1);
         normalIndices.push_back(normalIndex[2] - 1);
+        
         uvIndices.push_back(uvIndex[0] - 1);
         uvIndices.push_back(uvIndex[1] - 1);
         uvIndices.push_back(uvIndex[2] - 1);
@@ -79,13 +78,9 @@ bool LoadObj(const std::string &_file, std::vector<Triangle> &_outTris,
     }
   }
 
-  _outTris.reserve(vertexIndices.size() / 3);
-  for (int i = 0; i < vertexIndices.size() / 3; i++) {
-    Vertex v1, v2, v3;
-    v1.Position = tempVertices[vertexIndices[i * 3 + 0]];
-    v2.Position = tempVertices[vertexIndices[i * 3 + 1]];
-    v3.Position = tempVertices[vertexIndices[i * 3 + 2]];
-
+  _tris.reserve(vertexIndices.size() / 3);
+  for (size_t i = 0; i < vertexIndices.size() / 3; i++) {
+    /*
     if (tempNormals.size() > 0) {
       v1.Normal = tempNormals[normalIndices[i * 3 + 0]];
       v2.Normal = tempNormals[normalIndices[i * 3 + 1]];
@@ -103,17 +98,21 @@ bool LoadObj(const std::string &_file, std::vector<Triangle> &_outTris,
       v3.UV = tempUvs[uvIndices[i * 3 + 2]];
     } else {
       v1.UV = v2.UV = v3.UV = Vector2(0, 0);
-    }
+    }*/
+
+    Vector3 v1 = _verts[vertexIndices[i * 3 + 0]];
+    Vector3 v2 = _verts[vertexIndices[i * 3 + 1]];
+    Vector3 v3 = _verts[vertexIndices[i * 3 + 2]];
 
     const static Vector3 Zero = Vector3(0, 0, 0);
     // Test the plane of the triangle.
     Vector3 Normal =
-        XMVector3Cross(v2.Position - v1.Position, v3.Position - v1.Position);
+        XMVector3Cross(v2 - v1, v3 - v1);
     // Assert that the triangle is not degenerate.
     if (XMVector3Equal(Normal, Zero)) {
       continue;
     }
-    _outTris.push_back(Triangle(v1, v2, v3));
+    _tris.push_back(Triangle(vertexIndices[i * 3 + 2], vertexIndices[i * 3 + 1], vertexIndices[i * 3 + 0]));
   }
   return true;
 }

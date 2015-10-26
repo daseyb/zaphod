@@ -8,6 +8,10 @@
 #include <fstream>
 #include <iostream>
 
+#include "ObjLoader.h"
+
+#include "../Geometry/Triangle.h"
+
 #include "../Rendering/Materials/Material.h"
 #include "../Rendering/Materials/DiffuseMaterial.h"
 #include "../Rendering/Materials/SpecularMaterial.h"
@@ -201,8 +205,20 @@ bool LoadScene(const std::string &sceneFileName,
     } else if (type == "sphere") {
       result = new Sphere(pos, GetValue<float>(values, "radius"));
     } else if (type == "mesh") {
-      result = new Mesh(pos, sceneFileFolder + "\\" +
-                                 GetValue<std::string>(values, "file"));
+      auto meshFile =
+          sceneFileFolder + "\\" + GetValue<std::string>(values, "file");
+      std::vector<Triangle> tris;
+      std::vector<Vector3> verts;
+      std::vector<Vector3> normals;
+      std::vector<Vector2> uvs;
+      bool smooth;
+
+      if (!LoadObj(meshFile, tris, verts, normals, uvs, smooth)) {
+        std::cout << "Could not load object at " << meshFile << std::endl;
+        return nullptr;
+      }
+
+      result = new Mesh(pos, tris, verts, normals, uvs, smooth);
     } else {
       std::cout << "Unknown object type: " << type << std::endl;
       return nullptr;
