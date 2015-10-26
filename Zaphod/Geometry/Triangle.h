@@ -1,24 +1,18 @@
 #pragma once
 #include "..\SimpleMath.h"
 
-struct Vertex {
-  DirectX::SimpleMath::Vector3 Position;
-  DirectX::SimpleMath::Vector3 Normal;
-  DirectX::SimpleMath::Vector2 UV;
+struct Triangle {
+  size_t m_Indices[3];
 
-  bool operator==(const Vertex &rhs) const {
-    return Position == rhs.Position && Normal == rhs.Normal && UV == rhs.UV;
+  Triangle() {
+    m_Indices[0] = 0;
+    m_Indices[1] = 0;
+    m_Indices[2] = 0;
   }
-};
 
-class Triangle {
-private:
-  Vertex m_Vertices[3];
-
-public:
-  Triangle();
-  Triangle(Vertex _v1, Vertex _v2, Vertex _v3);
-  bool operator==(const Triangle &rhs) const;
-  ~Triangle(void);
-  inline Vertex v(int _index) const { return m_Vertices[_index]; }
+  Triangle(size_t i0, size_t i1, size_t i2) {
+    m_Indices[0] = i0;
+    m_Indices[1] = i1;
+    m_Indices[2] = i2;
+  }
 };

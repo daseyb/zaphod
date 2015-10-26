@@ -22,11 +22,19 @@ using namespace DirectX::SimpleMath;
 
 Scene::Scene(Camera *_cam, std::vector<BaseObject *>& sceneObjects ) {
   // Initialize object lists
-  m_SceneObjects = sceneObjects;
+  m_SceneObjects = std::move(sceneObjects);
   m_SceneLights = std::vector<BaseObject *>();
 
+  m_CustomIntersectObjects = std::vector<BaseObject*>();
+
   m_TotalLightWeight = 0;
+  
   for (auto obj : m_SceneObjects) {
+
+    if (!m_EmbreeScene.AddObject(obj)) {
+      m_CustomIntersectObjects.push_back(obj);
+    }
+    
     if (obj->GetMaterial()->IsLight()) {
       m_SceneLights.push_back(obj);
       float weight = obj->CalculateWeight();
@@ -37,6 +45,8 @@ Scene::Scene(Camera *_cam, std::vector<BaseObject *>& sceneObjects ) {
       m_TotalLightWeight += weight;
     }
   }
+
+  m_EmbreeScene.CommitScene();
 
   m_SampleDist = std::discrete_distribution<>(std::begin(m_LightWeights),
                                               std::end(m_LightWeights));
@@ -74,6 +84,13 @@ bool Scene::Trace(const DirectX::SimpleMath::Ray &_ray,
   float minDist = FLT_MAX;
   Intersection intersect;
   bool intersectFound = false;
+
+  if (m_EmbreeScene.Trace(_ray, intersect)) {
+    float dist = (intersect.position - _ray.position).LengthSquared();
+    minDist = dist;
+    intersectFound = true;
+    minIntersect = intersect;
+  }
 
   // Find the nearest intersection
   for (auto obj : m_SceneObjects) {

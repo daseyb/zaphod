@@ -41,7 +41,7 @@ float Sphere::CalculateWeight() {
 }
 
 Ray Sphere::Sample(std::default_random_engine &rnd) const {
-  std::uniform_real_distribution<> dist(0, 1);
+  std::uniform_real_distribution<float> dist(0, 1);
   float omega = dist(rnd) * DirectX::XM_2PI;
   float phi = dist(rnd) * DirectX::XM_PI;
 

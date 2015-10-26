@@ -4,7 +4,7 @@
 #include <time.h>
 #include <random>
 #include "../Geometry/Intersection.h"
-#include <embree2\rtcore.h>
+#include "Accelerators/EmbreeScene.h"
 
 class BaseObject;
 class Camera;
@@ -22,6 +22,8 @@ class LightCache;
 class Scene {
   std::vector<BaseObject *> m_SceneObjects;
   std::vector<BaseObject *> m_SceneLights;
+  std::vector<BaseObject *> m_CustomIntersectObjects;
+
   std::vector<float> m_LightWeights;
   float m_TotalLightWeight;
 
@@ -33,6 +35,8 @@ class Scene {
   // Pointer to the current renderer camera
   Camera *m_pCamera;
   LightCache *m_LightCache;
+
+  EmbreeScene m_EmbreeScene;
 
 public:
   Scene(Camera *_cam, std::vector<BaseObject *>& sceneObjects);

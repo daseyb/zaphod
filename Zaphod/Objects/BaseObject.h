@@ -5,6 +5,7 @@
 
 struct Intersection;
 struct Material;
+struct Triangle;
 
 /********************************************
 ** BaseObject
@@ -41,4 +42,10 @@ public:
 
   virtual bool Intersect(const DirectX::SimpleMath::Ray &_ray,
                          Intersection &_intersect) const = 0;
+
+  virtual bool HasBuffers() const { return false; }
+  virtual const DirectX::SimpleMath::Vector3* GetVertexBuffer() const { return nullptr; }
+  virtual const Triangle* GetIndexBuffer() const { return nullptr; }
+  virtual size_t GetVertexCount() const { return 0; }
+  virtual size_t GetTriangleCount() const { return 0; }
 };

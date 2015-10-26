@@ -39,14 +39,21 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(SolutionDir)\libs\SFML-2.1\include;$(SolutionDir)\libs\embree\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>SFML_STATIC;GLEW_STATIC;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SFML_STATIC;GLEW_STATIC;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/openmp %(AdditionalOptions)</AdditionalOptions>
+      <EnablePREfast>false</EnablePREfast>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -61,11 +68,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>$(SolutionDir)\libs\SFML-2.1\include;$(SolutionDir)\libs\embree\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>SFML_STATIC;GLEW_STATIC;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SFML_STATIC;GLEW_STATIC;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <AdditionalOptions>/openmp %(AdditionalOptions)</AdditionalOptions>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -76,13 +85,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Geometry\Octree.cpp" />
-    <ClCompile Include="Geometry\Triangle.cpp" />
     <ClCompile Include="IO\SceneLoader.cpp" />
+    <ClCompile Include="Rendering\Accelerators\EmbreeScene.cpp" />
     <ClCompile Include="Rendering\Accelerators\LightCache.cpp" />
     <ClCompile Include="Rendering\Accelerators\LightCacheNode.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Geometry\Node.cpp" />
     <ClCompile Include="Objects\BaseObject.cpp" />
     <ClCompile Include="Objects\Box.cpp" />
     <ClCompile Include="Objects\Mesh.cpp" />
@@ -98,15 +105,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Geometry\Intersection.h" />
-    <ClInclude Include="Geometry\Octree.h" />
     <ClInclude Include="Geometry\Triangle.h" />
     <ClInclude Include="IO\SceneLoader.h" />
+    <ClInclude Include="Rendering\Accelerators\EmbreeScene.h" />
     <ClInclude Include="Rendering\Accelerators\LightCache.h" />
     <ClInclude Include="Rendering\Accelerators\LightCacheNode.h" />
     <ClInclude Include="Rendering\Materials\DiffuseMaterial.h" />
     <ClInclude Include="Rendering\Materials\EmissionMaterial.h" />
     <ClInclude Include="Rendering\Materials\Material.h" />
-    <ClInclude Include="Geometry\Node.h" />
     <ClInclude Include="Objects\BaseObject.h" />
     <ClInclude Include="Objects\Box.h" />
     <ClInclude Include="Objects\Mesh.h" />

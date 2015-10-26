@@ -34,28 +34,28 @@ float Box::CalculateWeight() {
 
 Ray Box::Sample(std::default_random_engine &rnd) const {
   auto axis = m_SampleDist(rnd);
-  std::uniform_real_distribution<> dist(-1, 1);
+  std::uniform_real_distribution<float> dist(-1, 1);
 
-  int dir = dist(rnd) < 0.0f ? -1 : 1;
+  float dir = dist(rnd) < 0.0f ? -1.0f : 1.0f;
   Ray result;
   switch (axis) {
   case 0:
     result.position =
         Vector3(m_Box.Extents.x * dir, m_Box.Extents.y * dist(rnd),
                 m_Box.Extents.z * dist(rnd));
-    result.direction = Vector3(dir, 0, 0);
+    result.direction = Vector3(dir, 0.0f, 0.0f);
     break;
   case 1:
     result.position =
         Vector3(m_Box.Extents.x * dist(rnd), m_Box.Extents.y * dir,
                 m_Box.Extents.z * dist(rnd));
-    result.direction = Vector3(0, dir, 0);
+    result.direction = Vector3(0.0f, dir, 0.0f);
     break;
   case 2:
     result.position =
         Vector3(m_Box.Extents.x * dist(rnd), m_Box.Extents.y * dist(rnd),
                 m_Box.Extents.z * dir);
-    result.direction = Vector3(0, 0, dir);
+    result.direction = Vector3(0.0f, 0.0f, dir);
     break;
   default:
     assert(false);

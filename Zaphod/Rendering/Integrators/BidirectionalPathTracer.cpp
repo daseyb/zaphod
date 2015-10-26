@@ -2,7 +2,7 @@
 #include "../Scene.h"
 #include "../BRDFs.h"
 #include "../../Geometry/Intersection.h"
-#include "../Materials/Material.h";
+#include "../Materials/Material.h"
 #include "../../Objects/BaseObject.h"
 
 using namespace DirectX;
@@ -123,7 +123,7 @@ Color BidirectionalPathTracer::IlluminatePoint(
   }
 
   if (!m_Scene->Test(pos, lightStart.position)) {
-    return Color(0.);
+    return Color(0.0f, 0.0f, 0.0f);
   }
   return L;
 }
@@ -146,7 +146,7 @@ Color BidirectionalPathTracer::Intersect(
   auto eyePath = MakePath(_ray, _depth, _rnd);
 
   Color L(0, 0, 0, 0);
-  int i, j;
+  size_t i, j;
 
   // Connect bidirectional path prefixes and evaluate throughput
   Color directWt(1.0f, 1.0f, 1.0f);
@@ -160,7 +160,7 @@ Color BidirectionalPathTracer::Intersect(
     eyePath[i - 1].BrdfWeight;*/
 
     for (j = 1; j <= lightPath.size(); ++j) {
-      L += EvalPath(eyePath, i, lightPath, j) / (i + j);
+      L += EvalPath(eyePath, i, lightPath, j) / (float)(i + j);
     }
   }
 

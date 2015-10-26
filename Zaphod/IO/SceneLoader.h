@@ -5,4 +5,5 @@
 class Camera;
 class BaseObject;
 
-bool LoadScene(const std::string& sceneFileName, std::vector<BaseObject*>& loadedObjects, Camera** loadedCamera);
+bool LoadScene(const std::string &sceneFileName,
+               std::vector<BaseObject *> &loadedObjects, Camera **loadedCamera);

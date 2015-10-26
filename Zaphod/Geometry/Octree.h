@@ -3,7 +3,7 @@
 #include "..\SimpleMath.h"
 #include <memory>
 
-class Triangle;
+struct Triangle;
 class Node;
 
 class Octree {

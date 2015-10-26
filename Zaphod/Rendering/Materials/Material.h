@@ -18,7 +18,7 @@ struct Material {
   inline virtual bool Material::IsLight() const { return false; }
   inline virtual DirectX::SimpleMath::Color
   Material::GetColor(const Intersection &_intersect) const {
-    return Color(0.0f);
+    return Color(0.0f, 0.0f, 0.0f);
   }
   inline virtual Material *Copy() { return new Material(*this); };
 };
