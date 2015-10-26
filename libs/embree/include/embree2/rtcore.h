@@ -53,8 +53,8 @@ typedef int ssize_t;
 /*! Embree API version */
 #define RTCORE_VERSION_MAJOR 2
 #define RTCORE_VERSION_MINOR 7
-#define RTCORE_VERSION_PATCH 0
-#define RTCORE_VERSION       20700
+#define RTCORE_VERSION_PATCH 1
+#define RTCORE_VERSION       20701
 
 /*! \file rtcore.h Defines the Embree Ray Tracing Kernel API for C and C++ 
 
