@@ -8,8 +8,6 @@
 
 #include "IO/stb_image_write.h"
 #include "Rendering/Raytracer.h"
-#include "Rendering/Cameras/PinholeCamera.h"
-#include "Rendering/Cameras/PhysicallyBasedCamera.h"
 
 std::string get_time_string() {
   auto t = std::time(nullptr);
