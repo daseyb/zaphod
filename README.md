@@ -13,6 +13,9 @@ May aim is it to implement a functional 3D renderer using raytracing. This inclu
 models and some more. I'll also try to keep all that in realtime, though I might sacrifice that constraint in exchange
 for cool features.
 
+###"Screenshot of the Week"###
+![DOF](img/Output_PT_10kSPP.png)
+
 ###Progress###
 
 ![Hard Shadows](img/hard_shadows.png)
