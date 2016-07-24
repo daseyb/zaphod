@@ -53,7 +53,6 @@ Color PathTracer::Intersect(const Ray &_ray, int _depth, bool _isSecondary,
                          sample.Direction);
 
     L *= minIntersect.material->GetColor(minIntersect) *
-         std::abs((diffuseRay.direction).Dot(minIntersect.normal)) *
          sample.PDF * weight;
 
     currentRay = diffuseRay;
