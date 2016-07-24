@@ -119,6 +119,10 @@ void Raytracer::RenderPart(int _x, int _y, int _width, int _height) {
         Color current = m_RawPixels[x + m_Width * y] / (float)(i + 1);
         current.Saturate();
 
+        current.x = pow(current.x, 1.0f / 2.2f);
+        current.y = pow(current.y, 1.0f / 2.2f);
+        current.z = pow(current.z, 1.0f / 2.2f);
+
         sf::Color newCol((sf::Uint8)(current.R() * 255),
                          (sf::Uint8)(current.G() * 255),
                          (sf::Uint8)(current.B() * 255), 255);

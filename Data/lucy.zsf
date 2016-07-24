@@ -1,0 +1,141 @@
+Material Floor 
+  color: 0.615177 0.615177 0.615177 
+  type: diffuse 
+
+Material Floor.001 
+  color: 0.800000 0.800000 0.800000 
+  type: diffuse 
+
+Material Floor.002 
+  color: 0.800000 0.800000 0.800000 
+  type: diffuse 
+
+Material Floor.003 
+  color: 0.984887 0.984887 0.984887 
+  type: specular 
+  ks: 1.000000 
+  kd: 0.000000 
+  roughness: 0.001
+
+Material Light 
+  color: 1.000000 1.000000 1.000000 
+  type: emission 
+  strength: 17.099998 
+
+Material Light.001 
+  color: 1.000000 0.891518 0.391147 
+  type: emission 
+  strength: 4.000000 
+
+Material Lucy 
+  color: 0.800000 0.470048 0.187849 
+  type: specular 
+  ks: 1.000000 
+  kd: 0.000000 
+  roughness: 0.182203 
+
+Material WallBack 
+  color: 0.800000 0.800000 0.800000 
+  type: diffuse 
+
+Material WallBack.001 
+  color: 0.262947 0.240908 0.800000 
+  type: diffuse 
+
+Camera Camera 
+  type: physically_based 
+  fov: 0.857556 
+  dof_distance: 16.949999 
+  lense_radius: 0.300000 
+  position: 4.766389 -16.730486 7.136142 
+  rotation: 1.367478 0.116507 0.252111 
+  scale: 1.000000 1.000000 1.000000 
+
+Object Group1_pivot 
+  type: mesh 
+  file: Group1_pivot.obj 
+  material: Lucy 
+  position: 0.000000 0.000000 -0.069221 
+  rotation: -0.000000 -0.000000 0.000000 
+  scale: 0.307650 0.307650 0.307650 
+
+Object Plane 
+  type: mesh 
+  file: Plane.obj 
+  material: Floor 
+  position: 0.000000 -7.607737 0.000000 
+  rotation: 0.000000 0.000000 0.000000 
+  scale: 2.626239 2.626239 2.626239 
+
+Object Plane.001 
+  type: mesh 
+  file: Plane.001.obj 
+  material: WallBack 
+  position: -0.029729 5.128336 5.064219 
+  rotation: 0.000000 0.000000 0.000000 
+  scale: 1.000000 1.000000 1.000000 
+
+Object Plane.002 
+  type: mesh 
+  file: Plane.002.obj 
+  material: Light 
+  position: -1.925445 -5.898592 10.157199 
+  rotation: 0.662082 -0.000000 -0.217571 
+  scale: 0.518118 0.518118 0.518118 
+
+Object Plane.003 
+  type: mesh 
+  file: Plane.003.obj 
+  material: Floor 
+  position: -6.655021 -4.917201 2.195201 
+  rotation: -0.000000 1.570795 0.000000 
+  scale: 17.813381 17.813381 17.813381 
+
+Object Plane.004 
+  type: mesh 
+  file: Plane.004.obj 
+  material: Floor.001 
+  position: 9.572524 -6.156201 2.195201 
+  rotation: -0.000000 1.570795 0.000000 
+  scale: 14.571232 14.571232 14.571232 
+
+Object Plane.005 
+  type: mesh 
+  file: Plane.005.obj 
+  material: WallBack.001 
+  position: -0.029729 -17.793629 5.064219 
+  rotation: 0.000000 0.000000 0.000000 
+  scale: 1.000000 1.000000 1.000000 
+
+Object Plane.006 
+  type: mesh 
+  file: Plane.006.obj 
+  material: Floor 
+  position: 0.000000 -7.607737 9.573182 
+  rotation: 0.000000 0.000000 0.000000 
+  scale: 2.626239 2.626239 2.626239 
+
+Object Plane.007 
+  type: mesh 
+  file: Plane.007.obj 
+  material: Floor.003 
+  position: -3.340164 1.745123 2.195201 
+  rotation: 0.000002 1.376176 -0.513860 
+  scale: 2.947374 2.947374 2.947374 
+
+Object Plane.008 
+  type: mesh 
+  file: Plane.008.obj 
+  material: Floor.003 
+  position: 3.770153 1.745123 2.195201 
+  rotation: 0.000002 1.376176 -1.967744 
+  scale: 2.947374 2.947374 2.947374 
+
+Object Plane.009 
+  type: mesh 
+  file: Plane.009.obj 
+  material: Light.001 
+  position: 5.854130 -5.898592 9.377319 
+  rotation: 0.662082 -0.000000 0.438061 
+  scale: 0.396310 0.396310 0.396310 
+

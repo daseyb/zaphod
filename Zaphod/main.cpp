@@ -5,6 +5,7 @@
 #include <thread>
 #include <iomanip>
 #include <sstream>
+#include <iostream>
 
 #include "IO/stb_image_write.h"
 #include "Rendering/Raytracer.h"
@@ -19,7 +20,7 @@ std::string get_time_string() {
 
 #ifndef HEADLESS
 #include <SFML/Graphics.hpp>
-int display_windw(int width, int height, const Raytracer &rt) {
+int display_window(int width, int height, const Raytracer &rt) {
   // Initialize the window
   sf::RenderWindow window(sf::VideoMode(width, height), "zaphod");
 
@@ -56,25 +57,36 @@ int display_windw(int width, int height, const Raytracer &rt) {
 }
 #endif
 
+const std::string USAGE = "<width> <height> <spp> <tile size> <thread count> <scene file> <integrator>";
+
 int main(int argc, char **argv) {
+
+  if (argc != 8) {
+    std::cout << "Wrong number of arguments!" << std::endl;
+    std::cout << USAGE << std::endl;
+  }
+
   int width = std::stoi(argv[1]);
   int height = std::stoi(argv[2]);
   int spp = std::stoi(argv[3]);
   int tile_size = std::stoi(argv[4]);
   int thread_count = std::stoi(argv[5]);
-
+   
   const char *scene_file = argv[6];
 
   // Initialize the Raytracer class with width, height and horizontal FOV
   Raytracer rt;
-  rt.Initialize(width, height, argv[7], spp, tile_size,
-                thread_count, scene_file);
+  if (!rt.Initialize(width, height, argv[7], spp, tile_size,
+    thread_count, scene_file)) {
+    std::cout << "Failed to initialized the renderer!" << std::endl;
+    return -1;
+  }
 
   // Update the pixel array
   rt.Render();
 
 #ifndef HEADLESS
-  display_windw(width, height, rt);
+  display_window(width, height, rt);
 #else
   rt.Wait();
   stbi_write_hdr((get_time_string() + ".hdr").c_str(), width, height, 4,

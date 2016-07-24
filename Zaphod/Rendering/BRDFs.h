@@ -11,6 +11,7 @@ struct BRDFSample {
 };
 
 inline Vector3 HemisphereSample(float theta, float phi, Vector3 n) {
+
   float xs = sinf(theta) * cosf(phi);
   float ys = cosf(theta);
   float zs = sinf(theta) * sinf(phi);
@@ -91,16 +92,52 @@ CosWeightedRandomHemisphereDirection2(Vector3 n,
   float Xi1 = (float)dist(_rnd);
   float Xi2 = (float)dist(_rnd);
 
-  float theta = acos(sqrt(1.0f - Xi1));
-  float phi = 2.0f * XM_PI * Xi2;
 
-  return HemisphereSample(theta, phi, n);
+  float u1 = Xi1;
+  float phi = Xi2 * 2.0 * XM_PI;
+
+  float f = sqrt(1 - u1);
+
+  float x = f * cos(phi);
+  float y = f * sin(phi);
+  float z = sqrt(u1);
+
+  Vector3 xDir = abs(n.x) < abs(n.y) ? Vector3(1, 0, 0) : Vector3(0, 1, 0);
+  Vector3 yDir = n.Cross(xDir);
+  yDir.Normalize();
+  xDir = yDir.Cross(n);
+  return xDir * x + yDir * y + z * n;
+}
+
+inline Vector3
+UniformHemisphereSample(Vector3 n,
+    std::default_random_engine &_rnd) {
+    std::uniform_real_distribution<float> dist =
+        std::uniform_real_distribution<float>(0, 1);
+
+    float Xi1 = (float)dist(_rnd);
+    float Xi2 = (float)dist(_rnd);
+
+    float theta = Xi1;
+    float phi = 2.0f * XM_PI * Xi2;
+
+    float f = sqrt(1 - theta * theta);
+
+    float x = f * cos(phi);
+    float y = f * sin(phi);
+    float z = theta;
+
+    Vector3 dir = Vector3(x, y, z);
+    dir *= dir.Dot(n) < 0 ? -1 : 1;
+    return dir;
 }
 
 inline BRDFSample BRDFDiffuse(Vector3 normal, Vector3 view,
                               std::default_random_engine &_rnd) {
-  auto out = CosWeightedRandomHemisphereDirection2(normal, _rnd);
-  return {out, 1.0f / out.Dot(normal)};
+  /*auto out = CosWeightedRandomHemisphereDirection2(normal, _rnd);
+  return {out, 1.0f};*/
+  auto out = UniformHemisphereSample(normal, _rnd);
+  return {out, 2.0f * out.Dot(normal)};
 }
 
 inline BRDFSample BRDFPhong(Vector3 normal, Vector3 view, float kd, float ks,

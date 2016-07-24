@@ -1,0 +1,88 @@
+Material Cube 
+  color: 0.800000 0.053851 0.026208 
+  type: diffuse 
+
+Material CubeLeft 
+  color: 0.007726 0.800000 0.007642 
+  type: diffuse 
+
+Material Floor 
+  color: 0.800000 0.800000 0.800000 
+  type: diffuse 
+
+Material Light 
+  color: 1.000000 1.000000 1.000000 
+  type: emission 
+  strength: 3.000000 
+
+Material Material 
+  color: 0.800000 0.410408 0.000000 
+  type: specular 
+  ks: 1.000000 
+  kd: 0.000000 
+  roughness: 0.000000 
+
+Material Material.001 
+  color: 0.800000 0.800000 0.800000 
+  type: diffuse 
+
+Material WallBack 
+  color: 0.800000 0.800000 0.800000 
+  type: diffuse 
+
+Camera Camera 
+  type: physically_based 
+  fov: 0.857556 
+  dof_distance: 5.000000 
+  lense_radius: 0.000001 
+  position: 3.520687 -12.837193 5.011553 
+  rotation: 1.363830 0.219724 0.230339 
+  scale: 1.000000 1.000000 1.000000 
+
+Object Plane 
+  type: mesh 
+  file: Plane.obj 
+  material: Floor 
+  position: 0.000000 0.000000 0.000000 
+  rotation: 0.000000 0.000000 0.000000 
+  scale: 1.000000 1.000000 1.000000 
+
+Object Plane.001 
+  type: mesh 
+  file: Plane.001.obj 
+  material: WallBack 
+  position: -0.029729 5.128336 5.064219 
+  rotation: 0.000000 0.000000 0.000000 
+  scale: 1.000000 1.000000 1.000000 
+
+Object Plane.002 
+  type: mesh 
+  file: Plane.002.obj 
+  material: Light 
+  position: 0.000000 0.000000 7.716071 
+  rotation: 0.000000 0.000000 0.000000 
+  scale: 1.292555 1.292555 1.292555 
+
+Object Suzanne 
+  type: mesh 
+  file: Suzanne.obj 
+  position: 0.468794 -1.516470 1.978722 
+  rotation: -0.333693 -0.006493 0.331177 
+  scale: 2.364364 2.364363 2.364363 
+
+Object TestMesh 
+  type: mesh 
+  file: TestMesh.obj 
+  material: Cube 
+  position: 3.984894 1.079208 1.000000 
+  rotation: 0.000000 0.000000 0.000000 
+  scale: 1.000000 1.000000 1.000000 
+
+Object TestMesh.001 
+  type: mesh 
+  file: TestMesh.001.obj 
+  material: CubeLeft 
+  position: -3.524613 0.173920 1.000000 
+  rotation: 0.000000 0.000000 0.000000 
+  scale: 1.000000 1.000000 1.000000 
+
