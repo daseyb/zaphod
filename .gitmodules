@@ -1,3 +1,9 @@
-[submodule "libs/USD"]
-	path = libs/USD
+[submodule "extern/USD"]
+	path = extern/USD
 	url = https://github.com/PixarAnimationStudios/USD
+[submodule "extern/embree"]
+	path = extern/embree
+	url = https://github.com/embree/embree.git
+[submodule "extern/SFML"]
+	path = extern/SFML
+	url = https://github.com/SFML/SFML

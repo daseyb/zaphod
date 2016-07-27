@@ -1,0 +1,141 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{5F08F342-A7BE-4173-A3E2-BDB58FB82763}</ProjectGuid>
+    <RootNamespace>SoftwareRasterizer</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libs\SFML-2.1\include;$(SolutionDir)\libs\embree\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SFML_STATIC;GLEW_STATIC;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/openmp %(AdditionalOptions)</AdditionalOptions>
+      <EnablePREfast>false</EnablePREfast>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\SFML-2.1\lib;$(SolutionDir)libs\embree\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>embree.lib;sfml-graphics-s-d.lib;sfml-window-s-d.lib;sfml-system-s-d.lib;sndfile.lib;openal32.lib;jpeg.lib;glew.lib;freetype.lib;ws2_32.lib;gdi32.lib;opengl32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libs\SFML-2.1\include;$(SolutionDir)\libs\embree\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SFML_STATIC;GLEW_STATIC;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <AdditionalOptions>/openmp %(AdditionalOptions)</AdditionalOptions>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <BrowseInformation>true</BrowseInformation>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\SFML-2.1\lib;$(SolutionDir)libs\embree\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>embree.lib;sfml-graphics-s.lib;sfml-window-s.lib;sfml-system-s.lib;sndfile.lib;openal32.lib;jpeg.lib;glew.lib;freetype.lib;ws2_32.lib;gdi32.lib;opengl32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="IO\SceneLoader.cpp" />
+    <ClCompile Include="Rendering\Accelerators\EmbreeScene.cpp" />
+    <ClCompile Include="Rendering\Accelerators\LightCache.cpp" />
+    <ClCompile Include="Rendering\Accelerators\LightCacheNode.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Objects\BaseObject.cpp" />
+    <ClCompile Include="Objects\Box.cpp" />
+    <ClCompile Include="Objects\Mesh.cpp" />
+    <ClCompile Include="Objects\Sphere.cpp" />
+    <ClCompile Include="IO\ObjLoader.cpp" />
+    <ClCompile Include="Rendering\Integrators\BidirectionalPathTracer.cpp" />
+    <ClCompile Include="Rendering\Cameras\Camera.cpp" />
+    <ClCompile Include="Rendering\Integrators\PathTracer.cpp" />
+    <ClCompile Include="Rendering\Cameras\PhysicallyBasedCamera.cpp" />
+    <ClCompile Include="Rendering\Cameras\PinholeCamera.cpp" />
+    <ClCompile Include="Rendering\Raytracer.cpp" />
+    <ClCompile Include="Rendering\Scene.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Geometry\Intersection.h" />
+    <ClInclude Include="Geometry\Triangle.h" />
+    <ClInclude Include="IO\SceneLoader.h" />
+    <ClInclude Include="Rendering\Accelerators\EmbreeScene.h" />
+    <ClInclude Include="Rendering\Accelerators\LightCache.h" />
+    <ClInclude Include="Rendering\Accelerators\LightCacheNode.h" />
+    <ClInclude Include="Rendering\Materials\DiffuseMaterial.h" />
+    <ClInclude Include="Rendering\Materials\EmissionMaterial.h" />
+    <ClInclude Include="Rendering\Materials\Material.h" />
+    <ClInclude Include="Objects\BaseObject.h" />
+    <ClInclude Include="Objects\Box.h" />
+    <ClInclude Include="Objects\Mesh.h" />
+    <ClInclude Include="Objects\Sphere.h" />
+    <ClInclude Include="IO\ObjLoader.h" />
+    <ClInclude Include="Rendering\Integrators\BidirectionalPathTracer.h" />
+    <ClInclude Include="Rendering\BRDFs.h" />
+    <ClInclude Include="Rendering\Cameras\Camera.h" />
+    <ClInclude Include="Rendering\Integrators\Integrator.h" />
+    <ClInclude Include="Rendering\ComponentFactories.h" />
+    <ClInclude Include="Rendering\Integrators\PathTracer.h" />
+    <ClInclude Include="Rendering\Cameras\PhysicallyBasedCamera.h" />
+    <ClInclude Include="Rendering\Cameras\PinholeCamera.h" />
+    <ClInclude Include="Rendering\Materials\SpecularMaterial.h" />
+    <ClInclude Include="Rendering\Raytracer.h" />
+    <ClInclude Include="Rendering\Scene.h" />
+    <ClInclude Include="SimpleMath.h" />
+    <ClInclude Include="IO\stb_image_write.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SimpleMath.inl" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,0 +1,173 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Objects">
+      <UniqueIdentifier>{04053df6-9abb-4c21-a7b2-4c99bf88cc85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering">
+      <UniqueIdentifier>{35b55cb3-f7eb-4fab-848a-2be363dcee2c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Lights">
+      <UniqueIdentifier>{0ab41bbc-7192-4fdc-8513-702edca82835}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Geometry">
+      <UniqueIdentifier>{b16a6e88-8cb8-4ba7-a3d5-fc234c992c0f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{825eceb7-e222-412d-adb6-6c0549cf2772}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\BaseObject.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Box.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Sphere.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Raytracer.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Scene.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Mesh.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Integrators\BidirectionalPathTracer.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Integrators\PathTracer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Cameras\Camera.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Cameras\PhysicallyBasedCamera.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Cameras\PinholeCamera.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Accelerators\LightCache.cpp">
+      <Filter>Rendering\Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Accelerators\LightCacheNode.cpp">
+      <Filter>Rendering\Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\ObjLoader.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\SceneLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Accelerators\EmbreeScene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="SimpleMath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\BaseObject.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Box.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Sphere.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Raytracer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Scene.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\Triangle.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Mesh.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\BRDFs.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\ComponentFactories.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\Intersection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Materials\DiffuseMaterial.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Materials\EmissionMaterial.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Materials\Material.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Integrators\BidirectionalPathTracer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Integrators\Integrator.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Integrators\PathTracer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Cameras\Camera.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Cameras\PhysicallyBasedCamera.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Cameras\PinholeCamera.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Materials\SpecularMaterial.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Accelerators\LightCache.h">
+      <Filter>Rendering\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Accelerators\LightCacheNode.h">
+      <Filter>Rendering\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\ObjLoader.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\stb_image_write.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\SceneLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Accelerators\EmbreeScene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SimpleMath.inl">
+      <Filter>Header Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>
