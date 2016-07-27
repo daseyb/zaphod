@@ -94,7 +94,7 @@ CosWeightedRandomHemisphereDirection2(Vector3 n,
 
 
   float u1 = Xi1;
-  float phi = Xi2 * 2.0 * XM_PI;
+  float phi = Xi2 * 2.0f * XM_PI;
 
   float f = sqrt(1 - u1);
 
@@ -128,7 +128,7 @@ UniformHemisphereSample(Vector3 n,
     float z = theta;
 
     Vector3 dir = Vector3(x, y, z);
-    dir *= dir.Dot(n) < 0 ? -1 : 1;
+    dir *= dir.Dot(n) < 0.0f ? -1.0f : 1.0f;
     return dir;
 }
 
