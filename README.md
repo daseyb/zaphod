@@ -1,4 +1,4 @@
-zaphod - A CPU Realtime Raytracer
+zaphod - A CPU Raytracer
 ======
 
 ###About###
