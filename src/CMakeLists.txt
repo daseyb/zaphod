@@ -1,11 +1,11 @@
 cmake_minimum_required (VERSION 3.1)
-project (zaphod C CXX)
+project (zaphod)
 
-# We need C++ 11
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED on)
+add_definitions(-DENABLE_STATIC_LIB)
+  
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-include_directories(${CMAKE_SOURCE_DIR}/Zaphod)
+include_directories(${INC_DIRS})
 
 file(GLOB_RECURSE SRC
     "*.h"
@@ -13,4 +13,5 @@ file(GLOB_RECURSE SRC
 )
 
 add_executable(zaphod_exe ${SRC})
+target_link_libraries(zaphod_exe ${LIBS})
 SET_TARGET_PROPERTIES ( zaphod_exe PROPERTIES OUTPUT_NAME zaphod)
