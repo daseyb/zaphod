@@ -98,7 +98,7 @@ void Raytracer::RenderPart(int _x, int _y, int _width, int _height) {
 
   for (int i = 0; i < m_SPP; i++) {
     omp_set_num_threads(threads_per_tile);
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int x = _x; x < _x + _width; x++) {
       for (int y = _y; y < _y + _height; y++) {
         int pixelIndex = (x + m_Width * y) * 4;

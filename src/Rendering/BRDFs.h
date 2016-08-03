@@ -134,26 +134,52 @@ UniformHemisphereSample(Vector3 n,
 
 inline BRDFSample BRDFDiffuse(Vector3 normal, Vector3 view,
                               std::default_random_engine &_rnd) {
-  /*auto out = CosWeightedRandomHemisphereDirection2(normal, _rnd);
-  return {out, 1.0f};*/
-  auto out = UniformHemisphereSample(normal, _rnd);
-  return {out, 2.0f * out.Dot(normal)};
+  auto out = CosWeightedRandomHemisphereDirection2(normal, _rnd);
+  return {out, 1.0f};
+  /*auto out = UniformHemisphereSample(normal, _rnd);
+  return {out, 2.0f * out.Dot(normal)};*/
 }
 
-inline BRDFSample BRDFPhong(Vector3 normal, Vector3 view, float kd, float ks,
+inline float pow5(float val) {
+    return val * val * val * val * val;
+}
+
+inline float FresnelSchlick(Vector3 H, Vector3 norm, float n1) {
+    float r0 = n1 * n1;
+    return r0 + (1 - r0)*pow5(1 - H.Dot(norm));
+}
+
+inline float sign(float val) {
+    return val < 0 ? -1 : 1;
+}
+
+inline BRDFSample BRDFPhong(Vector3 normal, Vector3 view, float kd, float ks, float kt,
                             float roughness, std::default_random_engine &_rnd) {
   std::uniform_real_distribution<float> dist =
       std::uniform_real_distribution<float>(0, 1);
+
+  float total = kd + ks + kt;
+  kd /= total;
+  ks /= total;
+  kt /= total;
 
   float u = dist(_rnd);
   if (u < kd) {
     return BRDFDiffuse(normal, view, _rnd);
   }
 
-  float ksd = kd + ks;
 
-  Vector3 w1;
-  Vector3 ref = Vector3::Reflect(view, -normal);
+  Vector3 w1, ref;
+  if (u < kd + ks) {
+      ref = Vector3::Reflect(-view, normal);
+  } else {
+      float inside = sign(view.Dot(normal));
+      float eta = inside < 0 ? 1.0 / 1.5 : 1.5;
+      ref = Vector3::Refract(view, -inside * normal, eta);
+      if (ref.LengthSquared() < 0.5f) {
+          ref = Vector3::Reflect(-view, normal);
+      }
+  }
 
   if (roughness == 0) {
     w1 = ref;

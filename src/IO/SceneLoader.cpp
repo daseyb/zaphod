@@ -185,9 +185,10 @@ bool LoadScene(const std::string &sceneFileName,
         } else if (type == "diffuse") {
           return new DiffuseMaterial(color);
         } else if (type == "specular") {
-          return new SpecularMaterial(color, GetValue<float>(values, "kd"),
-                                      GetValue<float>(values, "ks"),
-                                      GetValue<float>(values, "roughness"));
+          return new SpecularMaterial(color, GetValue<float>(values, "kd", 0.5f),
+                                      GetValue<float>(values, "ks", 0.5f),
+                                      GetValue<float>(values, "kt", 0.0f),
+                                      GetValue<float>(values, "roughness", 0.0f));
         } else {
           std::cout << "Unknown material type: " << type << std::endl;
           return nullptr;

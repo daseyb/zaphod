@@ -5,6 +5,13 @@ Material white
 Material green
   type: diffuse
   color: 0 1 0
+  
+Material specular
+  type: specular
+  color: 1 1 1
+  kd: 0.0
+  ks: 0.2
+  kt: 0.8
 
 Material red
   type: diffuse
@@ -59,12 +66,17 @@ Object cubeLeft
   rotation: 0 0.5 0
 
 Object cubeRight
-  type: box
-  material: white
-  position: 2 2 2
-  extends: 1.5 2 1.5
-  rotation: 0 -0.2 0
+  type: sphere
+  material: specular
+  position: 2 1.5 2
+  radius: 1.5
   
 Camera mainCamera
+  type: physically_based 
   position: 0 5 20
   rotation: 0 0 0
+  fov: 0.857556 
+  dof_distance: 16.190001 
+  lense_radius: 0.00001 
+  scale: 1.000000 1.000000 1.000000 
+  
