@@ -7,6 +7,7 @@
 #include <sstream>
 #include <iostream>
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "IO/stb_image_write.h"
 #include "Rendering/Raytracer.h"
 
