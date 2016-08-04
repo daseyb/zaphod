@@ -1,0 +1,25 @@
+language: cpp
+sudo: false
+matrix:
+  include:
+  - addons: &1
+      apt:
+        sources:
+        - george-edison55-precise-backports
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-precise-3.7
+        packages:
+        - g++-4.9
+        - clang-3.7
+        - cmake
+    compiler: clang
+    env: COMPILER_VERSION=3.7 BUILD_TYPE=Debug
+  - addons: *1
+    compiler: clang
+    env: COMPILER_VERSION=3.7 BUILD_TYPE=Release
+
+script:
+  - mkdir build
+  - cd build
+  - cmake ..
+  - cmake --build .
