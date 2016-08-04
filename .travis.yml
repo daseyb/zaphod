@@ -1,26 +1,48 @@
+sudo: required
+dist: precise
 language: cpp
-sudo: false
+
 matrix:
   include:
-  - addons: &1
-      apt:
-        sources:
-        - george-edison55-precise-backports
-        - ubuntu-toolchain-r-test
-        - llvm-toolchain-precise-3.7
-        - george-edison55/cmake-3.x
-        packages:
-        - g++-4.9
-        - clang-3.7
-        - cmake
-    compiler: clang
-    env: COMPILER_VERSION=3.7 BUILD_TYPE=Debug
-  - addons: *1
-    compiler: clang
-    env: COMPILER_VERSION=3.7 BUILD_TYPE=Release
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
+      env: COMPILER=g++-4.9
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-5
+      env: COMPILER=g++-5
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.6
+          packages:
+            - clang-3.6
+      env: COMPILER=clang++-3.6
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.7
+          packages:
+            - clang-3.7
+      env: COMPILER=clang++-3.7
+
+before_install:
+  - sudo apt-get update -qq
 
 script:
   - mkdir build
   - cd build
-  - cmake ..
-  - cmake --build .
+  - cmake .. && make
