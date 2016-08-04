@@ -8,6 +8,7 @@ matrix:
         - george-edison55-precise-backports
         - ubuntu-toolchain-r-test
         - llvm-toolchain-precise-3.7
+        - george-edison55/cmake-3.x
         packages:
         - g++-4.9
         - clang-3.7
