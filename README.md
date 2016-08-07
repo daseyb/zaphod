@@ -1,5 +1,6 @@
 zaphod - A CPU Raytracer
 ======
+[![Build Status](https://travis-ci.org/daseyb/zaphod.svg?branch=path-tracing)](https://travis-ci.org/daseyb/zaphod)
 
 ###About###
 
