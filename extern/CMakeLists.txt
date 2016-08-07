@@ -9,7 +9,10 @@ add_subdirectory(embree)
 set(INC_DIRS ${INC_DIRS} "${CMAKE_CURRENT_LIST_DIR}/embree/include")
 set(LIBS ${LIBS} "embree" "embree_sse42")
 
-add_subdirectory(SFML)
-set(INC_DIRS ${INC_DIRS} "${CMAKE_CURRENT_LIST_DIR}/SFML/include" PARENT_SCOPE)
-set(LIBS ${LIBS} "sfml-graphics" "sfml-window" "sfml-system" "sfml-main" PARENT_SCOPE)
+if(NOT HEADLESS)
+  add_subdirectory(SFML)
+  set(INC_DIRS ${INC_DIRS} "${CMAKE_CURRENT_LIST_DIR}/SFML/include" PARENT_SCOPE)
+  set(LIBS ${LIBS} "sfml-graphics" "sfml-window" "sfml-system" "sfml-main" PARENT_SCOPE)
+endif()
+
 # add_subdirectory(USD)
