@@ -11,8 +11,13 @@ set(LIBS ${LIBS} "embree" "embree_sse42")
 
 if(NOT HEADLESS)
   add_subdirectory(SFML)
-  set(INC_DIRS ${INC_DIRS} "${CMAKE_CURRENT_LIST_DIR}/SFML/include" PARENT_SCOPE)
-  set(LIBS ${LIBS} "sfml-graphics" "sfml-window" "sfml-system" "sfml-main" PARENT_SCOPE)
+  set(INC_DIRS ${INC_DIRS} "${CMAKE_CURRENT_LIST_DIR}/SFML/include")
+  set(LIBS ${LIBS} "sfml-graphics" "sfml-window" "sfml-system" "sfml-main")
 endif()
 
-# add_subdirectory(USD)
+add_subdirectory(USD)
+set(INC_DIRS ${INC_DIRS} "${CMAKE_CURRENT_LIST_DIR}/USD/pxr/usd/lib")
+
+# Pass set variables to parent scope
+set(INC_DIRS ${INC_DIRS} PARENT_SCOPE)
+set(LIBS ${LIBS} PARENT_SCOPE)
