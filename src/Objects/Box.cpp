@@ -71,7 +71,6 @@ Ray Box::Sample(std::default_random_engine &rnd) const {
 bool Box::Intersect(const Ray &_ray, Intersection &_intersect) const {
   float dist;
   Ray ray = _ray;
-  auto transform = GetTransform();
   // ray.position = Vector3::Transform(_ray.position, transform);
   // ray.direction = Vector3::TransformNormal(_ray.direction, transform);
   if (ray.Intersects(m_Box, dist)) {

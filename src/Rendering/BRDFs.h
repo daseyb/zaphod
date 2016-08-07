@@ -136,8 +136,6 @@ inline BRDFSample BRDFDiffuse(Vector3 normal, Vector3 view,
                               std::default_random_engine &_rnd) {
   auto out = CosWeightedRandomHemisphereDirection2(normal, _rnd);
   return {out, 1.0f};
-  /*auto out = UniformHemisphereSample(normal, _rnd);
-  return {out, 2.0f * out.Dot(normal)};*/
 }
 
 inline float pow5(float val) {
@@ -150,7 +148,7 @@ inline float FresnelSchlick(Vector3 H, Vector3 norm, float n1) {
 }
 
 inline float sign(float val) {
-    return val < 0 ? -1 : 1;
+    return val < 0 ? -1.0f : 1.0f;
 }
 
 inline BRDFSample BRDFPhong(Vector3 normal, Vector3 view, float kd, float ks, float kt,
@@ -168,16 +166,16 @@ inline BRDFSample BRDFPhong(Vector3 normal, Vector3 view, float kd, float ks, fl
     return BRDFDiffuse(normal, view, _rnd);
   }
 
-
+  float inside = sign(view.Dot(normal));
+  float ior = 1.5f;
   Vector3 w1, ref;
   if (u < kd + ks) {
-      ref = Vector3::Reflect(-view, normal);
+      ref = Vector3::Reflect(view, -inside * normal);
   } else {
-      float inside = sign(view.Dot(normal));
-      float eta = inside < 0 ? 1.0 / 1.5 : 1.5;
+      float eta = inside < 0 ? 1.0f / ior : ior;
       ref = Vector3::Refract(view, -inside * normal, eta);
       if (ref.LengthSquared() < 0.5f) {
-          ref = Vector3::Reflect(-view, normal);
+          ref = Vector3::Reflect(view, -inside * normal);
       }
   }
 
@@ -192,6 +190,5 @@ inline BRDFSample BRDFPhong(Vector3 normal, Vector3 view, float kd, float ks, fl
 
     w1 = HemisphereSample(theta, phi, ref);
   }
-
-  return {w1, 1};
+  return { w1, 1.0f};
 }

@@ -4,11 +4,12 @@
 #include "../BRDFs.h"
 #include "../Materials/Material.h"
 #include "../../Objects/BaseObject.h"
+#include "../../Objects/Sphere.h"
 
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
 
-#define RUSSIAN_ROULETTE 0.9f
+#define RUSSIAN_ROULETTE 1.0f
 
 // Intersect a ray with the scene (currently no optimization)
 Color PathTracer::Intersect(const Ray &_ray, int _depth, bool _isSecondary,
@@ -17,7 +18,9 @@ Color PathTracer::Intersect(const Ray &_ray, int _depth, bool _isSecondary,
     return Color(0, 0, 0);
   }
 
-  Color L = Color(1, 1, 1);
+  Color weight = Color(1, 1, 1);
+  weight.A(0);
+  Color L = Color(0, 0, 0, 0);
 
   Ray currentRay = _ray;
   std::uniform_real_distribution<float> dist(0, 1);
@@ -27,35 +30,36 @@ Color PathTracer::Intersect(const Ray &_ray, int _depth, bool _isSecondary,
     bool intersectFound = m_Scene->Trace(currentRay, minIntersect);
 
     if (!intersectFound) {
-      L *= 0;
       break;
     }
 
     if (minIntersect.material->IsLight()) {
-      L *= minIntersect.material->GetColor(minIntersect);
-      break;
+        L += minIntersect.material->GetColor(minIntersect) * weight;
+        break;
     }
 
-    float weight = 1;
+    float rr_weight = 1;
 
     if (i > 4) {
       if (dist(_rnd) > RUSSIAN_ROULETTE) {
         break;
       } else {
-        weight = 1.0f / RUSSIAN_ROULETTE;
+        rr_weight = 1.0f / RUSSIAN_ROULETTE;
       }
     }
 
     auto sample =
-        minIntersect.material->Sample(minIntersect, _ray.direction, _rnd);
+        minIntersect.material->Sample(minIntersect, currentRay.direction, _rnd);
 
-    Ray diffuseRay = Ray(minIntersect.position + sample.Direction * 0.001f,
-                         sample.Direction);
+    weight *=
+        minIntersect.material->GetColor(minIntersect) * sample.PDF * rr_weight;
 
-    L *= minIntersect.material->GetColor(minIntersect) *
-         sample.PDF * weight;
+    currentRay = Ray(minIntersect.position + sample.Direction * 0.001f,
+                     sample.Direction);
 
-    currentRay = diffuseRay;
+    if (weight.ToVector3().LengthSquared() < 0.001) {
+        break;
+    }
   }
 
   return L;
