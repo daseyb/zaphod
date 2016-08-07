@@ -93,7 +93,7 @@ bool Scene::Trace(const DirectX::SimpleMath::Ray &_ray,
   }
 
   // Find the nearest intersection
-  for (auto obj : m_SceneObjects) {
+  for (auto obj : m_CustomIntersectObjects) {
     if (obj->Intersect(_ray, intersect)) {
       float dist = (intersect.position - _ray.position).LengthSquared();
       if (dist < minDist) {
