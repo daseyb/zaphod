@@ -53,4 +53,4 @@ matrix:
 script:
   - mkdir build
   - cd build
-  - cmake .. && make
+  - cmake .. -DHEADLESS=1 && make
