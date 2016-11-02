@@ -6,7 +6,6 @@
 #include "Integrators/Integrator.h"
 #include "ComponentFactories.h"
 #include <iostream>
-#include <omp.h>
 #include "../IO/SceneLoader.h"
 
 using namespace DirectX::SimpleMath;
@@ -32,7 +31,7 @@ bool Raytracer::Initialize(int _width, int _height, std::string _integrator,
   m_Pixels = new sf::Uint8[m_Width * m_Height * 4]{0};
 #endif
 
-  m_RawPixels = new Color[m_Width * m_Height * 4]{Color(0, 0, 0)};
+  m_RawPixels = new Color[m_Width * m_Height * 4]{};
 
   std::cout << "Loading scene..." << std::endl;
   Camera* cam = nullptr;
@@ -84,21 +83,14 @@ void Raytracer::Shutdown(void) {
 
 void Raytracer::SetFOV(float _fov) { m_FOV = _fov; }
 
-void Raytracer::RenderPart(int _x, int _y, int _width, int _height) {
+void Raytracer::RenderPart(int _x, int _y, int _width, int _height, int _spp) {
   assert(_x + _width <= m_Width);
   assert(_y + _height <= m_Height);
 
   std::random_device d;
   std::default_random_engine rnd(d());
 
-  int max_threads = std::thread::hardware_concurrency() - 1;
-  int threads_per_tile = max_threads / m_ThreadCount;
-  if (threads_per_tile == 0)
-    threads_per_tile = 1;
-
-  for (int i = 0; i < m_SPP; i++) {
-    omp_set_num_threads(threads_per_tile);
-//#pragma omp parallel for
+  for (int i = 0; i < _spp; i++) {
     for (int x = _x; x < _x + _width; x++) {
       for (int y = _y; y < _y + _height; y++) {
         int pixelIndex = (x + m_Width * y) * 4;
@@ -113,10 +105,10 @@ void Raytracer::RenderPart(int _x, int _y, int _width, int _height) {
         }
 
         Color *pixelAddress = m_RawPixels + x + m_Width * y;
-        *pixelAddress += rayColor;
+        *pixelAddress += ( rayColor - *pixelAddress) / float(i+1);
 
 #ifndef HEADLESS
-        Color current = m_RawPixels[x + m_Width * y] / (float)(i + 1);
+        Color current = *pixelAddress;
         current.Saturate();
 
         current.x = pow(current.x, 1.0f / 2.2f);
@@ -153,7 +145,7 @@ void Raytracer::EmptyQueue(int threadIndex) {
     }
     std::cout << "Rendering tile " << tileIndex << " on thread " << threadIndex
               << std::endl;
-    RenderPart(toRender.X, toRender.Y, toRender.Width, toRender.Height);
+    RenderPart(toRender.X, toRender.Y, toRender.Width, toRender.Height, toRender.SPP);
   }
 }
 
@@ -173,9 +165,19 @@ void Raytracer::Render(void) {
     int width = __min(m_TileSize, (m_Width - x));
     for (int y = 0; y < m_Height; y += m_TileSize) {
       int height = __min(m_TileSize, (m_Height - y));
-      m_TilesToRender.push_back({x, y, width, height});
+      m_TilesToRender.push_back({x, y, width, height, m_SPP - 5 });
     }
   }
+
+  // Preview render
+  for (int x = 0; x < m_Width; x += m_TileSize * 2) {
+	  int width = __min(m_TileSize * 2, (m_Width - x));
+	  for (int y = 0; y < m_Height; y += m_TileSize * 2) {
+		  int height = __min(m_TileSize * 2, (m_Height - y));
+		  m_TilesToRender.push_back({ x, y, width, height, 5 });
+	  }
+  }
+
   std::cout << "Rendering " << m_TilesToRender.size() << " tiles ("
             << m_TileSize << ") on " << m_ThreadCount << " threads."
             << std::endl;
@@ -189,7 +191,7 @@ void Raytracer::Render(void) {
   }
 
 #else
-  RenderPart(0, 0, m_Width, m_Height);
+  RenderPart(0, 0, m_Width, m_Height, m_SPP);
 #endif
 }
 
