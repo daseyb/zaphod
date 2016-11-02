@@ -7,7 +7,6 @@
 #include <sstream>
 #include <iostream>
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "IO/stb_image_write.h"
 #include "Rendering/Raytracer.h"
 
@@ -65,6 +64,7 @@ int main(int argc, char **argv) {
   if (argc != 8) {
     std::cout << "Wrong number of arguments!" << std::endl;
     std::cout << USAGE << std::endl;
+	return -1;
   }
 
   int width = std::stoi(argv[1]);
