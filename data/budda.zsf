@@ -74,7 +74,7 @@ Object Plane.003
   material: Floor.001 
   position: -5.166652 0.000000 3.878906 
   rotation: 1.570797 -0.000000 1.570797 
-  scale: 1.000000 1.000000 1.000000 
+  scale: 5.000000 5.000000 5.000000 
 
 Object Plane.004 
   type: mesh 
@@ -82,5 +82,5 @@ Object Plane.004
   material: Floor.002 
   position: 6.846118 0.000000 3.878906 
   rotation: 1.570797 -0.000000 1.570797 
-  scale: 1.000000 1.000000 1.000000 
+  scale: 5.000000 5.000000 5.000000 
 
