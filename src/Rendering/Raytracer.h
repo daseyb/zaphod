@@ -25,7 +25,7 @@ class Integrator;
 class Raytracer {
 private:
   struct TileInfo {
-    int X, Y, Width, Height;
+    int X, Y, Width, Height, SPP;
   };
 
 #ifndef HEADLESS
@@ -53,8 +53,8 @@ private:
   std::mutex m_TileMutex;
 
   // Render a part of the image (for multy threading)
-  void RenderPart(int _x, int _y, int _width, int _height);
-
+  void RenderPart(int _x, int _y, int _width, int _height, int _spp);
+   
   void EmptyQueue(int threadIndex);
 
 public:
