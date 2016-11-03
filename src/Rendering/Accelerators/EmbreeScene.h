@@ -13,6 +13,7 @@ private:
 
 public:
   EmbreeScene();
+  void Clear();
   bool AddObject(BaseObject* obj);
   void CommitScene();
   bool Trace(const DirectX::SimpleMath::Ray &_ray, Intersection &minIntersect) const;

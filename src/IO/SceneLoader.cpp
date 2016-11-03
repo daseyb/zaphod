@@ -9,6 +9,7 @@
 #include <iostream>
 
 #include "ObjLoader.h"
+#include "AbcLoader.h"
 
 #include "../Geometry/Triangle.h"
 
@@ -159,6 +160,16 @@ GetValue<Vector3>(const std::unordered_map<std::string, std::string> &values,
   return ParseVector(values.at(key));
 }
 
+bool hasEnding(std::string const &fullString, std::string const &ending) {
+  if (fullString.length() >= ending.length()) {
+    return (0 ==
+            fullString.compare(fullString.length() - ending.length(),
+                               ending.length(), ending));
+  } else {
+    return false;
+  }
+}
+
 bool LoadScene(const std::string &sceneFileName,
                std::vector<BaseObject *> &loadedObjects,
                Camera **loadedCamera) {
@@ -174,26 +185,25 @@ bool LoadScene(const std::string &sceneFileName,
     return false;
   }
 
-  auto ParseMaterial = [](
-      const std::unordered_map<std::string, std::string> &values)
-      -> Material * {
-        auto type = GetValue<std::string>(values, "type");
-        auto color = GetValue<Color>(values, "color");
-        if (type == "emission") {
-          return new EmissionMaterial(
-              color * GetValue<float>(values, "strength", 1.0f));
-        } else if (type == "diffuse") {
-          return new DiffuseMaterial(color);
-        } else if (type == "specular") {
-          return new SpecularMaterial(color, GetValue<float>(values, "kd", 0.5f),
-                                      GetValue<float>(values, "ks", 0.5f),
-                                      GetValue<float>(values, "kt", 0.0f),
-                                      GetValue<float>(values, "roughness", 0.0f));
-        } else {
-          std::cout << "Unknown material type: " << type << std::endl;
-          return nullptr;
-        }
-      };
+  auto ParseMaterial = [](const std::unordered_map<std::string, std::string>
+                              &values) -> Material * {
+    auto type = GetValue<std::string>(values, "type");
+    auto color = GetValue<Color>(values, "color");
+    if (type == "emission") {
+      return new EmissionMaterial(color *
+                                  GetValue<float>(values, "strength", 1.0f));
+    } else if (type == "diffuse") {
+      return new DiffuseMaterial(color);
+    } else if (type == "specular") {
+      return new SpecularMaterial(color, GetValue<float>(values, "kd", 0.5f),
+                                  GetValue<float>(values, "ks", 0.5f),
+                                  GetValue<float>(values, "kt", 0.0f),
+                                  GetValue<float>(values, "roughness", 0.0f));
+    } else {
+      std::cout << "Unknown material type: " << type << std::endl;
+      return nullptr;
+    }
+  };
 
   auto ParseSceneObject = [sceneFileFolder](
       const std::unordered_map<std::string, std::string>
@@ -208,6 +218,7 @@ bool LoadScene(const std::string &sceneFileName,
     } else if (type == "mesh") {
       auto meshFile =
           sceneFileFolder + "\\" + GetValue<std::string>(values, "file");
+
       std::vector<Triangle> tris;
       std::vector<Vector3> verts;
       std::vector<Vector3> normals;
@@ -220,6 +231,14 @@ bool LoadScene(const std::string &sceneFileName,
       }
 
       result = new Mesh(pos, tris, verts, normals, uvs, smooth);
+    } else if (type == "alembic") {
+		auto abcFile =
+			sceneFileFolder + "\\" + GetValue<std::string>(values, "file");
+
+		if (!LoadAbc(abcFile, &result)) {
+			std::cout << "Could not load object at " << abcFile << std::endl;
+			return nullptr;
+		}
     } else {
       std::cout << "Unknown object type: " << type << std::endl;
       return nullptr;

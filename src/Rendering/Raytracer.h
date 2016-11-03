@@ -21,7 +21,7 @@ class Integrator;
 ** Base class of this renderer, fills an array
 ** of pixels based on the scenes content
 *********************************************/
-
+#include <iostream>
 class Raytracer {
 private:
   struct TileInfo {
@@ -46,6 +46,8 @@ private:
   int m_ThreadCount;
 
   std::atomic<bool> m_IsShutDown;
+  std::atomic<bool> m_IsRendering;
+  std::atomic<int> m_TilesInProgress;
 
   std::vector<std::thread> m_Threads;
   std::vector<TileInfo> m_TilesToRender;
@@ -65,9 +67,13 @@ public:
   void Shutdown(void);
   void SetFOV(float _fov);
 
+  bool FrameDone() {
+	  return m_TilesInProgress == 0 && !m_IsRendering;
+  }
+
   void Wait();
 
-  void Render(void);
+  void Render(float time);
 
 #ifndef HEADLESS
   sf::Uint8 *GetPixels(void) const;

@@ -19,22 +19,21 @@
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
 
-
-Scene::Scene(Camera *_cam, std::vector<BaseObject *>& sceneObjects ) {
+Scene::Scene(Camera *_cam, std::vector<BaseObject *> &sceneObjects) {
   // Initialize object lists
   m_SceneObjects = std::move(sceneObjects);
   m_SceneLights = std::vector<BaseObject *>();
 
-  m_CustomIntersectObjects = std::vector<BaseObject*>();
+  m_CustomIntersectObjects = std::vector<BaseObject *>();
 
   m_TotalLightWeight = 0;
-  
+
   for (auto obj : m_SceneObjects) {
 
     if (!m_EmbreeScene.AddObject(obj)) {
       m_CustomIntersectObjects.push_back(obj);
     }
-    
+
     if (obj->GetMaterial()->IsLight()) {
       m_SceneLights.push_back(obj);
       float weight = obj->CalculateWeight();
@@ -61,15 +60,6 @@ Scene::Scene(Camera *_cam, std::vector<BaseObject *>& sceneObjects ) {
       new LightCache(BoundingBox(Vector3(0, 0, 0), Vector3(20, 20, 20)));
 }
 
-void Scene::Update() {
-  // Update the time values
-  clock_t time = clock();
-  double deltaTime = (double)(time - m_PrevTime) / CLOCKS_PER_SEC;
-  double totalTime = (double)(time - m_InitTime) / CLOCKS_PER_SEC;
-
-  m_PrevTime = time;
-}
-
 Ray Scene::SampleLight(std::default_random_engine &_rnd, BaseObject **_outLight,
                        float &le) const {
   assert(m_SceneLights.size() > 0);
@@ -77,6 +67,15 @@ Ray Scene::SampleLight(std::default_random_engine &_rnd, BaseObject **_outLight,
   *_outLight = m_SceneLights[lightIndex];
   le = m_LightWeights[lightIndex] / m_TotalLightWeight;
   return (*_outLight)->Sample(_rnd);
+}
+
+void Scene::SetTime(float time) {
+  m_EmbreeScene.Clear();
+  for (auto obj : m_SceneObjects) {
+	  obj->SetTime(time);
+	  m_EmbreeScene.AddObject(obj);
+  }
+  m_EmbreeScene.CommitScene();
 }
 
 bool Scene::Trace(const DirectX::SimpleMath::Ray &_ray,

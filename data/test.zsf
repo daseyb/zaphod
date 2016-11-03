@@ -8,6 +8,13 @@ Object lamp
   material: light
   position: 0 0 -5
   extends: 1 1 1
+  
+Object TestAlembic 
+  type: alembic 
+  file: test.abc 
+  position: 0 0 0 
+  rotation: 0 0 0 
+  scale: 1 1 1
 
 Camera cam
   position: 0 0 0

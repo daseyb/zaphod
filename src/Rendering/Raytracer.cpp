@@ -27,6 +27,7 @@ bool Raytracer::Initialize(int _width, int _height, std::string _integrator,
   m_Width = _width;
   m_Height = _height;
 
+
 #ifndef HEADLESS
   m_Pixels = new sf::Uint8[m_Width * m_Height * 4]{0};
 #endif
@@ -52,11 +53,6 @@ bool Raytracer::Initialize(int _width, int _height, std::string _integrator,
 void Raytracer::Wait() {
   for (int i = 0; i < m_ThreadCount; i++) {
     m_Threads[i].join();
-  }
-
-  float oneOverSpp = 1.0f / m_SPP;
-  for (int i = 0; i < m_Width * m_Height; i++) {
-    m_RawPixels[i] *= oneOverSpp;
   }
 
   m_IsShutDown = true;
@@ -140,18 +136,22 @@ void Raytracer::EmptyQueue(int threadIndex) {
       }
 
       toRender = m_TilesToRender.back();
-      m_TilesToRender.pop_back();
+	  m_TilesInProgress++;
+      m_TilesToRender.pop_back();	
       tileIndex = m_TilesToRender.size();
+	  if (tileIndex == 0) m_IsRendering = false;
     }
     std::cout << "Rendering tile " << tileIndex << " on thread " << threadIndex
               << std::endl;
+
     RenderPart(toRender.X, toRender.Y, toRender.Width, toRender.Height, toRender.SPP);
+	m_TilesInProgress--;
   }
 }
 
-void Raytracer::Render(void) {
-  m_pScene->Update();
-
+void Raytracer::Render(float time) {
+  m_IsRendering = true;
+  m_pScene->SetTime(time);
   memset(m_RawPixels, 0, m_Height * m_Width * sizeof(Color));
 
 #ifndef HEADLESS
@@ -181,6 +181,8 @@ void Raytracer::Render(void) {
   std::cout << "Rendering " << m_TilesToRender.size() << " tiles ("
             << m_TileSize << ") on " << m_ThreadCount << " threads."
             << std::endl;
+
+  m_TilesInProgress = 0;
 
   {
     m_Threads.reserve(m_ThreadCount);
