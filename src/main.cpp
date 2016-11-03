@@ -10,6 +10,13 @@
 #include "IO/stb_image_write.h"
 #include "Rendering/Raytracer.h"
 
+#include <Alembic/AbcGeom/All.h>
+#include <Alembic/AbcCoreAbstract/All.h>
+#include <Alembic/AbcCoreFactory/All.h>
+#include <Alembic/Util/All.h>
+#include <Alembic/Abc/TypedPropertyTraits.h>
+
+
 std::string get_time_string() {
   auto t = std::time(nullptr);
   auto tm = *std::localtime(&t);
@@ -57,14 +64,48 @@ int display_window(int width, int height, const Raytracer &rt) {
 }
 #endif
 
-const std::string USAGE = "<width> <height> <spp> <tile size> <thread count> <scene file> <integrator>";
+const std::string USAGE = "<width> <height> <spp> <tile size> <thread count> "
+                          "<scene file> <integrator>";
 
 int main(int argc, char **argv) {
+
+  if(argc == 2)
+  {
+    Alembic::AbcCoreFactory::IFactory factory;
+    factory.setPolicy(Alembic::AbcGeom::ErrorHandler::kQuietNoopPolicy);
+	Alembic::AbcGeom::IArchive archive = factory.getArchive(argv[1]);
+
+    if (archive) {
+      std::cout << "AbcEcho for "
+                << Alembic::AbcCoreAbstract::GetLibraryVersion() << std::endl;
+      ;
+
+      std::string appName;
+      std::string libraryVersionString;
+      Alembic::Util::uint32_t libraryVersion;
+      std::string whenWritten;
+      std::string userDescription;
+      GetArchiveInfo(archive, appName, libraryVersionString, libraryVersion,
+                     whenWritten, userDescription);
+
+      if (appName != "") {
+        std::cout << "  file written by: " << appName << std::endl;
+        std::cout << "  using Alembic : " << libraryVersionString << std::endl;
+        std::cout << "  written on : " << whenWritten << std::endl;
+        std::cout << "  user description : " << userDescription << std::endl;
+        std::cout << std::endl;
+      } else {
+        std::cout << argv[1] << std::endl;
+        std::cout << "  (file doesn't have any ArchiveInfo)" << std::endl;
+        std::cout << std::endl;
+      }
+    }
+  }
 
   if (argc != 8) {
     std::cout << "Wrong number of arguments!" << std::endl;
     std::cout << USAGE << std::endl;
-	return -1;
+    return -1;
   }
 
   int width = std::stoi(argv[1]);
@@ -72,13 +113,13 @@ int main(int argc, char **argv) {
   int spp = std::stoi(argv[3]);
   int tile_size = std::stoi(argv[4]);
   int thread_count = std::stoi(argv[5]);
-   
+
   const char *scene_file = argv[6];
 
   // Initialize the Raytracer class with width, height and horizontal FOV
   Raytracer rt;
-  if (!rt.Initialize(width, height, argv[7], spp, tile_size,
-    thread_count, scene_file)) {
+  if (!rt.Initialize(width, height, argv[7], spp, tile_size, thread_count,
+                     scene_file)) {
     std::cout << "Failed to initialized the renderer!" << std::endl;
     return -1;
   }
