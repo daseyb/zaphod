@@ -10,3 +10,6 @@
 [submodule "extern/alembic"]
 	path = extern/alembic
 	url = https://github.com/alembic/alembic
+[submodule "extern/openexr"]
+	path = extern/openexr
+	url = https://github.com/openexr/openexr
