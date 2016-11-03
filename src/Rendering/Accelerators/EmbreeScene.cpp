@@ -45,6 +45,12 @@ EmbreeScene::EmbreeScene() {
   m_Scene = rtcDeviceNewScene(m_Device, RTC_SCENE_STATIC, RTC_INTERSECT1);
 }
 
+void EmbreeScene::Clear()
+{
+	rtcDeleteScene(m_Scene);
+	m_Scene = rtcDeviceNewScene(m_Device, RTC_SCENE_STATIC, RTC_INTERSECT1);
+}
+
 bool EmbreeScene::AddObject(BaseObject *obj) {
   if (!obj->HasBuffers()) {
     return false;

@@ -40,9 +40,11 @@ class Scene {
 
 public:
   Scene(Camera *_cam, std::vector<BaseObject *>& sceneObjects);
-  void Update();
   DirectX::SimpleMath::Ray SampleLight(std::default_random_engine &_rnd,
                                        BaseObject **_outLight, float &le) const;
+
+  void SetTime(float time);
+
   bool Trace(const DirectX::SimpleMath::Ray &_ray,
              Intersection &minIntersect) const;
 
