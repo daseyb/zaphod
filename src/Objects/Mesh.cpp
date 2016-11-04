@@ -4,7 +4,7 @@
 
 using namespace DirectX::SimpleMath;
 
-Mesh::Mesh(Vector3 _pos, std::vector<Triangle>& _tris, std::vector<Vector3>& _verts, std::vector<Vector3>& _normals, std::vector<Vector2>& _uvs, bool _smooth) {
+Mesh::Mesh(Vector3 _pos, std::vector<Triangle>& _tris, std::vector<Vector3>& _verts, std::vector<Vector3>& _normals, std::vector<Vector2>& _uvs, bool _smooth, BaseObject* parent) : RenderObject(parent) {
   m_Triangles = std::move(_tris);
   m_Vertices = std::move(_verts);
   m_Normals = std::move(_normals);
@@ -16,7 +16,7 @@ Mesh::Mesh(Vector3 _pos, std::vector<Triangle>& _tris, std::vector<Vector3>& _ve
 
 Mesh::~Mesh(void) {}
 
-bool Mesh::Intersect(const Ray &_ray, Intersection &_intersect) const {
+bool Mesh::Intersect(const Ray &_ray, Intersection &_intersect) {
   return false;
 }
 
@@ -25,4 +25,4 @@ float Mesh::CalculateWeight() {
   return 0;
 }
 
-Ray Mesh::Sample(std::default_random_engine &rnd) const { return Ray(); }
+Ray Mesh::Sample(std::default_random_engine &rnd) { return Ray(); }

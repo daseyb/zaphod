@@ -1,5 +1,5 @@
 #include "EmbreeScene.h"
-#include "../../Objects/BaseObject.h"
+#include "../../Objects/RenderObject.h"
 #include "../../Geometry/Intersection.h"
 #include "../../Geometry/Triangle.h"
 
@@ -51,7 +51,7 @@ void EmbreeScene::Clear()
 	m_Scene = rtcDeviceNewScene(m_Device, RTC_SCENE_STATIC, RTC_INTERSECT1);
 }
 
-bool EmbreeScene::AddObject(BaseObject *obj) {
+bool EmbreeScene::AddObject(RenderObject *obj) {
   if (!obj->HasBuffers()) {
     return false;
   }
@@ -119,7 +119,7 @@ bool EmbreeScene::Trace(const DirectX::SimpleMath::Ray &_ray,
   minIntersect.normal = Vector3(ray.Ng);
   minIntersect.normal.Normalize();
 
-  minIntersect.hitObject = (BaseObject *)rtcGetUserData(m_Scene, ray.geomID);
+  minIntersect.hitObject = (RenderObject *)rtcGetUserData(m_Scene, ray.geomID);
   minIntersect.material = minIntersect.hitObject->GetMaterial();
   return true;
 }
