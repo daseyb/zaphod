@@ -21,8 +21,8 @@ class LightCache;
 
 class Scene {
   std::vector<BaseObject *> m_SceneObjects;
-  std::vector<BaseObject *> m_SceneLights;
-  std::vector<BaseObject *> m_CustomIntersectObjects;
+  std::vector<RenderObject *> m_SceneLights;
+  std::vector<RenderObject *> m_CustomIntersectObjects;
 
   std::vector<float> m_LightWeights;
   float m_TotalLightWeight;
@@ -39,9 +39,10 @@ class Scene {
   EmbreeScene m_EmbreeScene;
 
 public:
-  Scene(Camera *_cam, std::vector<BaseObject *>& sceneObjects);
+  Scene(Camera *_cam, std::vector<BaseObject *> &sceneObjects);
   DirectX::SimpleMath::Ray SampleLight(std::default_random_engine &_rnd,
-                                       BaseObject **_outLight, float &le) const;
+                                       RenderObject **_outLight,
+                                       float &le) const;
 
   void SetTime(float time);
 

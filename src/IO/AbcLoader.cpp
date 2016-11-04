@@ -1,5 +1,4 @@
 #include "AbcLoader.h"
-#include "../Objects/AlembicCache.h"
 
 #include <Alembic/AbcGeom/All.h>
 #include <Alembic/AbcCoreAbstract/All.h>
@@ -101,18 +100,59 @@ void visitCompoundProperty(ICompoundProperty iProp, std::string &ioIndent) {
 
   if (iProp.getMetaData().get("schema") == "AbcGeom_PolyMesh_v1") {
     IPolyMeshSchema meshSchema = IPolyMeshSchema(iProp);
-    auto positions = meshSchema.getPositionsProperty();
-	P3fArraySamplePtr arrayPtr;
-	positions.get(arrayPtr);
-	auto dim = arrayPtr->getDimensions();
-	std::cout << "Vertex Count:" << dim.numPoints() << std::endl;
-	for (int i = 0; i < dim.numPoints(); i++) {
-		std::cout << arrayPtr->get()[i] << "\n";
+    
+	{
+		auto positions = meshSchema.getPositionsProperty();
+		P3fArraySamplePtr arrayPtr;
+		positions.get(arrayPtr);
+		auto dim = arrayPtr->getDimensions();
+		std::cout << ioIndent << "Vertex Count:" << dim.numPoints() << std::endl;
+		for (size_t i = 0; i < dim.numPoints(); i++) {
+			std::cout << ioIndent << arrayPtr->get()[i] << "\n";
+		}
 	}
 
-  } else {
-    visitProperties(iProp, ioIndent);
-  }
+	{
+		auto indices = meshSchema.getFaceIndicesProperty();
+		Int32ArraySamplePtr arrayPtr;
+		indices.get(arrayPtr);
+
+		auto dim = arrayPtr->getDimensions();
+		std::cout << ioIndent << "Index Count:" << dim.numPoints() << std::endl;
+		for (size_t i = 0; i < dim.numPoints(); i++) {
+			std::cout << ioIndent << arrayPtr.get()[0].get()[i] << "\n";
+		}
+	}
+
+	{
+		auto faceCounts = meshSchema.getFaceCountsProperty();
+		Int32ArraySamplePtr arrayPtr;
+		faceCounts.get(arrayPtr);
+
+		auto dim = arrayPtr->getDimensions();
+		std::cout << ioIndent << "Face Counts Count:" << dim.numPoints() << std::endl;
+		for (size_t i = 0; i < dim.numPoints(); i++) {
+			std::cout << ioIndent << arrayPtr.get()[0].get()[i] << "\n";
+		}
+	}
+
+	{
+		auto normals = meshSchema.getNormalsParam();
+		N3fArraySamplePtr arrayPtr;
+		auto normalValue = normals.getValueProperty();
+		normalValue.get(arrayPtr);
+
+		auto dim = arrayPtr->getDimensions();
+		std::cout << ioIndent << "Normals Count:" << dim.numPoints() << std::endl;
+		for (size_t i = 0; i < dim.numPoints(); i++) {
+			std::cout << ioIndent << arrayPtr.get()[0].get()[i] << "\n";
+		}
+	}
+	
+
+  } 
+    
+  visitProperties(iProp, ioIndent);
 
   ioIndent = oldIndent;
 }
@@ -193,6 +233,8 @@ bool LoadAbc(std::string abcFile, BaseObject **result) {
     }
 
     visitObject(archive.getTop(), "");
+
+	
   }
 
   return false;

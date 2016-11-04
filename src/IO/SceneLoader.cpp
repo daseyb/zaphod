@@ -232,13 +232,13 @@ bool LoadScene(const std::string &sceneFileName,
 
       result = new Mesh(pos, tris, verts, normals, uvs, smooth);
     } else if (type == "alembic") {
-		auto abcFile =
-			sceneFileFolder + "\\" + GetValue<std::string>(values, "file");
+      auto abcFile =
+          sceneFileFolder + "\\" + GetValue<std::string>(values, "file");
 
-		if (!LoadAbc(abcFile, &result)) {
-			std::cout << "Could not load object at " << abcFile << std::endl;
-			return nullptr;
-		}
+      if (!LoadAbc(abcFile, &result)) {
+        std::cout << "Could not load object at " << abcFile << std::endl;
+        return nullptr;
+      }
     } else {
       std::cout << "Unknown object type: " << type << std::endl;
       return nullptr;
@@ -328,28 +328,32 @@ bool LoadScene(const std::string &sceneFileName,
     switch (objType) {
     case ParsedObjectType::Obj:
       ObjectData data = *(ObjectData *)obj.second.Data;
-      Material *materialToUse = &defaultDiffuse;
-      if (data.MaterialName == "") {
-        std::cout << "Object " << objName
-                  << " has no material assigned. Using default diffuse!"
-                  << std::endl;
-      } else if (parsedObjects.find({Mat, data.MaterialName}) ==
-                 parsedObjects.end()) {
-        std::cout << "Could not find the matrial " << data.MaterialName
-                  << " assigned to object " << objName
-                  << ". Using default diffuse!" << std::endl;
-      } else {
-        auto &mat = parsedObjects[{Mat, data.MaterialName}];
-        if (mat.Type != ParsedObjectType::Mat) {
-          std::cout << "The matrial " << data.MaterialName
+
+      RenderObject *renderObj = dynamic_cast<RenderObject *>(data.Object);
+      if (renderObj) {
+        Material *materialToUse = &defaultDiffuse;
+        if (data.MaterialName == "") {
+          std::cout << "Object " << objName
+                    << " has no material assigned. Using default diffuse!"
+                    << std::endl;
+        } else if (parsedObjects.find({Mat, data.MaterialName}) ==
+                   parsedObjects.end()) {
+          std::cout << "Could not find the matrial " << data.MaterialName
                     << " assigned to object " << objName
-                    << " is not valid! Using default diffuse!" << std::endl;
+                    << ". Using default diffuse!" << std::endl;
         } else {
-          materialToUse = (Material *)mat.Data;
+          auto &mat = parsedObjects[{Mat, data.MaterialName}];
+          if (mat.Type != ParsedObjectType::Mat) {
+            std::cout << "The matrial " << data.MaterialName
+                      << " assigned to object " << objName
+                      << " is not valid! Using default diffuse!" << std::endl;
+          } else {
+            materialToUse = (Material *)mat.Data;
+          }
         }
+        renderObj->SetMaterial(materialToUse);
       }
 
-      data.Object->SetMaterial(materialToUse);
       loadedObjects.push_back(data.Object);
     }
   }

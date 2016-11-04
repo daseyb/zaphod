@@ -3,7 +3,7 @@
 
 using namespace DirectX::SimpleMath;
 
-Sphere::Sphere(Vector3 _position, float _radius) {
+Sphere::Sphere(Vector3 _position, float _radius, BaseObject* parent) : RenderObject(parent) {
   m_Sphere = DirectX::BoundingSphere(_position, _radius);
   SetRadius(_radius);
   SetPosition(_position);
@@ -16,7 +16,7 @@ void Sphere::SetPosition(DirectX::SimpleMath::Vector3 _pos) {
   m_Sphere.Center = _pos;
 }
 
-bool Sphere::Intersect(const Ray &_ray, Intersection &_intersect) const {
+bool Sphere::Intersect(const Ray &_ray, Intersection &_intersect) {
   float dist;
   if (_ray.Intersects(m_Sphere, dist)) {
     if (dist < 0.001f)
@@ -29,7 +29,7 @@ bool Sphere::Intersect(const Ray &_ray, Intersection &_intersect) const {
         _intersect.position -
         Vector3(m_Sphere.Center.x, m_Sphere.Center.y, m_Sphere.Center.z);
     _intersect.normal.Normalize();
-    _intersect.material = m_Material.get();
+    _intersect.material = GetMaterial();
     return true;
   }
   return false;
@@ -40,7 +40,7 @@ float Sphere::CalculateWeight() {
   return m_Weight;
 }
 
-Ray Sphere::Sample(std::default_random_engine &rnd) const {
+Ray Sphere::Sample(std::default_random_engine &rnd) {
   std::uniform_real_distribution<float> dist(0, 1);
   float omega = dist(rnd) * DirectX::XM_2PI;
   float phi = dist(rnd) * DirectX::XM_PI;
@@ -55,5 +55,3 @@ Ray Sphere::Sample(std::default_random_engine &rnd) const {
   result.direction = Vector3::TransformNormal(result.direction, transform);
   return result;
 }
-
-Sphere::~Sphere(void) {}

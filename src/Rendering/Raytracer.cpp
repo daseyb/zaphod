@@ -141,8 +141,6 @@ void Raytracer::EmptyQueue(int threadIndex) {
       tileIndex = m_TilesToRender.size();
 	  if (tileIndex == 0) m_IsRendering = false;
     }
-    std::cout << "Rendering tile " << tileIndex << " on thread " << threadIndex
-              << std::endl;
 
     RenderPart(toRender.X, toRender.Y, toRender.Width, toRender.Height, toRender.SPP);
 	m_TilesInProgress--;
