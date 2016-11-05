@@ -72,8 +72,8 @@ bool Box::Intersect(const Ray &_ray, Intersection &_intersect) {
   float dist;
   Ray ray = _ray;
 	auto transform = GetTransform();
-	ray.position = Vector3::Transform(_ray.position, transform);
-  ray.direction = Vector3::TransformNormal(_ray.direction, transform);
+	//ray.position = Vector3::Transform(_ray.position, transform);
+  //ray.direction = Vector3::TransformNormal(_ray.direction, transform);
   if (ray.Intersects(m_Box, dist)) {
     if (dist < 0.001f)
       return false;

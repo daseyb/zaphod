@@ -44,7 +44,7 @@ public:
                                        RenderObject **_outLight,
                                        float &le) const;
 
-  void SetTime(float time);
+  void SetTime(int frameIndex);
 
   bool Trace(const DirectX::SimpleMath::Ray &_ray,
              Intersection &minIntersect) const;

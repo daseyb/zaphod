@@ -32,11 +32,6 @@ using namespace DirectX::SimpleMath;
 
 enum ParsedObjectType { Mat, Cam, Obj };
 
-struct ObjectData {
-  std::string MaterialName;
-  BaseObject *Object;
-};
-
 struct ParsedObject {
   ParsedObjectType Type;
   std::string Name;
@@ -207,14 +202,17 @@ bool LoadScene(const std::string &sceneFileName,
 
   auto ParseSceneObject = [sceneFileFolder](
       const std::unordered_map<std::string, std::string>
-          &values) -> ObjectData * {
-    BaseObject *result;
+          &values) -> std::vector<ObjectData*> {
+		BaseObject *root = nullptr;
+		std::vector<ObjectData*> result;
     auto type = GetValue<std::string>(values, "type");
     auto pos = GetValue<Vector3>(values, "position");
     if (type == "box") {
-      result = new Box(pos, GetValue<Vector3>(values, "extends"));
+			root = new Box(pos, GetValue<Vector3>(values, "extends"));
+			result.push_back(new ObjectData{ "", root });
     } else if (type == "sphere") {
-      result = new Sphere(pos, GetValue<float>(values, "radius"));
+			root = new Sphere(pos, GetValue<float>(values, "radius"));
+			result.push_back(new ObjectData{ "",  root });
     } else if (type == "mesh") {
       auto meshFile =
           sceneFileFolder + "\\" + GetValue<std::string>(values, "file");
@@ -227,27 +225,35 @@ bool LoadScene(const std::string &sceneFileName,
 
       if (!LoadObj(meshFile, tris, verts, normals, uvs, smooth)) {
         std::cout << "Could not load object at " << meshFile << std::endl;
-        return nullptr;
+				return { };
       }
 
-      result = new Mesh(pos, tris, verts, normals, uvs, smooth);
+			root = new Mesh(pos, tris, verts, normals, uvs, smooth);
+			result.push_back(new ObjectData{ "", root });
     } else if (type == "alembic") {
       auto abcFile =
           sceneFileFolder + "\\" + GetValue<std::string>(values, "file");
 
-      if (!LoadAbc(abcFile, &result)) {
+      if (!LoadAbc(abcFile, &root, result)) {
         std::cout << "Could not load object at " << abcFile << std::endl;
-        return nullptr;
+				return{};
       }
     } else {
       std::cout << "Unknown object type: " << type << std::endl;
-      return nullptr;
+			return{};
     }
 
-    result->SetRotation(GetValue<Vector3>(values, "rotation"));
-    result->SetScale(GetValue<Vector3>(values, "scale", Vector3(1, 1, 1)));
+		root->SetPosition(GetValue<Vector3>(values, "position"));
+		root->SetRotation(GetValue<Vector3>(values, "rotation"));
+		root->SetScale(GetValue<Vector3>(values, "scale", Vector3(1, 1, 1)));
 
-    return new ObjectData{GetValue<std::string>(values, "material"), result};
+		for (auto& res : result) {
+			if (res->MaterialName == "") {
+				res->MaterialName = GetValue<std::string>(values, "material");
+			}
+		}
+
+		return result;
   };
 
   auto ParseCamera = [](
@@ -302,18 +308,26 @@ bool LoadScene(const std::string &sceneFileName,
     if (definitionType == "Material") {
       obj.Data = ParseMaterial(dict);
       obj.Type = ParsedObjectType::Mat;
-    } else if (definitionType == "Object") {
-      obj.Data = ParseSceneObject(dict);
-      obj.Type = ParsedObjectType::Obj;
+			parsedObjects.insert({ { obj.Type, name }, obj });
+		} else if (definitionType == "Object") {
+			auto sceneObjs = ParseSceneObject(dict);
+
+			int i = 0;
+			for (auto& sceneObj : sceneObjs) {
+				obj.Data = sceneObj;
+				obj.Type = ParsedObjectType::Obj;
+				parsedObjects.insert({ { obj.Type, name + std::to_string(i++)  }, obj });
+			}
+
     } else if (definitionType == "Camera") {
       if (!ParseCamera(dict, loadedCamera)) {
         return false;
       }
       obj.Type = ParsedObjectType::Cam;
       obj.Data = nullptr;
-    }
+			parsedObjects.insert({ { obj.Type, name }, obj });
+		}
 
-    parsedObjects.insert({{obj.Type, name}, obj});
   }
 
   DiffuseMaterial defaultDiffuse(Color(1.0f, 1.0f, 1.0f));

@@ -10,9 +10,7 @@
 #include "IO/stb_image_write.h"
 #include "Rendering/Raytracer.h"
 
-
 int FrameIndex = 0;
-float TimeStep = 1.0f / 30;
 int FrameEnd = 10;
 
 const char *scene_file;
@@ -23,6 +21,12 @@ std::string get_time_string() {
   std::stringstream file_name;
   file_name << std::put_time(&tm, "%d-%m-%Y %H-%M-%S");
   return file_name.str();
+}
+
+void padTo(std::string &str, const size_t num, const char paddingChar = ' ')
+{
+	if (num > str.size())
+		str.insert(0, num - str.size(), paddingChar);
 }
 
 #ifndef HEADLESS
@@ -60,14 +64,19 @@ int display_window(int width, int height, Raytracer &rt) {
     std::this_thread::sleep_for(std::chrono::milliseconds(16));
 
     if (FrameIndex <= FrameEnd && rt.FrameDone()) {
-	  std::cout << "=========== Rendered frame " + std::to_string(FrameIndex) +
+      std::cout << "=========== Rendered frame " + std::to_string(FrameIndex) +
                        " ===========\n";
+
+			std::string frameIndexStr = std::to_string(FrameIndex);
+			padTo(frameIndexStr, 5, '0');
+
       stbi_write_hdr(
-          (std::string(scene_file) + " " + std::to_string(FrameIndex) + ".hdr").c_str(),
+          (std::string(scene_file) + " " + frameIndexStr + ".hdr")
+              .c_str(),
           width, height, 4, (float *)rt.GetRawPixels());
-	  FrameIndex++;
+      FrameIndex++;
       if (FrameIndex <= FrameEnd) {
-        rt.Render(FrameIndex * TimeStep);
+        rt.Render(FrameIndex);
       }
     }
   }
@@ -82,7 +91,6 @@ const std::string USAGE = "<width> <height> <spp> <tile size> <thread count> "
 int main(int argc, char **argv) {
 
   if (argc == 2) {
-    
   }
 
   if (argc != 10) {
@@ -113,21 +121,27 @@ int main(int argc, char **argv) {
   }
 
   // Update the pixel array
-  rt.Render(FrameIndex * TimeStep);
+  rt.Render(FrameIndex);
 
 #ifndef HEADLESS
   display_window(width, height, rt);
 #else
   while (true) {
     rt.Wait();
-    std::cout << "=========== Rendered frame " + std::to_string(FrameIndex) + " ===========\n";
-    stbi_write_hdr(
-        (get_time_string() + std::to_string(FrameIndex) + ".hdr").c_str(),
-        width, height, 4, (float *)rt.GetRawPixels());
+    std::cout << "=========== Rendered frame " + std::to_string(FrameIndex) +
+                     " ===========\n";
+
+		std::string frameIndexStr = std::to_string(FrameIndex);
+		padTo(frameIndexStr, 5, '0');
+
+		stbi_write_hdr(
+			(std::string(scene_file) + " " + frameIndexStr + ".hdr")
+			.c_str(),
+			width, height, 4, (float *)rt.GetRawPixels());
 
     if (FrameIndex < FrameEnd) {
       FrameIndex++;
-      rt.Render(FrameIndex * TimeStep);
+      rt.Render(FrameIndex);
     } else {
       break;
     }

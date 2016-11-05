@@ -73,7 +73,7 @@ public:
 
   void Wait();
 
-  void Render(float time);
+  void Render(int frameIndex);
 
 #ifndef HEADLESS
   sf::Uint8 *GetPixels(void) const;

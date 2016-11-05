@@ -72,10 +72,10 @@ Ray Scene::SampleLight(std::default_random_engine &_rnd, RenderObject **_outLigh
   return (*_outLight)->Sample(_rnd);
 }
 
-void Scene::SetTime(float time) {
+void Scene::SetTime(int frameIndex) {
   m_EmbreeScene.Clear();
   for (auto obj : m_SceneObjects) {
-	  obj->SetTime(time);
+	  obj->SetTime(frameIndex);
 
 		auto renderObject = dynamic_cast<RenderObject*>(obj);
 		if (!renderObject) continue;
