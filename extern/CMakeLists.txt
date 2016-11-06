@@ -21,6 +21,8 @@ endif()
 
 # add_subdirectory(USD)
 
+OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
+OPTION (NAMESPACE_VERSIONING "Namespace Versioning" OFF)
 
 add_subdirectory(openexr/IlmBase)
 
