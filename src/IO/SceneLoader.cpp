@@ -915,7 +915,7 @@ bool LoadMitsuba(std::istream& sceneStream, std::string sceneFileName, std::vect
                 break;
             }
             case MitsubaShape::Type::Rectangle: {
-                renderObj = new Box(Vector3(0, 0, 0), Vector3(1.0f, 1.0f, 0.025f));
+                renderObj = new Box(Vector3(0, 0, 0), Vector3(1.0f, 1.0f, 0.05f));
                 break;
             }
         }
@@ -955,7 +955,7 @@ bool LoadMitsuba(std::istream& sceneStream, std::string sceneFileName, std::vect
                     break;
                 }
                 default: {
-                    renderObj->SetMaterial(new DiffuseMaterial(Color(1, 1, 1)));
+                    renderObj->SetMaterial(new DiffuseMaterial(Color(0.5, 0.5, 0.5)));
                 }
             }
         } else {
