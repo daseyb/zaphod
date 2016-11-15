@@ -95,10 +95,19 @@ ParseDictionary(std::istream &file) {
   return dict;
 }
 
-Color ParseColor(std::string value) {
+Color ParseColor(std::string value, char sep = 0) {
   std::stringstream valueStream(value);
   float r, g, b;
-  valueStream >> r >> g >> b;
+  if (sep) {
+      while (valueStream.peek() == sep) valueStream.get();
+      valueStream >> r;
+      while (valueStream.peek() == sep) valueStream.get();
+      valueStream >> g;
+      while (valueStream.peek() == sep) valueStream.get();
+      valueStream >> b;
+  } else {
+      valueStream >> r >> g >> b;
+  }
   return Color(r, g, b);
 }
 
@@ -114,6 +123,17 @@ float ParseFloat(std::string value) {
   float val;
   valueStream >> val;
   return val;
+}
+
+Matrix ParseMatrix(std::string value) {
+    std::stringstream valueStream(value);
+    Matrix val;
+    valueStream 
+        >> val._11 >> val._12 >> val._13 >> val._14
+        >> val._21 >> val._22 >> val._23 >> val._24
+        >> val._31 >> val._32 >> val._33 >> val._34
+        >> val._41 >> val._42 >> val._43 >> val._44;
+    return val.Transpose();
 }
 
 template <typename T>
@@ -377,6 +397,9 @@ struct MitsubaIntegrator {
         VolPath,
     };
     Type type;
+};
+
+struct MitsubaIntegratorVolPath : MitsubaIntegrator {
     uint32_t maxDepth;
     bool strictNormals;
 };
@@ -390,11 +413,17 @@ struct MitsubaSampler {
     uint32_t sampleCount;
 };
 
+struct MitsubaSamplerSobol : MitsubaSampler {
+};
+
 struct MitsubaRFilter {
     enum class Type {
         Tent
     };
     Type type;
+};
+
+struct MitsubaRFilterTent : MitsubaRFilter {
 };
 
 struct MitsubaFilm {
@@ -412,7 +441,11 @@ struct MitsubaFilm {
     float gamma;
     bool banner;
 
-    MitsubaRFilter rFilter;
+    std::unique_ptr<MitsubaRFilter> rFilter;
+};
+
+
+struct MitsubaFilmLDR : MitsubaFilm {
 };
 
 struct MitsubaSensor {
@@ -421,27 +454,56 @@ struct MitsubaSensor {
         Orthographic
     };
 
+    Type type;
     Matrix transform;
-    MitsubaSampler sampler;
-    MitsubaFilm film;
+    std::unique_ptr<MitsubaSampler> sampler;
+    std::unique_ptr<MitsubaFilm> film;
+};
+
+struct MitsubaSensorPerspective : MitsubaSensor {
+    float fov;
 };
 
 struct MitsubaObject {
+    enum class Type {
+        BSDF,
+        Shape
+    };
+    Type objType;
     std::string id;
 };
 
 struct MitsubaScene {
     std::string version;
-    MitsubaIntegrator integrator;
-    MitsubaSensor sensor;
-    std::vector<std::unique_ptr<MitsubaObject>> objects;
+    std::unique_ptr<MitsubaIntegrator> integrator;
+    std::unique_ptr<MitsubaSensor> sensor;
+    std::unordered_map<std::string, std::shared_ptr<MitsubaObject>> objects;
 };
 
+struct MitsubaColorSource {
+    enum class Type {
+        RGB,
+        Texture
+    };
+    Type type;
+};
+
+struct MitsubaColorSourceRGB : MitsubaColorSource {
+    Color color;
+};
+
+struct MitsubaColorSourceTexture : MitsubaColorSource {
+    std::string filename;
+    std::string filterType;
+};
 
 struct MitsubaBsdf : MitsubaObject {
     enum class Type {
         Dielectric,
         Twosided,
+        Diffuse,
+        RoughPlastic,
+        RoughConductor
     };
 
     Type type;
@@ -453,15 +515,45 @@ struct MitsubaBsdfDielectric : MitsubaBsdf {
 };
 
 struct MitsubaBsdfTwoSided : MitsubaBsdf {
-    std::unique_ptr<MitsubaBsdf> front;
-    std::unique_ptr<MitsubaBsdf> back;
+    std::shared_ptr<MitsubaBsdf> front;
+    std::shared_ptr<MitsubaBsdf> back;
 };
 
-struct MitsubaBsdfDiffuse {
-    Color reflectance;
+struct MitsubaBsdfDiffuse : MitsubaBsdf {
+    std::unique_ptr<MitsubaColorSource> reflectance;
 };
 
-struct MitsubaShape {
+struct MitsubaBsdfRoughPlastic : MitsubaBsdf {
+    float alpha;
+    std::string distribution;
+    float intIOR;
+    float extIOR;
+    bool nonLinear;
+    std::unique_ptr<MitsubaColorSource> diffuseReflectance;
+};
+
+struct MitsubaBsdfRoughConductor : MitsubaBsdf {
+    float alpha;
+    std::string distribution;
+    float extETA;
+    float extIOR;
+    std::unique_ptr<MitsubaColorSource> specularReflectance;
+    std::unique_ptr<MitsubaColorSource> eta;
+    std::unique_ptr<MitsubaColorSource> k;
+};
+
+struct MitsubaEmitter {
+    enum class Type {
+        Area
+    };
+
+    std::unique_ptr<MitsubaColorSource> radiance;
+};
+
+struct MitsubaEmitterArea : MitsubaEmitter {
+};
+
+struct MitsubaShape : MitsubaObject {
     enum class Type {
         Obj,
         Disk,
@@ -470,7 +562,166 @@ struct MitsubaShape {
 
     Type type;
     Matrix transform;
+    std::shared_ptr<MitsubaBsdf> material;
+    std::shared_ptr<MitsubaEmitter> emitter;
 };
+
+struct MitsubaShapeObj : MitsubaShape {
+    std::string filename;
+    bool faceNormals;
+};
+
+struct MitsubaShapeDisk : MitsubaShape {
+};
+
+struct MitsubaShapeRectangle : MitsubaShape {
+};
+
+pugi::xml_attribute get_member(pugi::xml_node node, const char* name) {
+    return node.find_child_by_attribute("name", name).attribute("value");
+}
+
+std::unique_ptr<MitsubaColorSource> ParseColorSource(pugi::xml_node node) {
+    std::unique_ptr<MitsubaColorSource> result = nullptr;
+    if (strcmp(node.name(), "rgb") == 0) {
+        auto source = std::make_unique<MitsubaColorSourceRGB>();
+        source->type = MitsubaColorSource::Type::RGB;
+        source->color = ParseColor(node.attribute("value").as_string(), ',');
+        result = std::move(source);
+    } else if (strcmp(node.name(), "texture") == 0) {
+        auto source = std::make_unique<MitsubaColorSourceTexture>();
+        source->type = MitsubaColorSource::Type::Texture;
+        source->filename = get_member(node, "filename").as_string();
+        source->filterType = get_member(node, "filterType").as_string();
+        result = std::move(source);
+    }
+
+    return result;
+}
+
+bool ParseBsdf(pugi::xml_node node, std::shared_ptr<MitsubaBsdf>& obj) {
+    std::string bsdfType = node.attribute("type").as_string();
+    if (bsdfType == "dielectric") {
+        auto bsdf = std::make_shared<MitsubaBsdfDielectric>();
+        bsdf->type = MitsubaBsdf::Type::Dielectric;
+        bsdf->intIOR = get_member(node, "intIOR").as_float();
+        bsdf->extIOR = get_member(node, "extIOR").as_float();
+        obj = std::move(bsdf);
+    } else if (bsdfType == "twosided") {
+        auto bsdf = std::make_shared<MitsubaBsdfTwoSided>();
+        bsdf->type = MitsubaBsdf::Type::Twosided;
+        if (!ParseBsdf(node.child("bsdf"), bsdf->front)) {
+            return false;
+        }
+        obj = std::move(bsdf);
+    } else if(bsdfType == "diffuse") {
+        auto bsdf = std::make_shared<MitsubaBsdfDiffuse>();
+        bsdf->type = MitsubaBsdf::Type::Diffuse;
+        bsdf->reflectance = ParseColorSource(node.find_child_by_attribute("name", "reflectance"));
+        obj = std::move(bsdf);
+    } else if (bsdfType == "roughplastic") {
+        auto bsdf = std::make_shared<MitsubaBsdfRoughPlastic>();
+        bsdf->type = MitsubaBsdf::Type::RoughPlastic;
+        bsdf->alpha = get_member(node, "alpha").as_float();
+        bsdf->distribution = get_member(node, "distribution").as_string();
+        bsdf->intIOR = get_member(node, "intIOR").as_float();
+        bsdf->extIOR = get_member(node, "extIOR").as_float();
+        bsdf->nonLinear = get_member(node, "nonlinear").as_bool();
+        bsdf->diffuseReflectance = ParseColorSource(node.find_child_by_attribute("name", "diffuseReflectance"));
+        obj = std::move(bsdf);
+    } else if (bsdfType == "roughconductor") {
+        auto bsdf = std::make_shared<MitsubaBsdfRoughConductor>();
+        bsdf->type = MitsubaBsdf::Type::RoughConductor;
+        bsdf->alpha = get_member(node, "alpha").as_float();
+        bsdf->distribution = get_member(node, "distribution").as_string();
+        bsdf->extETA = get_member(node, "extEta").as_float();
+        bsdf->specularReflectance = ParseColorSource(node.find_child_by_attribute("name", "specularReflectance"));
+        bsdf->eta = ParseColorSource(node.find_child_by_attribute("name", "eta"));
+        bsdf->k = ParseColorSource(node.find_child_by_attribute("name", "k"));
+        obj = std::move(bsdf);
+    } else {
+        std::cerr << "Unknow BSDF type: " << bsdfType << std::endl;
+        return false;
+    }
+
+    std::string id = node.attribute("id").as_string();
+    obj->id = id;
+    obj->objType = MitsubaObject::Type::BSDF;
+    return true;
+}
+
+bool ParseShape(pugi::xml_node node,
+    const std::unordered_map<std::string, std::shared_ptr<MitsubaObject>>& objs,
+    std::shared_ptr<MitsubaShape>& obj) {
+    std::string shapeType = node.attribute("type").as_string();
+    if (shapeType == "obj") {
+        auto shape = std::make_shared<MitsubaShapeObj>();
+        shape->type = MitsubaShape::Type::Obj;
+        shape->filename = get_member(node, "filename").as_string();
+        shape->faceNormals = get_member(node, "faceNormals").as_bool();
+        obj = std::move(shape);
+    } else if (shapeType == "disk") {
+        auto shape = std::make_shared<MitsubaShapeDisk>();
+        shape->type = MitsubaShape::Type::Disk;
+        obj = std::move(shape);
+    } else if (shapeType == "rectangle") {
+        auto shape = std::make_shared<MitsubaShapeRectangle>();
+        shape->type = MitsubaShape::Type::Rectangle;
+        obj = std::move(shape);
+    } else {
+        std::cerr << "Unknow shape type: " << shapeType << std::endl;
+        return false;
+    }
+
+    for (auto refNode : node.children("ref")) {
+        auto refIt = objs.find(std::string(refNode.attribute("id").as_string()));
+        if (refIt == objs.end()) {
+            std::cerr << "Invalid reference to " << refNode.attribute("id") << std::endl;
+            return false;
+        }
+        auto refObj = refIt->second;
+
+        switch (refObj->objType) {
+            case MitsubaObject::Type::BSDF: 
+                obj->material = std::static_pointer_cast<MitsubaBsdf>(refObj);
+                break;
+            default: 
+                std::cerr << "Invalid reference to " << refNode.attribute("id") << "of type " << (int)refObj->objType << std::endl;
+                return false;
+        }
+    }
+
+    auto emitterNode = node.child("emitter");
+    if (emitterNode) {
+        std::string emitterType = emitterNode.attribute("type").as_string();
+        if (emitterType == "area") {
+            auto emitter = std::make_shared<MitsubaEmitterArea>();
+            emitter->radiance = ParseColorSource(emitterNode.find_child_by_attribute("name", "radiance"));
+            obj->emitter = emitter;
+        } else {
+            std::cerr << "Unknow emitter type: " << emitterType << std::endl;
+            return false;
+        }
+    } else {
+        obj->emitter = nullptr;
+    }
+
+    auto bsdfNode = node.child("bdsf");
+    if (bsdfNode) {
+        if (!ParseBsdf(bsdfNode, obj->material)) {
+            return false;
+        }
+    }
+
+    auto transformNode = node.child("transform");
+    obj->transform = ParseMatrix(transformNode.child("matrix").attribute("value").as_string());
+
+    std::string id = node.attribute("id").as_string();
+    obj->id = id;
+    obj->objType = MitsubaObject::Type::Shape;
+    return true;
+}
+
 
 bool ParseMitsuba(std::string sceneFileName, MitsubaScene& scene) {
     pugi::xml_document doc;
@@ -497,14 +748,114 @@ bool ParseMitsuba(std::string sceneFileName, MitsubaScene& scene) {
             return false;
         }
 
-        MitsubaIntegrator integrator;
         std::string typeString = integratorNode.attribute("type").as_string();
         if (typeString == "volpath") {
-            integrator.type = MitsubaIntegrator::Type::VolPath;
+            auto integrator = std::make_unique<MitsubaIntegratorVolPath>();
+            integrator->type = MitsubaIntegrator::Type::VolPath;
+            integrator->maxDepth = get_member(integratorNode, "maxDepth").as_int();
+            integrator->strictNormals = get_member(integratorNode, "strictNormals").as_bool();
+            scene.integrator = std::move(integrator);
+        } else {
+            std::cerr << "Unknow integrator type: " << typeString << std::endl;
+            return false;
+        }
+    }
+
+    {
+        auto sensorNode = sceneNode.child("sensor");
+        if (!sensorNode) {
+            std::cerr << "No sensor node in Mitsuba scene file.\n";
+            return false;
         }
 
-        integrator.maxDepth = integratorNode.child("maxDepth").attribute("value").as_int();
-        integrator.strictNormals = integratorNode.child("strictNormals").attribute("value").as_bool();
+        std::string typeString = sensorNode.attribute("type").as_string();
+        if (typeString == "perspective") {
+            auto sensor = std::make_unique<MitsubaSensorPerspective>();
+            sensor->type = MitsubaSensor::Type::Perspective;
+            sensor->fov = get_member(sensorNode, "fov").as_float();
+            scene.sensor = std::move(sensor);
+        } else {
+            std::cerr << "Unknow sensor type: " << typeString << std::endl;
+            return false;
+        }
+
+        auto transformNode = sensorNode.child("transform");
+        scene.sensor->transform = ParseMatrix(transformNode.child("matrix").attribute("value").as_string());
+
+        {
+            auto samplerNode = sensorNode.child("sampler");
+            if (!samplerNode) {
+                std::cerr << "Sensor has no sampler!\n";
+                return false;
+            }
+
+            std::string samplerTypeString = samplerNode.attribute("type").as_string();
+            if (samplerTypeString == "sobol") {
+                auto sampler = std::make_unique<MitsubaSamplerSobol>();
+                sampler->type = MitsubaSampler::Type::Sobol;
+                scene.sensor->sampler = std::move(sampler);
+            } else {
+                std::cerr << "Unknow sampler type: " << samplerTypeString << std::endl;
+                return false;
+            }
+
+            scene.sensor->sampler->sampleCount = get_member(samplerNode, "sampleCount").as_int();
+        }
+
+        {
+            auto filmNode = sensorNode.child("film");
+            if (!filmNode) {
+                std::cerr << "Sensor has no film!\n";
+                return false;
+            }
+
+            std::string filmTypeString = filmNode.attribute("type").as_string();
+            if (filmTypeString == "ldrfilm") {
+                auto film = std::make_unique<MitsubaFilmLDR>();
+                film->type = MitsubaFilm::Type::LDR;
+                scene.sensor->film = std::move(film);
+            } else {
+                std::cerr << "Unknow film type: " << filmTypeString << std::endl;
+                return false;
+            }
+
+            scene.sensor->film->width = get_member(filmNode, "width").as_int();
+            scene.sensor->film->height = get_member(filmNode, "height").as_int();
+            scene.sensor->film->fileFormat = get_member(filmNode, "fileFormat").as_string();
+            scene.sensor->film->pixelFormat = get_member(filmNode, "pixelFormat").as_string();
+            scene.sensor->film->gamma = get_member(filmNode, "gamma").as_float();
+            scene.sensor->film->banner = get_member(filmNode, "banner").as_bool();
+
+            {
+                auto filterNode = filmNode.child("rfilter");
+                if (!filterNode) {
+                    std::cerr << "Sensor has no film!\n";
+                    return false;
+                }
+
+                std::string filterTypeString = filterNode.attribute("type").as_string();
+                if (filterTypeString == "tent") {
+                    auto filter = std::make_unique<MitsubaRFilterTent>();
+                    filter->type = MitsubaRFilter::Type::Tent;
+                    scene.sensor->film->rFilter = std::move(filter);
+                } else {
+                    std::cerr << "Unknow filter type: " << filterTypeString << std::endl;
+                    return false;
+                }
+            }
+        }
+    }
+
+    for (auto bsdfNode : sceneNode.children("bsdf")) {
+        std::shared_ptr<MitsubaBsdf> bsdf;
+        if (!ParseBsdf(bsdfNode, bsdf)) return false;
+        scene.objects.insert({ bsdf->id != "" ? bsdf->id : std::to_string(scene.objects.size()), std::move(bsdf) });
+    }
+
+    for (auto shapeNode : sceneNode.children("shape")) {
+        std::shared_ptr<MitsubaShape> shape;
+        if (!ParseShape(shapeNode, scene.objects, shape)) return false;
+        scene.objects.insert({ shape->id != "" ? shape->id : std::to_string(scene.objects.size()), std::move(shape) });
     }
 
     return true;
@@ -515,8 +866,107 @@ bool LoadMitsuba(std::istream& sceneStream, std::string sceneFileName, std::vect
     MitsubaScene scene;
     if (!ParseMitsuba(sceneFileName, scene)) return false;
 
-    std::cerr << "Mitsuba import not yet supported, WIP\n";
-    return false;
+    switch (scene.sensor->type) {
+        case MitsubaSensor::Type::Perspective:
+        {
+            auto sensor = (MitsubaSensorPerspective*)scene.sensor.get();
+            *loadedCamera = new PhysicallyBasedCamera(0, 0, sensor->fov);
+            (*loadedCamera)->SetViewMatrix(sensor->transform);
+            break;
+        }
+        default:
+            std::cerr << "Unsupported sensor type: " << (int)scene.sensor->type << std::endl;
+            return false;
+    }
+
+
+    std::string sceneFileFolder =
+        sceneFileName.substr(0, sceneFileName.find_last_of("\\/"));
+
+    for (const auto& obj : scene.objects) {
+        if (obj.second->objType != MitsubaObject::Type::Shape) continue;
+        auto shape = (MitsubaShape*)obj.second.get();
+
+        RenderObject* renderObj;
+
+        switch (shape->type) {
+            case MitsubaShape::Type::Obj: {
+                auto objShape = (MitsubaShapeObj*)shape;
+
+                auto meshFile = sceneFileFolder + "\\" + objShape->filename;
+
+                std::vector<Triangle> tris;
+                std::vector<Vector3> verts;
+                std::vector<Vector3> normals;
+                std::vector<Vector2> uvs;
+                bool smooth = !objShape->faceNormals;
+
+                if (!LoadObj(meshFile, tris, verts, normals, uvs, smooth)) {
+                    std::cerr << "Could not load object at " << meshFile << std::endl;
+                    return false;
+                }
+
+                renderObj = new Mesh(Vector3(), tris, verts, normals, uvs, smooth);
+                break;
+            }
+            case MitsubaShape::Type::Disk: {
+                //TODO: Create proper disk objects
+                renderObj = new Sphere(Vector3(0, 0, 0), 0.1f);
+                break;
+            }
+            case MitsubaShape::Type::Rectangle: {
+                renderObj = new Box(Vector3(0, 0, 0), Vector3(0.1f, 0.025f, 0.1f));
+                break;
+            }
+        }
+
+        Vector3 pos;
+        Quaternion rot;
+        Vector3 scale;
+
+        shape->transform.Decompose(scale, rot, pos);
+        renderObj->SetPosition(pos);
+        renderObj->SetRotation(rot);
+        renderObj->SetScale(scale);
+
+        if (shape->emitter) {
+            auto source = shape->emitter->radiance.get();
+            if (source->type == MitsubaColorSource::Type::RGB) {
+                renderObj->SetMaterial(new EmissionMaterial(((MitsubaColorSourceRGB*)source)->color));
+            } else {
+                renderObj->SetMaterial(new EmissionMaterial(Color(1, 1, 1)));
+                std::cerr << "Emitter color source is a texture, but textures are not yet supported.\n";
+            }
+        } else if (shape->material) {
+            switch (shape->material->type) {
+                case MitsubaBsdf::Type::Diffuse:
+                {
+                    auto diffuseMat = (MitsubaBsdfDiffuse*)shape->material.get();
+                    auto reflectance = diffuseMat->reflectance.get();
+                    Color col;
+                    if (reflectance->type == MitsubaColorSource::Type::RGB) {
+                        col = ((MitsubaColorSourceRGB*)reflectance)->color;
+                    } else {
+                        col = Color(1, 1, 1);
+                        std::cerr << "Color source is a texture, but textures are not yet supported.\n";
+                    }
+
+                    renderObj->SetMaterial(new DiffuseMaterial(col));
+                    break;
+                }
+                default: {
+                    renderObj->SetMaterial(new DiffuseMaterial(Color(1, 1, 1)));
+                }
+            }
+        } else {
+            renderObj->SetMaterial(new DiffuseMaterial(Color(1, 1, 1)));
+            std::cerr << "Object " << shape->id << "doesn't have a material assigned, using default diffuse.\n";
+        }
+
+        loadedObjects.push_back(renderObj);
+    }
+
+    return true;
 }
 
 bool LoadScene(const std::string &sceneFileName,
@@ -539,7 +989,7 @@ bool LoadScene(const std::string &sceneFileName,
       // Assume Mitsuba
       return LoadMitsuba(sceneFile, sceneFileName, loadedObjects, loadedCamera);
   }
-
+ 
   std::cerr << "Unrecognized scene file format: " << sceneFileFormat << std::endl;
   return false;
 }
