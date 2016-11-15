@@ -6,19 +6,12 @@ using namespace DirectX::SimpleMath;
 
 Box::Box(Vector3 _pos, Vector3 _extends, BaseObject* parent) : RenderObject(parent) {
   SetPosition(_pos);
-  m_Box.Center = _pos;
+  m_Box.Center = Vector3(0, 0, 0);
   m_Box.Extents = _extends;
 }
 
-void Box::SetExtendX(float _x) { m_Box.Extents.x = _x; }
-
-void Box::SetExtendY(float _y) { m_Box.Extents.y = _y; }
-
-void Box::SetExtendZ(float _z) { m_Box.Extents.z = _z; }
-
 void Box::SetPosition(Vector3 _pos) {
   BaseObject::SetPosition(_pos);
-  m_Box.Center = _pos;
 }
 
 float Box::CalculateWeight() {
@@ -71,9 +64,9 @@ Ray Box::Sample(std::default_random_engine &rnd) {
 bool Box::Intersect(const Ray &_ray, Intersection &_intersect) {
   float dist;
   Ray ray = _ray;
-	auto transform = GetTransform();
-	//ray.position = Vector3::Transform(_ray.position, transform);
-  //ray.direction = Vector3::TransformNormal(_ray.direction, transform);
+  auto transform = GetTransform().Invert();
+  ray.position = Vector3::Transform(_ray.position, transform);
+  ray.direction = Vector3::TransformNormal(_ray.direction, transform);
   if (ray.Intersects(m_Box, dist)) {
     if (dist < 0.001f)
       return false;
@@ -112,6 +105,8 @@ bool Box::Intersect(const Ray &_ray, Intersection &_intersect) {
 
     _intersect.material = GetMaterial();
 
+    _intersect.position = Vector3::Transform(_intersect.position, transform.Invert());
+    _intersect.normal = Vector3::TransformNormal(_intersect.normal, transform.Invert());
     return true;
   }
   return false;
