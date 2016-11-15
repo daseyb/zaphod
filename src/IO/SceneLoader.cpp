@@ -749,7 +749,7 @@ bool ParseMitsuba(std::string sceneFileName, MitsubaScene& scene) {
         }
 
         std::string typeString = integratorNode.attribute("type").as_string();
-        if (typeString == "volpath") {
+        if (typeString == "volpath" || typeString == "path") {
             auto integrator = std::make_unique<MitsubaIntegratorVolPath>();
             integrator->type = MitsubaIntegrator::Type::VolPath;
             integrator->maxDepth = get_member(integratorNode, "maxDepth").as_int();
@@ -870,8 +870,8 @@ bool LoadMitsuba(std::istream& sceneStream, std::string sceneFileName, std::vect
         case MitsubaSensor::Type::Perspective:
         {
             auto sensor = (MitsubaSensorPerspective*)scene.sensor.get();
-            *loadedCamera = new PhysicallyBasedCamera(0, 0, sensor->fov);
-            (*loadedCamera)->SetViewMatrix(sensor->transform);
+            *loadedCamera = new PhysicallyBasedCamera(0, 0, XMConvertToRadians(sensor->fov));
+            (*loadedCamera)->SetViewMatrix(Matrix::CreateFromAxisAngle(Vector3(0,1,0), XM_PI) * sensor->transform);
             break;
         }
         default:
@@ -911,11 +911,11 @@ bool LoadMitsuba(std::istream& sceneStream, std::string sceneFileName, std::vect
             }
             case MitsubaShape::Type::Disk: {
                 //TODO: Create proper disk objects
-                renderObj = new Sphere(Vector3(0, 0, 0), 0.1f);
+                renderObj = new Sphere(Vector3(0, 0, 0), 1.0f);
                 break;
             }
             case MitsubaShape::Type::Rectangle: {
-                renderObj = new Box(Vector3(0, 0, 0), Vector3(0.1f, 0.025f, 0.1f));
+                renderObj = new Box(Vector3(0, 0, 0), Vector3(1.0f, 1.0f, 0.025f));
                 break;
             }
         }
