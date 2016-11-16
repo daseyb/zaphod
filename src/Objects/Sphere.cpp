@@ -13,7 +13,6 @@ void Sphere::SetRadius(float _radius) { m_Sphere.Radius = _radius; }
 
 void Sphere::SetPosition(DirectX::SimpleMath::Vector3 _pos) {
   BaseObject::SetPosition(_pos);
-  m_Sphere.Center = _pos;
 }
 
 bool Sphere::Intersect(const Ray &_ray, Intersection &_intersect) {
