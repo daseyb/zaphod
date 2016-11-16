@@ -503,7 +503,9 @@ struct MitsubaBsdf : MitsubaObject {
         Twosided,
         Diffuse,
         RoughPlastic,
-        RoughConductor
+        RoughConductor,
+        Conductor,
+        Bumpmap
     };
 
     Type type;
@@ -542,6 +544,18 @@ struct MitsubaBsdfRoughConductor : MitsubaBsdf {
     std::unique_ptr<MitsubaColorSource> k;
 };
 
+struct MitsubaBsdfConductor : MitsubaBsdf {
+    float extETA;
+    std::unique_ptr<MitsubaColorSource> specularReflectance;
+    std::unique_ptr<MitsubaColorSource> eta;
+    std::unique_ptr<MitsubaColorSource> k;
+};
+
+struct MitsubaBsdfBumpmap : MitsubaBsdf {
+    std::unique_ptr<MitsubaColorSource> map;
+    std::shared_ptr<MitsubaBsdf> bsdf;
+};
+
 struct MitsubaEmitter {
     enum class Type {
         Area
@@ -557,7 +571,9 @@ struct MitsubaShape : MitsubaObject {
     enum class Type {
         Obj,
         Disk,
-        Rectangle
+        Rectangle,
+        Cube,
+        Sphere
     };
 
     Type type;
@@ -575,6 +591,14 @@ struct MitsubaShapeDisk : MitsubaShape {
 };
 
 struct MitsubaShapeRectangle : MitsubaShape {
+};
+
+struct MitsubaShapeCube : MitsubaShape {
+};
+
+struct MitsubaShapeSphere : MitsubaShape {
+    float radius;
+    Vector3 center;
 };
 
 pugi::xml_attribute get_member(pugi::xml_node node, const char* name) {
@@ -599,7 +623,7 @@ std::unique_ptr<MitsubaColorSource> ParseColorSource(pugi::xml_node node) {
     return result;
 }
 
-bool ParseBsdf(pugi::xml_node node, std::shared_ptr<MitsubaBsdf>& obj) {
+bool ParseBsdf(pugi::xml_node node, std::shared_ptr<MitsubaBsdf>& obj, std::unordered_map<std::string, std::shared_ptr<MitsubaObject>> &objs) {
     std::string bsdfType = node.attribute("type").as_string();
     if (bsdfType == "dielectric") {
         auto bsdf = std::make_shared<MitsubaBsdfDielectric>();
@@ -610,7 +634,7 @@ bool ParseBsdf(pugi::xml_node node, std::shared_ptr<MitsubaBsdf>& obj) {
     } else if (bsdfType == "twosided") {
         auto bsdf = std::make_shared<MitsubaBsdfTwoSided>();
         bsdf->type = MitsubaBsdf::Type::Twosided;
-        if (!ParseBsdf(node.child("bsdf"), bsdf->front)) {
+        if (!ParseBsdf(node.child("bsdf"), bsdf->front, objs)) {
             return false;
         }
         obj = std::move(bsdf);
@@ -639,6 +663,23 @@ bool ParseBsdf(pugi::xml_node node, std::shared_ptr<MitsubaBsdf>& obj) {
         bsdf->eta = ParseColorSource(node.find_child_by_attribute("name", "eta"));
         bsdf->k = ParseColorSource(node.find_child_by_attribute("name", "k"));
         obj = std::move(bsdf);
+    } else if (bsdfType == "conductor") {
+        auto bsdf = std::make_shared<MitsubaBsdfConductor>();
+        bsdf->type = MitsubaBsdf::Type::Conductor;
+        bsdf->extETA = get_member(node, "extEta").as_float();
+        bsdf->specularReflectance = ParseColorSource(node.find_child_by_attribute("name", "specularReflectance"));
+        bsdf->eta = ParseColorSource(node.find_child_by_attribute("name", "eta"));
+        bsdf->k = ParseColorSource(node.find_child_by_attribute("name", "k"));
+        obj = std::move(bsdf);
+    } else if (bsdfType == "bumpmap") {
+        auto bsdf = std::make_shared<MitsubaBsdfBumpmap>();
+        bsdf->type = MitsubaBsdf::Type::Twosided;
+        if (!ParseBsdf(node.child("bsdf"), bsdf->bsdf, objs)) {
+            return false;
+        }
+        bsdf->map = ParseColorSource(node.find_child_by_attribute("name", "map"));
+
+        obj = std::move(bsdf);
     } else {
         std::cerr << "Unknow BSDF type: " << bsdfType << std::endl;
         return false;
@@ -647,11 +688,12 @@ bool ParseBsdf(pugi::xml_node node, std::shared_ptr<MitsubaBsdf>& obj) {
     std::string id = node.attribute("id").as_string();
     obj->id = id;
     obj->objType = MitsubaObject::Type::BSDF;
+    objs.insert({ obj->id != "" ? obj->id : std::to_string(objs.size()), obj });
     return true;
 }
 
 bool ParseShape(pugi::xml_node node,
-    const std::unordered_map<std::string, std::shared_ptr<MitsubaObject>>& objs,
+    std::unordered_map<std::string, std::shared_ptr<MitsubaObject>>& objs,
     std::shared_ptr<MitsubaShape>& obj) {
     std::string shapeType = node.attribute("type").as_string();
     if (shapeType == "obj") {
@@ -668,6 +710,19 @@ bool ParseShape(pugi::xml_node node,
         auto shape = std::make_shared<MitsubaShapeRectangle>();
         shape->type = MitsubaShape::Type::Rectangle;
         obj = std::move(shape);
+    } else if (shapeType == "cube") {
+        auto shape = std::make_shared<MitsubaShapeCube>();
+        shape->type = MitsubaShape::Type::Cube;
+        obj = std::move(shape);
+    } else if (shapeType == "sphere") {
+        auto shape = std::make_shared<MitsubaShapeSphere>();
+        shape->type = MitsubaShape::Type::Sphere;
+        shape->radius = get_member(node, "radius").as_float();
+        auto centerNode = node.find_child_by_attribute("name", "center");
+        shape->center.x = centerNode.attribute("x").as_float();
+        shape->center.y = centerNode.attribute("y").as_float();
+        shape->center.z = centerNode.attribute("z").as_float();
+        obj = std::move(shape);
     } else {
         std::cerr << "Unknow shape type: " << shapeType << std::endl;
         return false;
@@ -676,16 +731,16 @@ bool ParseShape(pugi::xml_node node,
     for (auto refNode : node.children("ref")) {
         auto refIt = objs.find(std::string(refNode.attribute("id").as_string()));
         if (refIt == objs.end()) {
-            std::cerr << "Invalid reference to " << refNode.attribute("id") << std::endl;
+            std::cerr << "Invalid reference to " << refNode.attribute("id").as_string() << std::endl;
             return false;
         }
         auto refObj = refIt->second;
 
         switch (refObj->objType) {
-            case MitsubaObject::Type::BSDF: 
+            case MitsubaObject::Type::BSDF:
                 obj->material = std::static_pointer_cast<MitsubaBsdf>(refObj);
                 break;
-            default: 
+            default:
                 std::cerr << "Invalid reference to " << refNode.attribute("id") << "of type " << (int)refObj->objType << std::endl;
                 return false;
         }
@@ -708,17 +763,22 @@ bool ParseShape(pugi::xml_node node,
 
     auto bsdfNode = node.child("bdsf");
     if (bsdfNode) {
-        if (!ParseBsdf(bsdfNode, obj->material)) {
+        if (!ParseBsdf(bsdfNode, obj->material, objs)) {
             return false;
         }
     }
 
     auto transformNode = node.child("transform");
-    obj->transform = ParseMatrix(transformNode.child("matrix").attribute("value").as_string());
+    if (transformNode) {
+        obj->transform = ParseMatrix(transformNode.child("matrix").attribute("value").as_string());
+    } else {
+        obj->transform = Matrix::Identity();
+    }
 
     std::string id = node.attribute("id").as_string();
     obj->id = id;
     obj->objType = MitsubaObject::Type::Shape;
+    objs.insert({ obj->id != "" ? obj->id : std::to_string(objs.size()), obj });
     return true;
 }
 
@@ -848,14 +908,12 @@ bool ParseMitsuba(std::string sceneFileName, MitsubaScene& scene) {
 
     for (auto bsdfNode : sceneNode.children("bsdf")) {
         std::shared_ptr<MitsubaBsdf> bsdf;
-        if (!ParseBsdf(bsdfNode, bsdf)) return false;
-        scene.objects.insert({ bsdf->id != "" ? bsdf->id : std::to_string(scene.objects.size()), std::move(bsdf) });
+        if (!ParseBsdf(bsdfNode, bsdf, scene.objects)) return false;
     }
 
     for (auto shapeNode : sceneNode.children("shape")) {
         std::shared_ptr<MitsubaShape> shape;
         if (!ParseShape(shapeNode, scene.objects, shape)) return false;
-        scene.objects.insert({ shape->id != "" ? shape->id : std::to_string(scene.objects.size()), std::move(shape) });
     }
 
     return true;
@@ -875,10 +933,13 @@ Material* GetMaterialFromBsdf(MitsubaBsdf* bsdf) {
                 std::cerr << "Color source is a texture, but textures are not yet supported.\n";
             }
 
-            return new DiffuseMaterial(col);
+            return new SpecularMaterial(col, 1.0f, 0.0f, 0.0f, 0.0f);
         }
         case MitsubaBsdf::Type::Twosided: {
             return GetMaterialFromBsdf(((MitsubaBsdfTwoSided*)bsdf)->front.get());
+        }
+        case MitsubaBsdf::Type::Bumpmap: {
+            return GetMaterialFromBsdf(((MitsubaBsdfBumpmap*)bsdf)->bsdf.get());
         }
         case MitsubaBsdf::Type::RoughConductor: {
             auto conductorMat = (MitsubaBsdfRoughConductor*)bsdf;
@@ -892,7 +953,21 @@ Material* GetMaterialFromBsdf(MitsubaBsdf* bsdf) {
                 std::cerr << "Color source is a texture, but textures are not yet supported.\n";
             }
 
-            return new SpecularMaterial(col, 0, 1, 0, conductorMat->extETA);
+            return new SpecularMaterial(col, 0, 1, 0, conductorMat->alpha);
+        }
+        case MitsubaBsdf::Type::Conductor: {
+            auto conductorMat = (MitsubaBsdfConductor*)bsdf;
+
+            auto reflectance = conductorMat->specularReflectance.get();
+            Color col;
+            if (reflectance->type == MitsubaColorSource::Type::RGB) {
+                col = ((MitsubaColorSourceRGB*)reflectance)->color;
+            } else {
+                col = Color(0.7, 0.7, 0.7);
+                std::cerr << "Color source is a texture, but textures are not yet supported.\n";
+            }
+
+            return new SpecularMaterial(col, 0, 1, 0, 0);
         }
         case MitsubaBsdf::Type::RoughPlastic: {
             auto plasticMat = (MitsubaBsdfRoughPlastic*)bsdf;
@@ -906,7 +981,7 @@ Material* GetMaterialFromBsdf(MitsubaBsdf* bsdf) {
                 std::cerr << "Color source is a texture, but textures are not yet supported.\n";
             }
 
-            return new SpecularMaterial(col, plasticMat->alpha, 1.0f - plasticMat->alpha, 0, 0.1f);
+            return new SpecularMaterial(col, 0.2f, 0.8f, 0.0f, plasticMat->alpha);
         }
         case MitsubaBsdf::Type::Dielectric: {
             auto dielectricMat = (MitsubaBsdfDielectric*)bsdf;
@@ -929,7 +1004,7 @@ bool LoadMitsuba(std::istream& sceneStream, std::string sceneFileName, std::vect
         {
             auto sensor = (MitsubaSensorPerspective*)scene.sensor.get();
             *loadedCamera = new PhysicallyBasedCamera(0, 0, XMConvertToRadians(sensor->fov));
-            (*loadedCamera)->SetViewMatrix(Matrix::CreateFromAxisAngle(Vector3(0,1,0), XM_PI) * sensor->transform);
+            (*loadedCamera)->SetViewMatrix( Matrix::CreateFromAxisAngle(Vector3(0,1,0), XM_PI) * sensor->transform);
             break;
         }
         default:
@@ -976,6 +1051,15 @@ bool LoadMitsuba(std::istream& sceneStream, std::string sceneFileName, std::vect
                 renderObj = new Box(Vector3(0, 0, 0), Vector3(1.0f, 1.0f, 0.05f));
                 break;
             }
+            case MitsubaShape::Type::Cube: {
+                renderObj = new Box(Vector3(0, 0, 0), Vector3(1.0f, 1.0f, 1.0f));
+                break;
+            }
+            case MitsubaShape::Type::Sphere: {
+                auto sphereShape = (MitsubaShapeSphere*)shape;
+                renderObj = new Sphere(sphereShape->center, sphereShape->radius);
+                break;
+            }
         }
 
         Vector3 pos;
@@ -998,7 +1082,7 @@ bool LoadMitsuba(std::istream& sceneStream, std::string sceneFileName, std::vect
         } else if (shape->material) {
             renderObj->SetMaterial(GetMaterialFromBsdf(shape->material.get()));
         } else {
-            renderObj->SetMaterial(new DiffuseMaterial(Color(1, 1, 1)));
+            renderObj->SetMaterial(new EmissionMaterial(Color(float(rand())/RAND_MAX, float(rand()) / RAND_MAX, float(rand()) / RAND_MAX)));
             std::cerr << "Object " << shape->id << "doesn't have a material assigned, using default diffuse.\n";
         }
 

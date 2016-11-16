@@ -64,9 +64,10 @@ Ray Box::Sample(std::default_random_engine &rnd) {
 bool Box::Intersect(const Ray &_ray, Intersection &_intersect) {
   float dist;
   Ray ray = _ray;
-  auto transform = GetTransform().Invert();
-  ray.position = Vector3::Transform(_ray.position, transform);
-  ray.direction = Vector3::TransformNormal(_ray.direction, transform);
+  auto objToWorld = GetTransform();
+  auto worldToObj = objToWorld.Invert();
+  ray.position = Vector3::Transform(_ray.position, worldToObj);
+  ray.direction = Vector3::TransformNormal(_ray.direction, worldToObj);
   ray.direction.Normalize();
   if (ray.Intersects(m_Box, dist)) {
     if (dist < 0.001f)
@@ -75,12 +76,7 @@ bool Box::Intersect(const Ray &_ray, Intersection &_intersect) {
     _intersect.position = _ray.position + dist * _ray.direction;
 
     // Calculate normal (based on which axis the intersection point lies most)
-    Vector3 fromCenter =
-        _intersect.position -
-        Vector3(m_Box.Center.x, m_Box.Center.y, m_Box.Center.z);
-    fromCenter.x /= m_Box.Extents.x;
-    fromCenter.y /= m_Box.Extents.y;
-    fromCenter.z /= m_Box.Extents.z;
+    Vector3 fromCenter = _intersect.position;
 
     float dotX = fromCenter.Dot(Vector3(1, 0, 0));
     float dotY = fromCenter.Dot(Vector3(0, 1, 0));
@@ -106,8 +102,8 @@ bool Box::Intersect(const Ray &_ray, Intersection &_intersect) {
 
     _intersect.material = GetMaterial();
 
-    _intersect.position = Vector3::Transform(_intersect.position, transform.Invert());
-    _intersect.normal = Vector3::TransformNormal(_intersect.normal, transform.Invert());
+    _intersect.position = Vector3::Transform(_intersect.position, objToWorld);
+    _intersect.normal = Vector3::TransformNormal(_intersect.normal, objToWorld);
     _intersect.normal.Normalize();
     return true;
   }
