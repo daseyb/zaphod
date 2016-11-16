@@ -861,6 +861,64 @@ bool ParseMitsuba(std::string sceneFileName, MitsubaScene& scene) {
     return true;
 }
 
+Material* GetMaterialFromBsdf(MitsubaBsdf* bsdf) {
+    switch (bsdf->type) {
+        case MitsubaBsdf::Type::Diffuse:
+        {
+            auto diffuseMat = (MitsubaBsdfDiffuse*)bsdf;
+            auto reflectance = diffuseMat->reflectance.get();
+            Color col;
+            if (reflectance->type == MitsubaColorSource::Type::RGB) {
+                col = ((MitsubaColorSourceRGB*)reflectance)->color;
+            } else {
+                col = Color(0.7, 0.7, 0.7);
+                std::cerr << "Color source is a texture, but textures are not yet supported.\n";
+            }
+
+            return new DiffuseMaterial(col);
+        }
+        case MitsubaBsdf::Type::Twosided: {
+            return GetMaterialFromBsdf(((MitsubaBsdfTwoSided*)bsdf)->front.get());
+        }
+        case MitsubaBsdf::Type::RoughConductor: {
+            auto conductorMat = (MitsubaBsdfRoughConductor*)bsdf;
+
+            auto reflectance = conductorMat->specularReflectance.get();
+            Color col;
+            if (reflectance->type == MitsubaColorSource::Type::RGB) {
+                col = ((MitsubaColorSourceRGB*)reflectance)->color;
+            } else {
+                col = Color(0.7, 0.7, 0.7);
+                std::cerr << "Color source is a texture, but textures are not yet supported.\n";
+            }
+
+            return new SpecularMaterial(col, 0, 1, 0, conductorMat->extETA);
+        }
+        case MitsubaBsdf::Type::RoughPlastic: {
+            auto plasticMat = (MitsubaBsdfRoughPlastic*)bsdf;
+
+            auto reflectance = plasticMat->diffuseReflectance.get();
+            Color col;
+            if (reflectance->type == MitsubaColorSource::Type::RGB) {
+                col = ((MitsubaColorSourceRGB*)reflectance)->color;
+            } else {
+                col = Color(0.7, 0.7, 0.7);
+                std::cerr << "Color source is a texture, but textures are not yet supported.\n";
+            }
+
+            return new SpecularMaterial(col, plasticMat->alpha, 1.0f - plasticMat->alpha, 0, 0.1f);
+        }
+        case MitsubaBsdf::Type::Dielectric: {
+            auto dielectricMat = (MitsubaBsdfDielectric*)bsdf;
+            return new SpecularMaterial(Color(1, 1, 1), 0, 0.1f, 0.9f, 0.0001f);
+        }
+        default: {
+            return new DiffuseMaterial(Color(0.5, 0.5, 0.5));
+        }
+    }
+    return nullptr;
+}
+
 
 bool LoadMitsuba(std::istream& sceneStream, std::string sceneFileName, std::vector<BaseObject *> &loadedObjects, Camera **loadedCamera) {
     MitsubaScene scene;
@@ -938,26 +996,7 @@ bool LoadMitsuba(std::istream& sceneStream, std::string sceneFileName, std::vect
                 std::cerr << "Emitter color source is a texture, but textures are not yet supported.\n";
             }
         } else if (shape->material) {
-            switch (shape->material->type) {
-                case MitsubaBsdf::Type::Diffuse:
-                {
-                    auto diffuseMat = (MitsubaBsdfDiffuse*)shape->material.get();
-                    auto reflectance = diffuseMat->reflectance.get();
-                    Color col;
-                    if (reflectance->type == MitsubaColorSource::Type::RGB) {
-                        col = ((MitsubaColorSourceRGB*)reflectance)->color;
-                    } else {
-                        col = Color(1, 1, 1);
-                        std::cerr << "Color source is a texture, but textures are not yet supported.\n";
-                    }
-
-                    renderObj->SetMaterial(new DiffuseMaterial(col));
-                    break;
-                }
-                default: {
-                    renderObj->SetMaterial(new DiffuseMaterial(Color(0.5, 0.5, 0.5)));
-                }
-            }
+            renderObj->SetMaterial(GetMaterialFromBsdf(shape->material.get()));
         } else {
             renderObj->SetMaterial(new DiffuseMaterial(Color(1, 1, 1)));
             std::cerr << "Object " << shape->id << "doesn't have a material assigned, using default diffuse.\n";
