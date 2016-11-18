@@ -26,6 +26,7 @@ public:
   virtual const Triangle* GetIndexBuffer() const { return nullptr; }
   virtual size_t GetVertexCount() const { return 0; }
   virtual size_t GetTriangleCount() const { return 0; }
+  virtual const DirectX::SimpleMath::Vector2* GetUVBuffer() const { return nullptr; }
 
 	void SetMaterial(Material *_mat);
 	Material *GetMaterial() const;
