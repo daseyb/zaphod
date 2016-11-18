@@ -35,4 +35,5 @@ public:
   }
   virtual size_t GetVertexCount() const override { return m_Vertices.size(); }
   virtual size_t GetTriangleCount() const override { return m_Triangles.size(); }
+  virtual const DirectX::SimpleMath::Vector2* GetUVBuffer() const { return m_UVs.data(); }
 };

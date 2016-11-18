@@ -29,6 +29,7 @@
 #include "../Rendering/Cameras/PinholeCamera.h"
 #include "../Rendering/Cameras/PhysicallyBasedCamera.h"
 
+#include <Rendering/Textures/TextureCache.h>
 #include "../Rendering/Textures/Texture.h"
 #include "../Rendering/Textures/ConstantColor.h"
 #include "../Rendering/Textures/ImageTexture.h"
@@ -1002,8 +1003,18 @@ std::shared_ptr<Texture> GetTextureFromColorSource(MitsubaColorSource* colorSour
         case MitsubaColorSource::Type::RGB:
             return std::make_shared<ConstantColor>(((MitsubaColorSourceRGB*)colorSource)->color);
         case MitsubaColorSource::Type::Texture:
-            std::cerr << "Color source is a texture, but textures are not yet supported.\n";
-            return std::make_shared<ConstantColor>(Color(0.7f, 0.7f, 0.7f));
+        {
+            auto texSource = (MitsubaColorSourceTexture*)colorSource;
+            auto texData = TextureCache::Instance().Get(texSource->filename);
+            if (!texData) {
+                std::cerr << "Couldn't load texture: " << texSource->filename << std::endl;
+                return std::make_shared<ConstantColor>(Color(1.0f, 1.0f, 1.0f));
+            }
+            auto tex = std::make_shared<ImageTexture>(texData);
+            tex->filterMode = TextureFilterMode::Point;
+            tex->wrapMode = TextureWrapMode::Wrap;
+            return tex;
+        }
         default:
             return nullptr;
     }
@@ -1093,6 +1104,8 @@ bool LoadMitsuba(std::istream& sceneStream, std::string sceneFileName, std::vect
 
     std::string sceneFileFolder =
         sceneFileName.substr(0, sceneFileName.find_last_of("\\/"));
+
+    TextureCache::Instance().SetWorkingDir(sceneFileFolder);
 
     for (const auto& obj : scene.objects) {
         if (obj.second->objType != MitsubaObject::Type::Shape) continue;
