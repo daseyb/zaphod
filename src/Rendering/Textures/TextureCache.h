@@ -25,7 +25,10 @@ public:
             int comp;
             auto imgData = stbi_loadf(key.c_str(), &data.width, &data.height, &comp, 4);
             
-            if (!imgData) return nullptr;
+            if (!imgData) {
+                std::cerr << stbi_failure_reason() << std::endl;
+                return nullptr;
+            }
 
             data.pixels = std::move(std::shared_ptr<Color>((Color*)imgData));
 
