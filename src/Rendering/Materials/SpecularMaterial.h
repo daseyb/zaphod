@@ -1,10 +1,12 @@
 #pragma once
 #include "Material.h"
+#include "../Textures/Texture.h"
+
 struct SpecularMaterial : public Material {
-  DirectX::SimpleMath::Color DiffuseColor;
+  std::shared_ptr<Texture> DiffuseColor;
   float Kd, Ks, Kt, Roughness;
 
-  SpecularMaterial(DirectX::SimpleMath::Color _color, float _kd, float _ks, float _kt,
+  SpecularMaterial(std::shared_ptr<Texture> _color, float _kd, float _ks, float _kt,
                    float _roughness)
       : DiffuseColor(_color), Kd(_kd), Ks(_ks), Kt(_kt), Roughness(_roughness){};
 
@@ -20,7 +22,7 @@ struct SpecularMaterial : public Material {
   }
 
   virtual Color GetColor(const Intersection &_intersect) const override {
-    return DiffuseColor;
+    return DiffuseColor->Sample(_intersect.uv);
   }
 
   virtual SpecularMaterial *Copy() {

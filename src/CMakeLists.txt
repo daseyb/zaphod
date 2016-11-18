@@ -4,7 +4,7 @@ project (zaphod)
 add_definitions(-DEMBREE_STATIC_LIB)
 add_definitions(-DSFML_STATIC)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 include_directories(${INC_DIRS})
 
