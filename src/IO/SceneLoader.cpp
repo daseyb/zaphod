@@ -421,10 +421,14 @@ struct MitsubaIntegratorPath : MitsubaIntegrator {
 struct MitsubaSampler {
     enum class Type {
         Sobol,
+        Independent
     };
 
     Type type;
     uint32_t sampleCount;
+};
+
+struct MitsubaSamplerIndependent : MitsubaSampler {
 };
 
 struct MitsubaSamplerSobol : MitsubaSampler {
@@ -906,7 +910,7 @@ bool ParseMitsuba(std::string sceneFileName, MitsubaScene& scene) {
         }
 
         std::string typeString = integratorNode.attribute("type").as_string();
-        if (typeString == "volpath") {
+        if (typeString == "volpath" || typeString == "bdpt" ) {
             auto integrator = std::make_unique<MitsubaIntegratorVolPath>();
             integrator->type = MitsubaIntegrator::Type::VolPath;
             integrator->maxDepth = get_member(integratorNode, "maxDepth").as_int();
@@ -956,6 +960,10 @@ bool ParseMitsuba(std::string sceneFileName, MitsubaScene& scene) {
             if (samplerTypeString == "sobol") {
                 auto sampler = std::make_unique<MitsubaSamplerSobol>();
                 sampler->type = MitsubaSampler::Type::Sobol;
+                scene.sensor->sampler = std::move(sampler);
+            } else if (samplerTypeString == "independent") {
+                auto sampler = std::make_unique<MitsubaSamplerIndependent>();
+                sampler->type = MitsubaSampler::Type::Independent;
                 scene.sensor->sampler = std::move(sampler);
             } else {
                 std::cerr << "Unknow sampler type: " << samplerTypeString << std::endl;
