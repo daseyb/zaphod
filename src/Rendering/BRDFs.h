@@ -161,12 +161,15 @@ inline BRDFSample BRDFPhong(Vector3 normal, Vector3 view, float kd, float ks, fl
   ks /= total;
   kt /= total;
 
-  float u = dist(_rnd);
-  if (u < kd) {
-    return BRDFDiffuse(normal, view, _rnd);
-  }
 
   float inside = sign(view.Dot(normal));
+
+  float u = dist(_rnd);
+  if (u < kd) {
+    return BRDFDiffuse(-inside * normal, view, _rnd);
+  }
+
+
   float ior = 1.5f;
   Vector3 w1, ref;
   if (u < kd + ks) {

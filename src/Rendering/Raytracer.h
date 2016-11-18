@@ -14,7 +14,7 @@ class Scene;
 class Integrator;
 
 #define MULTI_THREADED
-#define BOUNCES 20
+#define BOUNCES 8
 
 /********************************************
 ** Raytracer
