@@ -29,6 +29,10 @@
 #include "../Rendering/Cameras/PinholeCamera.h"
 #include "../Rendering/Cameras/PhysicallyBasedCamera.h"
 
+#include "../Rendering/Textures/Texture.h"
+#include "../Rendering/Textures/ConstantColor.h"
+#include "../Rendering/Textures/ImageTexture.h"
+
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
 
@@ -200,13 +204,14 @@ bool LoadZSF(std::istream& sceneStream, std::string sceneFileName, std::vector<B
         &values) -> Material * {
         auto type = GetValue<std::string>(values, "type");
         auto color = GetValue<Color>(values, "color");
+        auto colorTex = std::make_shared<ConstantColor>(color);
         if (type == "emission") {
             return new EmissionMaterial(color *
                 GetValue<float>(values, "strength", 1.0f));
         } else if (type == "diffuse") {
-            return new DiffuseMaterial(color);
+            return new DiffuseMaterial(std::dynamic_pointer_cast<Texture>(colorTex));
         } else if (type == "specular") {
-            return new SpecularMaterial(color, GetValue<float>(values, "kd", 0.5f),
+            return new SpecularMaterial(std::dynamic_pointer_cast<Texture>(colorTex), GetValue<float>(values, "kd", 0.5f),
                 GetValue<float>(values, "ks", 0.5f),
                 GetValue<float>(values, "kt", 0.0f),
                 GetValue<float>(values, "roughness", 0.0f));
@@ -346,7 +351,9 @@ bool LoadZSF(std::istream& sceneStream, std::string sceneFileName, std::vector<B
 
     }
 
-    DiffuseMaterial defaultDiffuse(Color(1.0f, 1.0f, 1.0f));
+    DiffuseMaterial defaultDiffuse(
+        std::shared_ptr<Texture>(new ConstantColor(Color(1.0f, 1.0f, 1.0f))));
+
     for (auto &obj : parsedObjects) {
         if (!obj.second.Data) {
             continue;
@@ -599,7 +606,8 @@ struct MitsubaShape : MitsubaObject {
         Disk,
         Rectangle,
         Cube,
-        Sphere
+        Sphere,
+        Hair
     };
 
     Type type;
@@ -611,6 +619,11 @@ struct MitsubaShape : MitsubaObject {
 struct MitsubaShapeObj : MitsubaShape {
     std::string filename;
     bool faceNormals;
+};
+
+struct MitsubaShapeHair: MitsubaShape {
+    float radius;
+    std::string filename;
 };
 
 struct MitsubaShapeDisk : MitsubaShape {
@@ -750,6 +763,12 @@ bool ParseShape(pugi::xml_node node,
         shape->type = MitsubaShape::Type::Obj;
         shape->filename = get_member(node, "filename").as_string();
         shape->faceNormals = get_member(node, "faceNormals").as_bool();
+        obj = std::move(shape);
+    } else if (shapeType == "hair") {
+        auto shape = std::make_shared<MitsubaShapeHair>();
+        shape->type = MitsubaShape::Type::Hair;
+        shape->radius = get_member(node, "radius").as_float();
+        shape->filename = get_member(node, "filename").as_string();
         obj = std::move(shape);
     } else if (shapeType == "disk") {
         auto shape = std::make_shared<MitsubaShapeDisk>();
@@ -974,21 +993,30 @@ bool ParseMitsuba(std::string sceneFileName, MitsubaScene& scene) {
     return true;
 }
 
+std::shared_ptr<Texture> GetTextureFromColorSource(MitsubaColorSource* colorSource) {
+    if (!colorSource) {
+        return std::make_shared<ConstantColor>(Color(1.0f, 1.0f, 1.0f));
+    }
+
+    switch (colorSource->type) {
+        case MitsubaColorSource::Type::RGB:
+            return std::make_shared<ConstantColor>(((MitsubaColorSourceRGB*)colorSource)->color);
+        case MitsubaColorSource::Type::Texture:
+            std::cerr << "Color source is a texture, but textures are not yet supported.\n";
+            return std::make_shared<ConstantColor>(Color(0.7f, 0.7f, 0.7f));
+        default:
+            return nullptr;
+    }
+}
+
 Material* GetMaterialFromBsdf(MitsubaBsdf* bsdf) {
     switch (bsdf->type) {
         case MitsubaBsdf::Type::Diffuse:
         {
             auto diffuseMat = (MitsubaBsdfDiffuse*)bsdf;
             auto reflectance = diffuseMat->reflectance.get();
-            Color col;
-            if (reflectance->type == MitsubaColorSource::Type::RGB) {
-                col = ((MitsubaColorSourceRGB*)reflectance)->color;
-            } else {
-                col = Color(0.7, 0.7, 0.7);
-                std::cerr << "Color source is a texture, but textures are not yet supported.\n";
-            }
-
-            return new SpecularMaterial(col, 1.0f, 0.0f, 0.0f, 0.0f);
+            auto reflectanceTex = GetTextureFromColorSource(reflectance);
+            return new SpecularMaterial(reflectanceTex, 1.0f, 0.0f, 0.0f, 0.0f);
         }
         case MitsubaBsdf::Type::Twosided: {
             return GetMaterialFromBsdf(((MitsubaBsdfTwoSided*)bsdf)->front.get());
@@ -1000,73 +1028,45 @@ Material* GetMaterialFromBsdf(MitsubaBsdf* bsdf) {
             auto conductorMat = (MitsubaBsdfRoughConductor*)bsdf;
 
             auto reflectance = conductorMat->specularReflectance.get();
-            Color col;
-            if (reflectance->type == MitsubaColorSource::Type::RGB) {
-                col = ((MitsubaColorSourceRGB*)reflectance)->color;
-            } else {
-                col = Color(0.7, 0.7, 0.7);
-                std::cerr << "Color source is a texture, but textures are not yet supported.\n";
-            }
-
-            return new SpecularMaterial(col, 0, 1, 0, conductorMat->alpha);
+            auto reflectanceTex = GetTextureFromColorSource(reflectance);
+            return new SpecularMaterial(reflectanceTex, 0, 1, 0, conductorMat->alpha);
         }
         case MitsubaBsdf::Type::Conductor: {
             auto conductorMat = (MitsubaBsdfConductor*)bsdf;
 
             auto reflectance = conductorMat->specularReflectance.get();
-            Color col;
-            if (!reflectance) {
-                col = Color(1.0f, 1.0f, 1.0f);
-            } else if (reflectance->type == MitsubaColorSource::Type::RGB) {
-                col = ((MitsubaColorSourceRGB*)reflectance)->color;
-            } else {
-                col = Color(0.7, 0.7, 0.7);
-                std::cerr << "Color source is a texture, but textures are not yet supported.\n";
-            }
-
-            return new SpecularMaterial(col, 0, 1, 0, 0);
+            auto reflectanceTex = GetTextureFromColorSource(reflectance);
+            return new SpecularMaterial(reflectanceTex, 0, 1, 0, 0);
         }
         case MitsubaBsdf::Type::RoughPlastic: {
             auto plasticMat = (MitsubaBsdfRoughPlastic*)bsdf;
 
             auto reflectance = plasticMat->diffuseReflectance.get();
-            Color col;
-            if (reflectance->type == MitsubaColorSource::Type::RGB) {
-                col = ((MitsubaColorSourceRGB*)reflectance)->color;
-            } else {
-                col = Color(0.7, 0.7, 0.7);
-                std::cerr << "Color source is a texture, but textures are not yet supported.\n";
-            }
+            auto reflectanceTex = GetTextureFromColorSource(reflectance);
 
-            return new SpecularMaterial(col, 0.2f, 0.8f, 0.0f, plasticMat->alpha);
+            return new SpecularMaterial(reflectanceTex, 0.2f, 0.8f, 0.0f, plasticMat->alpha);
         }
         case MitsubaBsdf::Type::Plastic: {
             auto plasticMat = (MitsubaBsdfPlastic*)bsdf;
 
             auto reflectance = plasticMat->diffuseReflectance.get();
-            Color col;
-            if (reflectance->type == MitsubaColorSource::Type::RGB) {
-                col = ((MitsubaColorSourceRGB*)reflectance)->color;
-            } else {
-                col = Color(0.7, 0.7, 0.7);
-                std::cerr << "Color source is a texture, but textures are not yet supported.\n";
-            }
+            auto reflectanceTex = GetTextureFromColorSource(reflectance);
 
-            return new SpecularMaterial(col, 0.2f, 0.8f, 0.0f, 0);
+            return new SpecularMaterial(reflectanceTex, 0.2f, 0.8f, 0.0f, 0);
         }
         case MitsubaBsdf::Type::Dielectric: {
             auto dielectricMat = (MitsubaBsdfDielectric*)bsdf;
-            return new SpecularMaterial(Color(1, 1, 1), 0, 0.1f, 0.9f, 0.0001f);
+            return new SpecularMaterial(std::make_shared<ConstantColor>(Color(0.7f, 0.7f, 0.7f)), 0, 0.1f, 0.9f, 0.0001f);
         }
         case MitsubaBsdf::Type::ThinDielectric: {
             auto dielectricMat = (MitsubaBsdfThinDielectric*)bsdf;
-            return new SpecularMaterial(Color(1, 1, 1), 0, 0.1f, 0.9f, 0.0001f);
+            return new SpecularMaterial(std::make_shared<ConstantColor>(Color(0.7f, 0.7f, 0.7f)), 0, 0.1f, 0.9f, 0.0001f);
         }
         case MitsubaBsdf::Type::Mask: {
             return GetMaterialFromBsdf(((MitsubaBsdfMask*)bsdf)->bsdf.get());
         }
         default: {
-            return new DiffuseMaterial(Color(0.5, 0.5, 0.5));
+            return new DiffuseMaterial(std::make_shared<ConstantColor>(Color(0.7f, 0.7f, 0.7f)));
         }
     }
     return nullptr;
@@ -1137,6 +1137,9 @@ bool LoadMitsuba(std::istream& sceneStream, std::string sceneFileName, std::vect
                 auto sphereShape = (MitsubaShapeSphere*)shape;
                 renderObj = new Sphere(sphereShape->center, sphereShape->radius);
                 break;
+            }
+            case MitsubaShape::Type::Hair: {
+                continue;
             }
         }
 
