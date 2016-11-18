@@ -395,11 +395,17 @@ bool LoadZSF(std::istream& sceneStream, std::string sceneFileName, std::vector<B
 struct MitsubaIntegrator {
     enum class Type {
         VolPath,
+        Path
     };
     Type type;
 };
 
 struct MitsubaIntegratorVolPath : MitsubaIntegrator {
+    uint32_t maxDepth;
+    bool strictNormals;
+};
+
+struct MitsubaIntegratorPath : MitsubaIntegrator {
     uint32_t maxDepth;
     bool strictNormals;
 };
@@ -505,7 +511,10 @@ struct MitsubaBsdf : MitsubaObject {
         RoughPlastic,
         RoughConductor,
         Conductor,
-        Bumpmap
+        Bumpmap,
+        Mask,
+        ThinDielectric,
+        Plastic
     };
 
     Type type;
@@ -516,9 +525,18 @@ struct MitsubaBsdfDielectric : MitsubaBsdf {
     float extIOR;
 };
 
+struct MitsubaBsdfThinDielectric : MitsubaBsdf {
+    float intIOR;
+    float extIOR;
+};
+
+struct MitsubaBsdfMask : MitsubaBsdf {
+    std::unique_ptr<MitsubaColorSource> opacity;
+    std::shared_ptr<MitsubaBsdf> bsdf;
+};
+
 struct MitsubaBsdfTwoSided : MitsubaBsdf {
     std::shared_ptr<MitsubaBsdf> front;
-    std::shared_ptr<MitsubaBsdf> back;
 };
 
 struct MitsubaBsdfDiffuse : MitsubaBsdf {
@@ -533,6 +551,14 @@ struct MitsubaBsdfRoughPlastic : MitsubaBsdf {
     bool nonLinear;
     std::unique_ptr<MitsubaColorSource> diffuseReflectance;
 };
+
+struct MitsubaBsdfPlastic : MitsubaBsdf {
+    float intIOR;
+    float extIOR;
+    bool nonLinear;
+    std::unique_ptr<MitsubaColorSource> diffuseReflectance;
+};
+
 
 struct MitsubaBsdfRoughConductor : MitsubaBsdf {
     float alpha;
@@ -680,6 +706,29 @@ bool ParseBsdf(pugi::xml_node node, std::shared_ptr<MitsubaBsdf>& obj, std::unor
         bsdf->map = ParseColorSource(node.find_child_by_attribute("name", "map"));
 
         obj = std::move(bsdf);
+    } else if (bsdfType == "mask") {
+        auto bsdf = std::make_shared<MitsubaBsdfMask>();
+        bsdf->type = MitsubaBsdf::Type::Mask;
+        if (!ParseBsdf(node.child("bsdf"), bsdf->bsdf, objs)) {
+            return false;
+        }
+        bsdf->opacity = ParseColorSource(node.find_child_by_attribute("name", "opacity"));
+
+        obj = std::move(bsdf);
+    } else if(bsdfType == "thindielectric") {
+        auto bsdf = std::make_shared<MitsubaBsdfThinDielectric>();
+        bsdf->type = MitsubaBsdf::Type::ThinDielectric;
+        bsdf->intIOR = get_member(node, "intIOR").as_float();
+        bsdf->extIOR = get_member(node, "extIOR").as_float();
+        obj = std::move(bsdf);
+    } else if (bsdfType == "plastic") {
+        auto bsdf = std::make_shared<MitsubaBsdfPlastic>();
+        bsdf->type = MitsubaBsdf::Type::Plastic;
+        bsdf->intIOR = get_member(node, "intIOR").as_float();
+        bsdf->extIOR = get_member(node, "extIOR").as_float();
+        bsdf->nonLinear = get_member(node, "nonlinear").as_bool();
+        bsdf->diffuseReflectance = ParseColorSource(node.find_child_by_attribute("name", "diffuseReflectance"));
+        obj = std::move(bsdf);
     } else {
         std::cerr << "Unknow BSDF type: " << bsdfType << std::endl;
         return false;
@@ -809,9 +858,15 @@ bool ParseMitsuba(std::string sceneFileName, MitsubaScene& scene) {
         }
 
         std::string typeString = integratorNode.attribute("type").as_string();
-        if (typeString == "volpath" || typeString == "path") {
+        if (typeString == "volpath") {
             auto integrator = std::make_unique<MitsubaIntegratorVolPath>();
             integrator->type = MitsubaIntegrator::Type::VolPath;
+            integrator->maxDepth = get_member(integratorNode, "maxDepth").as_int();
+            integrator->strictNormals = get_member(integratorNode, "strictNormals").as_bool();
+            scene.integrator = std::move(integrator);
+        } else if(typeString == "path") {
+            auto integrator = std::make_unique<MitsubaIntegratorPath>();
+            integrator->type = MitsubaIntegrator::Type::Path;
             integrator->maxDepth = get_member(integratorNode, "maxDepth").as_int();
             integrator->strictNormals = get_member(integratorNode, "strictNormals").as_bool();
             scene.integrator = std::move(integrator);
@@ -960,7 +1015,9 @@ Material* GetMaterialFromBsdf(MitsubaBsdf* bsdf) {
 
             auto reflectance = conductorMat->specularReflectance.get();
             Color col;
-            if (reflectance->type == MitsubaColorSource::Type::RGB) {
+            if (!reflectance) {
+                col = Color(1.0f, 1.0f, 1.0f);
+            } else if (reflectance->type == MitsubaColorSource::Type::RGB) {
                 col = ((MitsubaColorSourceRGB*)reflectance)->color;
             } else {
                 col = Color(0.7, 0.7, 0.7);
@@ -983,9 +1040,30 @@ Material* GetMaterialFromBsdf(MitsubaBsdf* bsdf) {
 
             return new SpecularMaterial(col, 0.2f, 0.8f, 0.0f, plasticMat->alpha);
         }
+        case MitsubaBsdf::Type::Plastic: {
+            auto plasticMat = (MitsubaBsdfPlastic*)bsdf;
+
+            auto reflectance = plasticMat->diffuseReflectance.get();
+            Color col;
+            if (reflectance->type == MitsubaColorSource::Type::RGB) {
+                col = ((MitsubaColorSourceRGB*)reflectance)->color;
+            } else {
+                col = Color(0.7, 0.7, 0.7);
+                std::cerr << "Color source is a texture, but textures are not yet supported.\n";
+            }
+
+            return new SpecularMaterial(col, 0.2f, 0.8f, 0.0f, 0);
+        }
         case MitsubaBsdf::Type::Dielectric: {
             auto dielectricMat = (MitsubaBsdfDielectric*)bsdf;
             return new SpecularMaterial(Color(1, 1, 1), 0, 0.1f, 0.9f, 0.0001f);
+        }
+        case MitsubaBsdf::Type::ThinDielectric: {
+            auto dielectricMat = (MitsubaBsdfThinDielectric*)bsdf;
+            return new SpecularMaterial(Color(1, 1, 1), 0, 0.1f, 0.9f, 0.0001f);
+        }
+        case MitsubaBsdf::Type::Mask: {
+            return GetMaterialFromBsdf(((MitsubaBsdfMask*)bsdf)->bsdf.get());
         }
         default: {
             return new DiffuseMaterial(Color(0.5, 0.5, 0.5));
