@@ -522,13 +522,22 @@ struct MitsubaBsdf : MitsubaObject {
         Bumpmap,
         Mask,
         ThinDielectric,
-        Plastic
+        RoughDielectric,
+        Plastic,
+        RoughDiffuse
     };
 
     Type type;
 };
 
 struct MitsubaBsdfDielectric : MitsubaBsdf {
+    float intIOR;
+    float extIOR;
+};
+
+struct MitsubaBsdfRoughDielectric : MitsubaBsdf {
+    float alpha;
+    std::string distribution;
     float intIOR;
     float extIOR;
 };
@@ -548,6 +557,11 @@ struct MitsubaBsdfTwoSided : MitsubaBsdf {
 };
 
 struct MitsubaBsdfDiffuse : MitsubaBsdf {
+    std::unique_ptr<MitsubaColorSource> reflectance;
+};
+
+struct MitsubaBsdfRoughDiffuse : MitsubaBsdf {
+    float alpha;
     std::unique_ptr<MitsubaColorSource> reflectance;
 };
 
@@ -671,6 +685,14 @@ bool ParseBsdf(pugi::xml_node node, std::shared_ptr<MitsubaBsdf>& obj, std::unor
         bsdf->intIOR = get_member(node, "intIOR").as_float();
         bsdf->extIOR = get_member(node, "extIOR").as_float();
         obj = std::move(bsdf);
+    } else if (bsdfType == "roughdielectric") {
+        auto bsdf = std::make_shared<MitsubaBsdfRoughDielectric>();
+        bsdf->type = MitsubaBsdf::Type::RoughDielectric;
+        bsdf->alpha = get_member(node, "alpha").as_float();
+        bsdf->distribution = get_member(node, "distribution").as_string();
+        bsdf->intIOR = get_member(node, "intIOR").as_float();
+        bsdf->extIOR = get_member(node, "extIOR").as_float();
+        obj = std::move(bsdf);
     } else if (bsdfType == "twosided") {
         auto bsdf = std::make_shared<MitsubaBsdfTwoSided>();
         bsdf->type = MitsubaBsdf::Type::Twosided;
@@ -681,6 +703,12 @@ bool ParseBsdf(pugi::xml_node node, std::shared_ptr<MitsubaBsdf>& obj, std::unor
     } else if(bsdfType == "diffuse") {
         auto bsdf = std::make_shared<MitsubaBsdfDiffuse>();
         bsdf->type = MitsubaBsdf::Type::Diffuse;
+        bsdf->reflectance = ParseColorSource(node.find_child_by_attribute("name", "reflectance"));
+        obj = std::move(bsdf);
+    } else if (bsdfType == "roughdiffuse") {
+        auto bsdf = std::make_shared<MitsubaBsdfRoughDiffuse>();
+        bsdf->type = MitsubaBsdf::Type::RoughDiffuse;
+        bsdf->alpha = get_member(node, "alpha").as_float();
         bsdf->reflectance = ParseColorSource(node.find_child_by_attribute("name", "reflectance"));
         obj = std::move(bsdf);
     } else if (bsdfType == "roughplastic") {
@@ -1029,6 +1057,13 @@ Material* GetMaterialFromBsdf(MitsubaBsdf* bsdf) {
             auto reflectanceTex = GetTextureFromColorSource(reflectance);
             return new SpecularMaterial(reflectanceTex, 1.0f, 0.0f, 0.0f, 0.0f);
         }
+        case MitsubaBsdf::Type::RoughDiffuse:
+        {
+            auto diffuseMat = (MitsubaBsdfRoughDiffuse*)bsdf;
+            auto reflectance = diffuseMat->reflectance.get();
+            auto reflectanceTex = GetTextureFromColorSource(reflectance);
+            return new SpecularMaterial(reflectanceTex, 1.0f, 0.0f, 0.0f, 0.0f);
+        }
         case MitsubaBsdf::Type::Twosided: {
             return GetMaterialFromBsdf(((MitsubaBsdfTwoSided*)bsdf)->front.get());
         }
@@ -1067,11 +1102,15 @@ Material* GetMaterialFromBsdf(MitsubaBsdf* bsdf) {
         }
         case MitsubaBsdf::Type::Dielectric: {
             auto dielectricMat = (MitsubaBsdfDielectric*)bsdf;
-            return new SpecularMaterial(std::make_shared<ConstantColor>(Color(0.7f, 0.7f, 0.7f)), 0, 0.1f, 0.9f, 0.0001f);
+            return new SpecularMaterial(std::make_shared<ConstantColor>(Color(1.0f, 1.0f, 1.0f)), 0, 0.1f, 0.9f, 0.0001f);
+        }
+        case MitsubaBsdf::Type::RoughDielectric: {
+            auto dielectricMat = (MitsubaBsdfRoughDielectric*)bsdf;
+            return new SpecularMaterial(std::make_shared<ConstantColor>(Color(1.0f, 1.0f, 1.0f)), 0, 0.1f, 0.9f, 0.1f * dielectricMat->alpha);
         }
         case MitsubaBsdf::Type::ThinDielectric: {
             auto dielectricMat = (MitsubaBsdfThinDielectric*)bsdf;
-            return new SpecularMaterial(std::make_shared<ConstantColor>(Color(0.7f, 0.7f, 0.7f)), 0, 0.1f, 0.9f, 0.0001f);
+            return new SpecularMaterial(std::make_shared<ConstantColor>(Color(1.0f, 1.0f, 1.0f)), 0, 0.1f, 0.9f, 0.0001f);
         }
         case MitsubaBsdf::Type::Mask: {
             return GetMaterialFromBsdf(((MitsubaBsdfMask*)bsdf)->bsdf.get());
