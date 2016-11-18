@@ -207,7 +207,7 @@ bool LoadZSF(std::istream& sceneStream, std::string sceneFileName, std::vector<B
         auto color = GetValue<Color>(values, "color");
         auto colorTex = std::make_shared<ConstantColor>(color);
         if (type == "emission") {
-            return new EmissionMaterial(color *
+            return new EmissionMaterial(colorTex,
                 GetValue<float>(values, "strength", 1.0f));
         } else if (type == "diffuse") {
             return new DiffuseMaterial(std::dynamic_pointer_cast<Texture>(colorTex));
@@ -485,7 +485,8 @@ struct MitsubaSensorPerspective : MitsubaSensor {
 struct MitsubaObject {
     enum class Type {
         BSDF,
-        Shape
+        Shape,
+        Emitter
     };
     Type objType;
     std::string id;
@@ -608,15 +609,20 @@ struct MitsubaBsdfBumpmap : MitsubaBsdf {
     std::shared_ptr<MitsubaBsdf> bsdf;
 };
 
-struct MitsubaEmitter {
+struct MitsubaEmitter : MitsubaObject {
     enum class Type {
-        Area
+        Area,
+        Envmap
     };
-
-    std::unique_ptr<MitsubaColorSource> radiance;
+    Type type;
 };
 
 struct MitsubaEmitterArea : MitsubaEmitter {
+    std::unique_ptr<MitsubaColorSource> radiance;
+};
+
+struct MitsubaEmitterEnvmap : MitsubaEmitter {
+    std::string filename;
 };
 
 struct MitsubaShape : MitsubaObject {
@@ -852,7 +858,13 @@ bool ParseShape(pugi::xml_node node,
         std::string emitterType = emitterNode.attribute("type").as_string();
         if (emitterType == "area") {
             auto emitter = std::make_shared<MitsubaEmitterArea>();
+            emitter->type = MitsubaEmitter::Type::Area;
             emitter->radiance = ParseColorSource(emitterNode.find_child_by_attribute("name", "radiance"));
+            obj->emitter = emitter;
+        } else if (emitterType == "envmap") {
+            auto emitter = std::make_shared<MitsubaEmitterEnvmap>();
+            emitter->type = MitsubaEmitter::Type::Envmap;
+            emitter->filename = get_member(emitterNode, "filename").as_string();
             obj->emitter = emitter;
         } else {
             std::cerr << "Unknow emitter type: " << emitterType << std::endl;
@@ -1027,6 +1039,33 @@ bool ParseMitsuba(std::string sceneFileName, MitsubaScene& scene) {
         if (!ParseShape(shapeNode, scene.objects, shape)) return false;
     }
 
+    for (auto emitterNode : sceneNode.children("emitter")) {
+        std::shared_ptr<MitsubaEmitter> obj;
+
+        std::string emitterType = emitterNode.attribute("type").as_string();
+        if (emitterType == "area") {
+            auto emitter = std::make_shared<MitsubaEmitterArea>();
+            emitter->type = MitsubaEmitter::Type::Area;
+            emitter->radiance = ParseColorSource(emitterNode.find_child_by_attribute("name", "radiance"));
+            obj = std::move(emitter);
+        } else if (emitterType == "envmap") {
+            auto emitter = std::make_shared<MitsubaEmitterEnvmap>();
+            emitter->type = MitsubaEmitter::Type::Envmap;
+            emitter->filename = get_member(emitterNode, "filename").as_string();
+            obj = std::move(emitter);
+        } else {
+            std::cerr << "Unknow emitter type: " << emitterType << std::endl;
+            return false;
+        }
+
+        std::string id = emitterNode.attribute("id").as_string();
+        obj->id = id;
+        obj->objType = MitsubaObject::Type::Emitter;
+        scene.objects.insert({ obj->id != "" ? 
+            obj->id :
+            std::to_string(scene.objects.size()), obj });
+    }
+
     return true;
 }
 
@@ -1110,15 +1149,15 @@ Material* GetMaterialFromBsdf(MitsubaBsdf* bsdf) {
         }
         case MitsubaBsdf::Type::Dielectric: {
             auto dielectricMat = (MitsubaBsdfDielectric*)bsdf;
-            return new SpecularMaterial(std::make_shared<ConstantColor>(Color(1.0f, 1.0f, 1.0f)), 0, 0.1f, 0.9f, 0.0001f);
+            return new SpecularMaterial(std::make_shared<ConstantColor>(Color(1.0f, 1.0f, 1.0f)), 0, 0.3f, 0.7f, 0);
         }
         case MitsubaBsdf::Type::RoughDielectric: {
             auto dielectricMat = (MitsubaBsdfRoughDielectric*)bsdf;
-            return new SpecularMaterial(std::make_shared<ConstantColor>(Color(1.0f, 1.0f, 1.0f)), 0, 0.1f, 0.9f, 0.1f * dielectricMat->alpha);
+            return new SpecularMaterial(std::make_shared<ConstantColor>(Color(1.0f, 1.0f, 1.0f)), 0, 0.3f, 0.7f, 0.1f * dielectricMat->alpha);
         }
         case MitsubaBsdf::Type::ThinDielectric: {
             auto dielectricMat = (MitsubaBsdfThinDielectric*)bsdf;
-            return new SpecularMaterial(std::make_shared<ConstantColor>(Color(1.0f, 1.0f, 1.0f)), 0, 0.1f, 0.9f, 0.0001f);
+            return new SpecularMaterial(std::make_shared<ConstantColor>(Color(1.0f, 1.0f, 1.0f)), 0, 0.3f, 0.7f, 0);
         }
         case MitsubaBsdf::Type::Mask: {
             return GetMaterialFromBsdf(((MitsubaBsdfMask*)bsdf)->bsdf.get());
@@ -1155,79 +1194,103 @@ bool LoadMitsuba(std::istream& sceneStream, std::string sceneFileName, std::vect
     TextureCache::Instance().SetWorkingDir(sceneFileFolder);
 
     for (const auto& obj : scene.objects) {
-        if (obj.second->objType != MitsubaObject::Type::Shape) continue;
-        auto shape = (MitsubaShape*)obj.second.get();
+        switch (obj.second->objType) {
+            case MitsubaObject::Type::Emitter:
+            {
+                auto emitter = (MitsubaEmitter*)obj.second.get();
+                if (emitter->type != MitsubaEmitter::Type::Envmap) continue;
 
-        RenderObject* renderObj;
+                auto envmap = (MitsubaEmitterEnvmap*)emitter;
+                
+                auto texData = TextureCache::Instance().Get(envmap->filename);
+                if (!texData) {
+                    std::cerr << "Couldn't load environment map: " << envmap->filename << std::endl;
+                    continue;
+                }
+                
+                RenderObject* renderObj = new Sphere(Vector3(0, 0, 0), 10000);
+                auto emissiveTex = std::make_shared<ImageTexture>(texData);
+                renderObj->SetMaterial(new EmissionMaterial(emissiveTex, 1.0f));
 
-        switch (shape->type) {
-            case MitsubaShape::Type::Obj: {
-                auto objShape = (MitsubaShapeObj*)shape;
+                loadedObjects.push_back(renderObj);
+                break;
+            }
+            case MitsubaObject::Type::Shape:
+            {
+                auto shape = (MitsubaShape*)obj.second.get();
 
-                auto meshFile = sceneFileFolder + "\\" + objShape->filename;
+                RenderObject* renderObj;
 
-                std::vector<Triangle> tris;
-                std::vector<Vector3> verts;
-                std::vector<Vector3> normals;
-                std::vector<Vector2> uvs;
-                bool smooth = !objShape->faceNormals;
+                switch (shape->type) {
+                    case MitsubaShape::Type::Obj: {
+                        auto objShape = (MitsubaShapeObj*)shape;
 
-                if (!LoadObj(meshFile, tris, verts, normals, uvs, smooth)) {
-                    std::cerr << "Could not load object at " << meshFile << std::endl;
-                    return false;
+                        auto meshFile = sceneFileFolder + "\\" + objShape->filename;
+
+                        std::vector<Triangle> tris;
+                        std::vector<Vector3> verts;
+                        std::vector<Vector3> normals;
+                        std::vector<Vector2> uvs;
+                        bool smooth = !objShape->faceNormals;
+
+                        if (!LoadObj(meshFile, tris, verts, normals, uvs, smooth)) {
+                            std::cerr << "Could not load object at " << meshFile << std::endl;
+                            return false;
+                        }
+
+                        renderObj = new Mesh(Vector3(), tris, verts, normals, uvs, smooth);
+                        break;
+                    }
+                    case MitsubaShape::Type::Disk: {
+                        //TODO: Create proper disk objects
+                        renderObj = new Sphere(Vector3(0, 0, 0), 1.0f);
+                        break;
+                    }
+                    case MitsubaShape::Type::Rectangle: {
+                        renderObj = new Box(Vector3(0, 0, 0), Vector3(1.0f, 1.0f, 0.05f));
+                        break;
+                    }
+                    case MitsubaShape::Type::Cube: {
+                        renderObj = new Box(Vector3(0, 0, 0), Vector3(1.0f, 1.0f, 1.0f));
+                        break;
+                    }
+                    case MitsubaShape::Type::Sphere: {
+                        auto sphereShape = (MitsubaShapeSphere*)shape;
+                        renderObj = new Sphere(sphereShape->center, sphereShape->radius);
+                        break;
+                    }
+                    case MitsubaShape::Type::Hair: {
+                        continue;
+                    }
                 }
 
-                renderObj = new Mesh(Vector3(), tris, verts, normals, uvs, smooth);
+                Vector3 pos;
+                Quaternion rot;
+                Vector3 scale;
+
+                shape->transform.Decompose(scale, rot, pos);
+                renderObj->SetPosition(pos);
+                renderObj->SetRotation(rot);
+                renderObj->SetScale(scale);
+
+                if (shape->emitter && shape->emitter->type == MitsubaEmitter::Type::Area) {
+                    auto source = ((MitsubaEmitterArea*)(shape->emitter.get()))->radiance.get();
+                    auto emissionTex = GetTextureFromColorSource(source);
+                    renderObj->SetMaterial(new EmissionMaterial(emissionTex, 1.0f));
+                } else if (shape->material) {
+                    renderObj->SetMaterial(GetMaterialFromBsdf(shape->material.get()));
+                } else {
+                    renderObj->SetMaterial(new EmissionMaterial(
+                        std::make_shared<ConstantColor>( Color(float(rand()) / RAND_MAX, 
+                            float(rand()) / RAND_MAX, 
+                            float(rand()) / RAND_MAX)), 1.0f));
+                    std::cerr << "Object " << shape->id << "doesn't have a material assigned, using default diffuse.\n";
+                }
+
+                loadedObjects.push_back(renderObj);
                 break;
-            }
-            case MitsubaShape::Type::Disk: {
-                //TODO: Create proper disk objects
-                renderObj = new Sphere(Vector3(0, 0, 0), 1.0f);
-                break;
-            }
-            case MitsubaShape::Type::Rectangle: {
-                renderObj = new Box(Vector3(0, 0, 0), Vector3(1.0f, 1.0f, 0.05f));
-                break;
-            }
-            case MitsubaShape::Type::Cube: {
-                renderObj = new Box(Vector3(0, 0, 0), Vector3(1.0f, 1.0f, 1.0f));
-                break;
-            }
-            case MitsubaShape::Type::Sphere: {
-                auto sphereShape = (MitsubaShapeSphere*)shape;
-                renderObj = new Sphere(sphereShape->center, sphereShape->radius);
-                break;
-            }
-            case MitsubaShape::Type::Hair: {
-                continue;
             }
         }
-
-        Vector3 pos;
-        Quaternion rot;
-        Vector3 scale;
-
-        shape->transform.Decompose(scale, rot, pos);
-        renderObj->SetPosition(pos);
-        renderObj->SetRotation(rot);
-        renderObj->SetScale(scale);
-
-        if (shape->emitter) {
-            auto source = shape->emitter->radiance.get();
-            if (source->type == MitsubaColorSource::Type::RGB) {
-                renderObj->SetMaterial(new EmissionMaterial(((MitsubaColorSourceRGB*)source)->color));
-            } else {
-                renderObj->SetMaterial(new EmissionMaterial(Color(1, 1, 1)));
-                std::cerr << "Emitter color source is a texture, but textures are not yet supported.\n";
-            }
-        } else if (shape->material) {
-            renderObj->SetMaterial(GetMaterialFromBsdf(shape->material.get()));
-        } else {
-            renderObj->SetMaterial(new EmissionMaterial(Color(float(rand())/RAND_MAX, float(rand()) / RAND_MAX, float(rand()) / RAND_MAX)));
-            std::cerr << "Object " << shape->id << "doesn't have a material assigned, using default diffuse.\n";
-        }
-
-        loadedObjects.push_back(renderObj);
     }
 
     return true;

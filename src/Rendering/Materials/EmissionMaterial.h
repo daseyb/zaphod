@@ -1,10 +1,12 @@
 #pragma once
 #include "Material.h"
+#include <Rendering/Textures/Texture.h>
 
 struct EmissionMaterial : public Material {
-  DirectX::SimpleMath::Color Emittance;
+  std::shared_ptr<Texture> Emittance;
+  float strength;
 
-  EmissionMaterial(DirectX::SimpleMath::Color _color) : Emittance(_color){};
+  EmissionMaterial(std::shared_ptr<Texture> _color, float strength) : Emittance(_color), strength(strength) {};
 
   virtual float F(DirectX::SimpleMath::Vector3 _in,
                          DirectX::SimpleMath::Vector3 _out) const override {
@@ -20,7 +22,7 @@ struct EmissionMaterial : public Material {
   virtual bool IsLight() const override { return true; }
 
   virtual Color GetColor(const Intersection &_intersect) const override {
-    return Emittance;
+    return Emittance->Sample(_intersect.uv) * strength;
   }
 
   virtual EmissionMaterial *Copy() {

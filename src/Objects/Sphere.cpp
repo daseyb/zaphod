@@ -36,6 +36,10 @@ bool Sphere::Intersect(const Ray &_ray, Intersection &_intersect) {
     _intersect.normal.Normalize();
     _intersect.material = GetMaterial();
 
+    float r = _intersect.position.Length();
+    _intersect.uv = Vector2(atan(_intersect.position.x / _intersect.position.y),
+        acos(_intersect.position.z / r));
+
 
     _intersect.position = Vector3::Transform(_intersect.position, objToWorld);
     _intersect.normal = Vector3::TransformNormal(_intersect.normal, objToWorld);
