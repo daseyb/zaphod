@@ -30,7 +30,9 @@ public:
     virtual Color Sample(Vector2 uv) const override {
 
         if (wrapMode == TextureWrapMode::Wrap) {
-            uv = { fmodf(uv.x, 1.0), fmodf(uv.y, 1.0) };
+            uv = { std::fmod(uv.x, 1.0f), std::fmod(uv.y, 1.0f) };
+            if (uv.x < 0) uv.x += 1;
+            if (uv.y < 0) uv.y += 1;
         }
 
         uv.Clamp(Vector2(0, 0), Vector2(1, 1));
