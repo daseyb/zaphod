@@ -2,9 +2,10 @@ cmake_minimum_required (VERSION 3.1)
 project (zaphod)
 
 # For statically linking embree
-add_definitions(-DENABLE_STATIC_LIB)
+add_definitions(-DEMBREE_STATIC_LIB)
+add_definitions(-DSFML_STATIC)
   
-include_directories(${CMAKE_CURRENT_LIST_DIR}/src)
+include_directories(${CMAKE_CURRENT_LIST_DIR})
 
 include_directories(${INC_DIRS})
 

@@ -3,7 +3,7 @@
 
 using namespace DirectX::SimpleMath;
 
-Sphere::Sphere(Vector3 _position, float _radius) {
+Sphere::Sphere(Vector3 _position, float _radius, BaseObject* parent) : RenderObject(parent) {
   m_Sphere = DirectX::BoundingSphere(_position, _radius);
   SetRadius(_radius);
   SetPosition(_position);
@@ -13,23 +13,37 @@ void Sphere::SetRadius(float _radius) { m_Sphere.Radius = _radius; }
 
 void Sphere::SetPosition(DirectX::SimpleMath::Vector3 _pos) {
   BaseObject::SetPosition(_pos);
-  m_Sphere.Center = _pos;
 }
 
-bool Sphere::Intersect(const Ray &_ray, Intersection &_intersect) const {
+bool Sphere::Intersect(const Ray &_ray, Intersection &_intersect) {
   float dist;
-  if (_ray.Intersects(m_Sphere, dist)) {
+  auto objToWorld = GetTransform();
+  auto worldToObj = objToWorld.Invert();
+  Ray ray = _ray;
+  ray.position = Vector3::Transform(_ray.position, worldToObj);
+  ray.direction = Vector3::TransformNormal(_ray.direction, worldToObj);
+  ray.direction.Normalize();
+  if (ray.Intersects(m_Sphere, dist)) {
     if (dist < 0.001f)
       return false;
 
-    _intersect.position = _ray.position + dist * _ray.direction;
+    _intersect.position = ray.position + dist * ray.direction;
     // Calculate normal based on direction from the center to the intersection
     // point
     _intersect.normal =
         _intersect.position -
         Vector3(m_Sphere.Center.x, m_Sphere.Center.y, m_Sphere.Center.z);
     _intersect.normal.Normalize();
-    _intersect.material = m_Material.get();
+    _intersect.material = GetMaterial();
+
+    float r = _intersect.position.Length();
+    _intersect.uv = Vector2(atan(_intersect.position.x / _intersect.position.y),
+        acos(_intersect.position.z / r));
+
+
+    _intersect.position = Vector3::Transform(_intersect.position, objToWorld);
+    _intersect.normal = Vector3::TransformNormal(_intersect.normal, objToWorld);
+    _intersect.normal.Normalize();
     return true;
   }
   return false;
@@ -40,7 +54,7 @@ float Sphere::CalculateWeight() {
   return m_Weight;
 }
 
-Ray Sphere::Sample(std::default_random_engine &rnd) const {
+Ray Sphere::Sample(std::default_random_engine &rnd) {
   std::uniform_real_distribution<float> dist(0, 1);
   float omega = dist(rnd) * DirectX::XM_2PI;
   float phi = dist(rnd) * DirectX::XM_PI;
@@ -55,5 +69,3 @@ Ray Sphere::Sample(std::default_random_engine &rnd) const {
   result.direction = Vector3::TransformNormal(result.direction, transform);
   return result;
 }
-
-Sphere::~Sphere(void) {}

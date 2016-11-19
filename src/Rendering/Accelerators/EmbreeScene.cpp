@@ -1,5 +1,5 @@
 #include "EmbreeScene.h"
-#include "../../Objects/BaseObject.h"
+#include "../../Objects/RenderObject.h"
 #include "../../Geometry/Intersection.h"
 #include "../../Geometry/Triangle.h"
 
@@ -45,7 +45,13 @@ EmbreeScene::EmbreeScene() {
   m_Scene = rtcDeviceNewScene(m_Device, RTC_SCENE_STATIC, RTC_INTERSECT1);
 }
 
-bool EmbreeScene::AddObject(BaseObject *obj) {
+void EmbreeScene::Clear()
+{
+	rtcDeleteScene(m_Scene);
+	m_Scene = rtcDeviceNewScene(m_Device, RTC_SCENE_STATIC, RTC_INTERSECT1);
+}
+
+bool EmbreeScene::AddObject(RenderObject *obj) {
   if (!obj->HasBuffers()) {
     return false;
   }
@@ -113,7 +119,17 @@ bool EmbreeScene::Trace(const DirectX::SimpleMath::Ray &_ray,
   minIntersect.normal = Vector3(ray.Ng);
   minIntersect.normal.Normalize();
 
-  minIntersect.hitObject = (BaseObject *)rtcGetUserData(m_Scene, ray.geomID);
+  minIntersect.hitObject = (RenderObject *)rtcGetUserData(m_Scene, ray.geomID);
+
+  auto face = minIntersect.hitObject->GetIndexBuffer()[ray.primID];
+
+  auto uvBuffer = minIntersect.hitObject->GetUVBuffer();
+  auto uv0 = uvBuffer[face.m_Indices[0]];
+  auto uv1 = uvBuffer[face.m_Indices[1]];
+  auto uv2 = uvBuffer[face.m_Indices[2]];
+
+  minIntersect.uv = (1.0f - ray.u - ray.v) * uv0 + ray.u * uv1 + ray.v * uv2;
+
   minIntersect.material = minIntersect.hitObject->GetMaterial();
   return true;
 }

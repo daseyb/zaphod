@@ -3,7 +3,7 @@
 #include "../BRDFs.h"
 #include "../../Geometry/Intersection.h"
 #include "../Materials/Material.h"
-#include "../../Objects/BaseObject.h"
+#include "../../Objects/RenderObject.h"
 
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
@@ -107,7 +107,7 @@ Color BidirectionalPathTracer::EvalPath(const Path &eye, int nEye,
 
 Color BidirectionalPathTracer::IlluminatePoint(
     Vector3 pos, Vector3 normal, std::default_random_engine &_rnd) const {
-  BaseObject *sampledLight;
+  RenderObject *sampledLight;
   float Le;
   Ray lightStart = m_Scene->SampleLight(_rnd, &sampledLight, Le);
   lightStart.direction =
@@ -135,7 +135,7 @@ Color BidirectionalPathTracer::Intersect(
     return Color(0, 0, 0);
   }
 
-  BaseObject *sampledLight;
+	RenderObject *sampledLight;
   float Le;
   Ray lightStart = m_Scene->SampleLight(_rnd, &sampledLight, Le);
   lightStart.direction =

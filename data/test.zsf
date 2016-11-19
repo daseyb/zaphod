@@ -1,0 +1,26 @@
+Material light
+  type: emission
+  color: 1 1 1
+  strength: 4
+
+Object lamp
+  type: box
+  material: light
+  position: 0 5 0
+  extends: 1 0.1 1
+  
+Object TestAlembic 
+  type: alembic 
+  file: test.abc 
+  position: 0 0 0 
+  rotation: 0 0 0 
+  scale: 1 1 1
+
+Camera Camera 
+  type: physically_based 
+  fov: 0.857556 
+  dof_distance: 5.000000 
+  lense_radius: 0.000001 
+  position: 0 2 -15 
+  rotation: 0 3.141592 0 
+  scale: 1.000000 1.000000 1.000000 

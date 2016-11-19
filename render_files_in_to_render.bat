@@ -1,0 +1,1 @@
+ for /F "eol=; tokens=* delims=\n" %i in (to_render.txt) do .\build\bin\Release\zaphod.exe 512 512 1024 64 6 %i 0 0 PT B

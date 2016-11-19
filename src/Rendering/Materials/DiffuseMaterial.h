@@ -1,10 +1,11 @@
 #pragma once
 #include "Material.h"
+#include "../Textures/Texture.h"
 
 struct DiffuseMaterial : public Material {
-  DirectX::SimpleMath::Color DiffuseColor;
 
-  DiffuseMaterial(DirectX::SimpleMath::Color _color) : DiffuseColor(_color){};
+  std::shared_ptr<Texture> DiffuseColor;
+  DiffuseMaterial(std::shared_ptr<Texture> _color) : DiffuseColor(_color){};
 
   inline virtual float F(DirectX::SimpleMath::Vector3 _in,
                          DirectX::SimpleMath::Vector3 _out) const override {
@@ -18,7 +19,7 @@ struct DiffuseMaterial : public Material {
   }
 
   inline virtual Color GetColor(const Intersection &_intersect) const override {
-    return DiffuseColor;
+    return DiffuseColor->Sample(_intersect.uv);
   }
 
   inline virtual DiffuseMaterial *Copy() { return new DiffuseMaterial(*this); };

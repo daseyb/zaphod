@@ -14,18 +14,18 @@ class Scene;
 class Integrator;
 
 #define MULTI_THREADED
-#define BOUNCES 20
+#define BOUNCES 8
 
 /********************************************
 ** Raytracer
 ** Base class of this renderer, fills an array
 ** of pixels based on the scenes content
 *********************************************/
-
+#include <iostream>
 class Raytracer {
 private:
   struct TileInfo {
-    int X, Y, Width, Height;
+    int X, Y, Width, Height, SPP;
   };
 
 #ifndef HEADLESS
@@ -46,6 +46,8 @@ private:
   int m_ThreadCount;
 
   std::atomic<bool> m_IsShutDown;
+  std::atomic<bool> m_IsRendering;
+  std::atomic<int> m_TilesInProgress;
 
   std::vector<std::thread> m_Threads;
   std::vector<TileInfo> m_TilesToRender;
@@ -53,8 +55,8 @@ private:
   std::mutex m_TileMutex;
 
   // Render a part of the image (for multy threading)
-  void RenderPart(int _x, int _y, int _width, int _height);
-
+  void RenderPart(int _x, int _y, int _width, int _height, int _spp);
+   
   void EmptyQueue(int threadIndex);
 
 public:
@@ -65,9 +67,13 @@ public:
   void Shutdown(void);
   void SetFOV(float _fov);
 
+  bool FrameDone() {
+	  return m_TilesInProgress == 0 && !m_IsRendering;
+  }
+
   void Wait();
 
-  void Render(void);
+  void Render(int frameIndex);
 
 #ifndef HEADLESS
   sf::Uint8 *GetPixels(void) const;

@@ -25,4 +25,9 @@ Matrix Camera::GetViewMatrix(void) const {
   return viewMat;
 }
 
+void Camera::SetViewMatrix(DirectX::SimpleMath::Matrix matrix) {
+    Vector3 scale;
+    matrix.Decompose(scale, m_Rotation, m_Position);
+}
+
 Camera::~Camera(void) {}

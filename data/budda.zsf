@@ -1,0 +1,86 @@
+Material Floor 
+  color: 0.800000 0.800000 0.800000 
+  type: diffuse 
+
+Material Floor.001 
+  color: 0.800000 0.002678 0.000000 
+  type: diffuse 
+
+Material Floor.002 
+  color: 0.000000 0.800000 0.052338 
+  type: diffuse 
+
+Material Light 
+  color: 1.000000 1.000000 1.000000 
+  strength: 3.0
+  type: emission 
+
+Material Lucy 
+  color: 0.212875 0.800000 0.190748 
+  type: specular 
+
+Material Material 
+  color: 0.800000 0.640927 0.357631 
+  type: diffuse 
+
+Material WallBack 
+  color: 0.800000 0.800000 0.800000 
+  type: diffuse 
+
+Camera Camera 
+  type: physically_based 
+  fov: 0.857556 
+  dof_distance: 16.190001 
+  lense_radius: 0.630000 
+  position: 4.218386 -16.063297 0.822775 
+  rotation: 1.765710 -0.047198 0.244961 
+  scale: 1.000000 1.000000 1.000000 
+
+Object happy_vrip_res2 
+  type: mesh 
+  file: happy_vrip_res2.obj 
+  material: Material 
+  position: 0.000000 0.000000 -0.925487 
+  rotation: 1.570797 -0.000000 0.000000 
+  scale: 44.885036 44.885036 44.885036 
+
+Object Plane 
+  type: mesh 
+  file: Plane.obj 
+  material: Floor 
+  position: 0.000000 0.000000 0.000000 
+  rotation: 0.000000 0.000000 0.000000 
+  scale: 1.000000 1.000000 1.000000 
+
+Object Plane.001 
+  type: mesh 
+  file: Plane.001.obj 
+  material: WallBack 
+  position: -0.029729 5.128336 5.064219 
+  rotation: 0.000000 0.000000 0.000000 
+  scale: 1.000000 1.000000 1.000000 
+
+Object Plane.002 
+  type: mesh 
+  file: Plane.002.obj 
+  material: Light 
+  position: 0.000000 0.000000 9.658735 
+  rotation: 0.000000 0.000000 0.000000 
+  scale: 2.122942 2.122942 2.122942 
+
+Object Plane.003 
+  type: mesh 
+  file: Plane.003.obj 
+  material: Floor.001 
+  position: -5.166652 0.000000 3.878906 
+  rotation: 1.570797 -0.000000 1.570797 
+  scale: 5.000000 5.000000 5.000000 
+
+Object Plane.004 
+  type: mesh 
+  file: Plane.004.obj 
+  material: Floor.002 
+  position: 6.846118 0.000000 3.878906 
+  rotation: 1.570797 -0.000000 1.570797 
+  scale: 5.000000 5.000000 5.000000 
+
