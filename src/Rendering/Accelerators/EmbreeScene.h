@@ -3,7 +3,7 @@
 #include <embree2/rtcore_ray.h>
 #include "../../SimpleMath.h"
 
-class BaseObject;
+class RenderObject;
 struct Intersection;
 
 class EmbreeScene {
@@ -13,7 +13,8 @@ private:
 
 public:
   EmbreeScene();
-  bool AddObject(BaseObject* obj);
+  void Clear();
+  bool AddObject(RenderObject* obj);
   void CommitScene();
   bool Trace(const DirectX::SimpleMath::Ray &_ray, Intersection &minIntersect) const;
   ~EmbreeScene();
