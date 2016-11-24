@@ -12,10 +12,12 @@ using namespace DirectX::SimpleMath;
 
 BidirectionalPathTracer::Path
 BidirectionalPathTracer::MakePath(const DirectX::SimpleMath::Ray &_startRay,
+                                  const PathVertex& _startVertex,
                                   int _depth,
                                   std::default_random_engine &_rnd) const {
   Path path;
-  path.reserve(_depth);
+  path.reserve(_depth+1);
+  path.push_back(_startVertex);
   Ray ray = _startRay;
 
   std::uniform_real_distribution<float> dist(0, 1);
@@ -48,9 +50,7 @@ BidirectionalPathTracer::MakePath(const DirectX::SimpleMath::Ray &_startRay,
     auto sample =
         minIntersect.material->Sample(minIntersect, ray.direction, _rnd);
     v.Out = sample.Direction;
-    v.BrdfWeight =
-        sample
-            .PDF; // minIntersect.material->F(ray.direction, sample.Direction);
+    v.BrdfWeight = sample.PDF;
 
     path.push_back(v);
     ray = {minIntersect.position + sample.Direction * 0.001f, sample.Direction};
@@ -69,6 +69,8 @@ float BidirectionalPathTracer::G(const PathVertex &v0,
 
 Color BidirectionalPathTracer::EvalPath(const Path &eye, int nEye,
                                         const Path &light, int nLight) const {
+
+  if (nEye == 0 || nLight == 0) return{ 0, 0, 0 };
   Color L(1, 1, 1, 1);
 
   const static auto evalV = [](const PathVertex &v) {
@@ -128,14 +130,12 @@ Color BidirectionalPathTracer::IlluminatePoint(
   return L;
 }
 
-Color BidirectionalPathTracer::Intersect(
-    const Ray &_ray, int _depth, bool _isSecondary,
-    std::default_random_engine &_rnd) const {
+Color BidirectionalPathTracer::Intersect(const Ray &_ray, int _depth, bool _isSecondary, std::default_random_engine &_rnd) const {
   if (_depth == 0) {
     return Color(0, 0, 0);
   }
 
-	RenderObject *sampledLight;
+  RenderObject *sampledLight;
   float Le;
   Ray lightStart = m_Scene->SampleLight(_rnd, &sampledLight, Le);
   lightStart.direction =
@@ -148,6 +148,9 @@ Color BidirectionalPathTracer::Intersect(
   Color L(0, 0, 0, 0);
   size_t i, j;
 
+  L = EvalPath(eyePath, eyePath.size(), lightPath, lightPath.size()) * Color(1,1,1);
+
+#if 0
   // Connect bidirectional path prefixes and evaluate throughput
   Color directWt(1.0f, 1.0f, 1.0f);
   for (i = 1; i <= eyePath.size(); ++i) {
@@ -163,6 +166,7 @@ Color BidirectionalPathTracer::Intersect(
       L += EvalPath(eyePath, i, lightPath, j) / (float)(i + j);
     }
   }
+#endif
 
   return L * Le;
 }
