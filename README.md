@@ -12,6 +12,8 @@ May aim is it to implement a functional 3D renderer using raytracing. This inclu
 models and some more. I'll also try to keep all that in realtime, though I might sacrifice that constraint in exchange
 for cool features.
 
+Download data (examples scenes) here: https://github.com/daseyb/zaphod/releases/download/1.0/data.zip
+
 ###"Screenshot of the Week"###
 ![Buddah](img/23-07-2016-14-57-31.png)
 
