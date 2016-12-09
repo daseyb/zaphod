@@ -12,10 +12,19 @@ using namespace DirectX::SimpleMath;
 
 BidirectionalPathTracer::Path
 BidirectionalPathTracer::MakePath(const DirectX::SimpleMath::Ray &_startRay,
+<<<<<<< HEAD
                                   int _depth,
                                   std::default_random_engine &_rnd) const {
   Path path;
   path.reserve(_depth);
+=======
+                                  const PathVertex& _startVertex,
+                                  int _depth,
+                                  std::default_random_engine &_rnd) const {
+  Path path;
+  path.reserve(_depth+1);
+  path.push_back(_startVertex);
+>>>>>>> 6dd27b5cfaadf75be6a0a19556ac379374fde471
   Ray ray = _startRay;
 
   std::uniform_real_distribution<float> dist(0, 1);
@@ -48,9 +57,13 @@ BidirectionalPathTracer::MakePath(const DirectX::SimpleMath::Ray &_startRay,
     auto sample =
         minIntersect.material->Sample(minIntersect, ray.direction, _rnd);
     v.Out = sample.Direction;
+<<<<<<< HEAD
     v.BrdfWeight =
         sample
             .PDF; // minIntersect.material->F(ray.direction, sample.Direction);
+=======
+    v.BrdfWeight = sample.PDF;
+>>>>>>> 6dd27b5cfaadf75be6a0a19556ac379374fde471
 
     path.push_back(v);
     ray = {minIntersect.position + sample.Direction * 0.001f, sample.Direction};
@@ -69,6 +82,11 @@ float BidirectionalPathTracer::G(const PathVertex &v0,
 
 Color BidirectionalPathTracer::EvalPath(const Path &eye, int nEye,
                                         const Path &light, int nLight) const {
+<<<<<<< HEAD
+=======
+
+  if (nEye == 0 || nLight == 0) return{ 0, 0, 0 };
+>>>>>>> 6dd27b5cfaadf75be6a0a19556ac379374fde471
   Color L(1, 1, 1, 1);
 
   const static auto evalV = [](const PathVertex &v) {
@@ -128,14 +146,22 @@ Color BidirectionalPathTracer::IlluminatePoint(
   return L;
 }
 
+<<<<<<< HEAD
 Color BidirectionalPathTracer::Intersect(
     const Ray &_ray, int _depth, bool _isSecondary,
     std::default_random_engine &_rnd) const {
+=======
+Color BidirectionalPathTracer::Intersect(const Ray &_ray, int _depth, bool _isSecondary, std::default_random_engine &_rnd) const {
+>>>>>>> 6dd27b5cfaadf75be6a0a19556ac379374fde471
   if (_depth == 0) {
     return Color(0, 0, 0);
   }
 
+<<<<<<< HEAD
 	RenderObject *sampledLight;
+=======
+  RenderObject *sampledLight;
+>>>>>>> 6dd27b5cfaadf75be6a0a19556ac379374fde471
   float Le;
   Ray lightStart = m_Scene->SampleLight(_rnd, &sampledLight, Le);
   lightStart.direction =
@@ -148,6 +174,12 @@ Color BidirectionalPathTracer::Intersect(
   Color L(0, 0, 0, 0);
   size_t i, j;
 
+<<<<<<< HEAD
+=======
+  L = EvalPath(eyePath, eyePath.size(), lightPath, lightPath.size()) * Color(1,1,1);
+
+#if 0
+>>>>>>> 6dd27b5cfaadf75be6a0a19556ac379374fde471
   // Connect bidirectional path prefixes and evaluate throughput
   Color directWt(1.0f, 1.0f, 1.0f);
   for (i = 1; i <= eyePath.size(); ++i) {
@@ -163,6 +195,10 @@ Color BidirectionalPathTracer::Intersect(
       L += EvalPath(eyePath, i, lightPath, j) / (float)(i + j);
     }
   }
+<<<<<<< HEAD
+=======
+#endif
+>>>>>>> 6dd27b5cfaadf75be6a0a19556ac379374fde471
 
   return L * Le;
 }
