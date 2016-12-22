@@ -1,6 +1,7 @@
 #pragma once
 #include "../SimpleMath.h"
 #include "Scene.h"
+#include <math.h>
 
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
@@ -132,8 +133,14 @@ UniformHemisphereSample(Vector3 n,
     return dir;
 }
 
+inline float sign(float val) {
+    return val < 0 ? -1.0f : 1.0f;
+}
+
 inline BRDFSample BRDFDiffuse(Vector3 normal, Vector3 view,
                               std::default_random_engine &_rnd) {
+  float inside = sign(view.Dot(normal));
+  normal *= -inside;
   auto out = CosWeightedRandomHemisphereDirection2(normal, _rnd);
   return {out, 1.0f};
 }
@@ -147,9 +154,7 @@ inline float FresnelSchlick(Vector3 H, Vector3 norm, float n1) {
     return r0 + (1 - r0)*pow5(1 - H.Dot(norm));
 }
 
-inline float sign(float val) {
-    return val < 0 ? -1.0f : 1.0f;
-}
+
 
 inline BRDFSample BRDFPhong(Vector3 normal, Vector3 view, float kd, float ks, float kt,
                             float roughness, std::default_random_engine &_rnd) {
@@ -161,12 +166,13 @@ inline BRDFSample BRDFPhong(Vector3 normal, Vector3 view, float kd, float ks, fl
   ks /= total;
   kt /= total;
 
+  float inside = sign(view.Dot(normal));
+
   float u = dist(_rnd);
   if (u < kd) {
-    return BRDFDiffuse(normal, view, _rnd);
+    return BRDFDiffuse(-inside * normal, view, _rnd);
   }
 
-  float inside = sign(view.Dot(normal));
   float ior = 1.5f;
   Vector3 w1, ref;
   if (u < kd + ks) {

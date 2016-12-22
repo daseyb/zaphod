@@ -1,0 +1,10 @@
+C:\dev\cg-seminar\code\zaphod\data\bathroom\scene.xml
+C:\dev\cg-seminar\code\zaphod\data\bedroom\scene.xml
+C:\dev\cg-seminar\code\zaphod\data\kitchen\scene.xml
+C:\dev\cg-seminar\code\zaphod\data\living-room\scene.xml
+C:\dev\cg-seminar\code\zaphod\data\living-room-3\scene.xml
+C:\dev\cg-seminar\code\zaphod\data\staircase\scene.xml
+C:\dev\cg-seminar\code\zaphod\data\staircase2\scene.xml
+C:\dev\cg-seminar\code\zaphod\data\veach-ajar\scene.xml
+C:\dev\cg-seminar\code\zaphod\data\veach-bidir\scene.xml
+C:\dev\cg-seminar\code\zaphod\data\veach-mis\scene.xml

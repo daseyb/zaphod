@@ -149,7 +149,4 @@ $RECYCLE.BIN/
 # Mac crap
 .DS_Store
 
-!data/*.obj
-data/*.hdr
-
-!data/*
+data/

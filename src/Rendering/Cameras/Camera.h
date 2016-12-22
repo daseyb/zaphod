@@ -13,7 +13,6 @@ class Camera {
 private:
   DirectX::SimpleMath::Vector3 m_Position;
   DirectX::SimpleMath::Quaternion m_Rotation;
-  float m_Yaw, m_Pitch, m_Roll;
 
 public:
   Camera() : m_Position(), m_Rotation(){};
@@ -23,6 +22,7 @@ public:
               DirectX::SimpleMath::Vector3 _target,
               DirectX::SimpleMath::Vector3 _up);
   DirectX::SimpleMath::Matrix GetViewMatrix(void) const;
+  void SetViewMatrix(DirectX::SimpleMath::Matrix matrix);
 
   virtual DirectX::SimpleMath::Ray GetRay(int _x, int _y, int _w, int _h,
                                           std::default_random_engine &_rnd,

@@ -21,6 +21,8 @@ endif()
 
 # add_subdirectory(USD)
 
+OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
+OPTION (NAMESPACE_VERSIONING "Namespace Versioning" OFF)
 
 add_subdirectory(openexr/IlmBase)
 
@@ -47,5 +49,11 @@ include_directories("${CMAKE_CURRENT_LIST_DIR}/alembic/lib")
 
 add_subdirectory(alembic)
 
-set(INC_DIRS ${INC_DIRS} "${CMAKE_CURRENT_LIST_DIR}/alembic/lib" PARENT_SCOPE)
-set(LIBS ${LIBS} "Alembic" PARENT_SCOPE)
+set(INC_DIRS ${INC_DIRS} "${CMAKE_CURRENT_LIST_DIR}/alembic/lib")
+set(LIBS ${LIBS} "Alembic")
+
+add_subdirectory(pugixml-1.7)
+
+
+set(INC_DIRS ${INC_DIRS} "${CMAKE_CURRENT_LIST_DIR}/pugixml-1.7/src" PARENT_SCOPE)
+set(LIBS ${LIBS} "PugiXML" PARENT_SCOPE)

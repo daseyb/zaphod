@@ -11,7 +11,16 @@
 #include <Alembic/Util/All.h>
 #include <Alembic/Abc/TypedPropertyTraits.h>
 
-using namespace ::Alembic::AbcGeom;
+using ::Alembic::AbcGeom::ICompoundProperty;
+using ::Alembic::AbcGeom::IScalarProperty;
+using ::Alembic::AbcGeom::IArrayProperty;
+using ::Alembic::AbcGeom::IPolyMeshSchema;
+using ::Alembic::AbcGeom::XformSample;
+using ::Alembic::AbcGeom::DegreesToRadians;
+using ::Alembic::AbcGeom::PropertyHeader;
+using ::Alembic::AbcGeom::IXformSchema;
+using ::Alembic::AbcGeom::IObject;
+using ::Alembic::AbcGeom::PropertyHeader;
 
 static const std::string g_sep(";");
 
@@ -25,10 +34,10 @@ void visitSimpleArrayProperty(PROP iProp, const std::string &iIndent) {
   std::string ptype = "ArrayProperty ";
   size_t asize = 0;
 
-  AbcA::ArraySamplePtr samp;
-  index_t maxSamples = iProp.getNumSamples();
-  for (index_t i = 0; i < maxSamples; ++i) {
-    iProp.get(samp, ISampleSelector(i));
+  Alembic::AbcGeom::AbcA::ArraySamplePtr samp;
+  Alembic::AbcGeom::index_t maxSamples = iProp.getNumSamples();
+  for (Alembic::AbcGeom::index_t i = 0; i < maxSamples; ++i) {
+    iProp.get(samp, Alembic::AbcGeom::ISampleSelector(i));
     asize = samp->size();
   };
 
@@ -60,13 +69,13 @@ void visitSimpleScalarProperty(PROP iProp, const std::string &iIndent) {
   std::string ptype = "ScalarProperty ";
   size_t asize = 0;
 
-  const AbcA::DataType &dt = iProp.getDataType();
+  const Alembic::AbcGeom::AbcA::DataType &dt = iProp.getDataType();
   const Alembic::Util::uint8_t extent = dt.getExtent();
   Alembic::Util::Dimensions dims(extent);
-  AbcA::ArraySamplePtr samp = AbcA::AllocateArraySample(dt, dims);
-  index_t maxSamples = iProp.getNumSamples();
-  for (index_t i = 0; i < maxSamples; ++i) {
-    iProp.get(const_cast<void *>(samp->getData()), ISampleSelector(i));
+  Alembic::AbcGeom::ArraySamplePtr samp = Alembic::AbcGeom::AbcA::AllocateArraySample(dt, dims);
+  Alembic::AbcGeom::index_t maxSamples = iProp.getNumSamples();
+  for (Alembic::AbcGeom::index_t i = 0; i < maxSamples; ++i) {
+    iProp.get(const_cast<void *>(samp->getData()), Alembic::AbcGeom::ISampleSelector(i));
     asize = samp->size();
   };
 

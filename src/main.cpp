@@ -13,6 +13,8 @@
 int FrameIndex = 0;
 int FrameEnd = 10;
 
+bool batchmode = false;
+
 const char *scene_file;
 
 std::string get_time_string() {
@@ -70,13 +72,20 @@ int display_window(int width, int height, Raytracer &rt) {
 			std::string frameIndexStr = std::to_string(FrameIndex);
 			padTo(frameIndexStr, 5, '0');
 
+            auto filename = std::string(scene_file) + " " + frameIndexStr;
       stbi_write_hdr(
-          (std::string(scene_file) + " " + frameIndexStr + ".hdr")
+          (filename + ".hdr")
               .c_str(),
           width, height, 4, (float *)rt.GetRawPixels());
+
+      auto img = tex.copyToImage();
+      img.saveToFile(filename + ".png");
+
       FrameIndex++;
       if (FrameIndex <= FrameEnd) {
         rt.Render(FrameIndex);
+      } else if(batchmode) {
+          window.close();
       }
     }
   }
@@ -91,6 +100,11 @@ const std::string USAGE = "<width> <height> <spp> <tile size> <thread count> "
 int main(int argc, char **argv) {
 
   if (argc == 2) {
+  }
+
+  if (argc == 11) {
+      batchmode = true;
+      argc--;
   }
 
   if (argc != 10) {
