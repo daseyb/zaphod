@@ -60,7 +60,7 @@ public:
       return false;
     }
     return DirectX::SimpleMath::Vector3::DistanceSquared(intersect.position,
-                                                         _p2) < 0.001f;
+                                                         _p2) < 0.01f;
   }
 
   ~Scene(void);

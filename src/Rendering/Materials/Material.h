@@ -6,10 +6,13 @@
 struct Intersection;
 
 struct Material {
+  InteractionType type;
+
   virtual float Material::F(DirectX::SimpleMath::Vector3 _in,
                                    DirectX::SimpleMath::Vector3 _out) const {
     return 1.0f;
   }
+
   virtual BRDFSample
   Material::Sample(const Intersection &_intersect,
                    DirectX::SimpleMath::Vector3 _view,

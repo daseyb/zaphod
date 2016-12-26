@@ -19,6 +19,7 @@
 #include "../Rendering/Materials/DiffuseMaterial.h"
 #include "../Rendering/Materials/SpecularMaterial.h"
 #include "../Rendering/Materials/EmissionMaterial.h"
+#include "../Rendering/Materials/TransparentMaterial.h"
 
 #include "../Objects/BaseObject.h"
 #include "../Objects/Sphere.h"
@@ -1160,7 +1161,10 @@ Material* GetMaterialFromBsdf(MitsubaBsdf* bsdf) {
             return new SpecularMaterial(std::make_shared<ConstantColor>(Color(1.0f, 1.0f, 1.0f)), 0, 0.3f, 0.7f, 0);
         }
         case MitsubaBsdf::Type::Mask: {
-            return GetMaterialFromBsdf(((MitsubaBsdfMask*)bsdf)->bsdf.get());
+            auto maskMaterial = (MitsubaBsdfMask*)bsdf;
+            auto childMat = GetMaterialFromBsdf(maskMaterial->bsdf.get());
+            auto opacityTex = GetTextureFromColorSource(maskMaterial->opacity.get());
+            return new TransparentMaterial(opacityTex, childMat);
         }
         default: {
             return new DiffuseMaterial(std::make_shared<ConstantColor>(Color(0.7f, 0.7f, 0.7f)));

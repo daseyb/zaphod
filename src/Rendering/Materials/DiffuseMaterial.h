@@ -5,11 +5,13 @@
 struct DiffuseMaterial : public Material {
 
   std::shared_ptr<Texture> DiffuseColor;
-  DiffuseMaterial(std::shared_ptr<Texture> _color) : DiffuseColor(_color){};
+  DiffuseMaterial(std::shared_ptr<Texture> _color) : DiffuseColor(_color){
+    type = InteractionType::Diffuse;
+  };
 
   inline virtual float F(DirectX::SimpleMath::Vector3 _in,
                          DirectX::SimpleMath::Vector3 _out) const override {
-    return XM_PI;
+    return std::abs((-_in).Dot(_out));
   }
 
   inline virtual BRDFSample

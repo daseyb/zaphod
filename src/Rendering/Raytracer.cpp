@@ -45,7 +45,7 @@ bool Raytracer::Initialize(int _width, int _height, std::string _integrator,
   m_pCamera.reset(cam);
 
   m_pScene = std::make_unique<Scene>(m_pCamera.get(), objects);
-  m_pIntegrator.reset(IntegratorFactory(_integrator, m_pScene.get()));
+  m_pIntegrator.reset(IntegratorFactory(_integrator, m_pScene.get(), m_pCamera.get()));
 
   return true;
 }
@@ -86,19 +86,14 @@ void Raytracer::RenderPart(int _x, int _y, int _width, int _height, int _spp) {
   std::random_device d;
   std::default_random_engine rnd(d());
 
+  std::uniform_real_distribution<float> pixel_dist(-1, 1);
+
   for (int i = 0; i < _spp; i++) {
     for (int x = _x; x < _x + _width; x++) {
       for (int y = _y; y < _y + _height; y++) {
         int pixelIndex = (x + m_Width * y) * 4;
-        float weight;
-        Ray ray = m_pCamera->GetRay(x, y, m_Width, m_Height, rnd, weight);
-
-        Color rayColor = Color(0, 0, 0);
-
-        if (weight > FLT_EPSILON) {
-          rayColor =
-              m_pIntegrator->Intersect(ray, BOUNCES, false, rnd) * weight;
-        }
+        
+        Color rayColor = m_pIntegrator->Sample(x + pixel_dist(rnd), y + pixel_dist(rnd), m_Width, m_Height, rnd);
 
         Color *pixelAddress = m_RawPixels + x + m_Width * y;
         *pixelAddress += (rayColor - *pixelAddress) / float(i + 1);

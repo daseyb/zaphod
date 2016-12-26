@@ -14,6 +14,8 @@ private:
   DirectX::SimpleMath::Vector3 m_Position;
   DirectX::SimpleMath::Quaternion m_Rotation;
 
+  DirectX::SimpleMath::Matrix m_ViewMatrix;
+
 public:
   Camera() : m_Position(), m_Rotation(){};
   void SetPosition(DirectX::SimpleMath::Vector3 _pos);
@@ -24,7 +26,7 @@ public:
   DirectX::SimpleMath::Matrix GetViewMatrix(void) const;
   void SetViewMatrix(DirectX::SimpleMath::Matrix matrix);
 
-  virtual DirectX::SimpleMath::Ray GetRay(int _x, int _y, int _w, int _h,
+  virtual DirectX::SimpleMath::Ray GetRay(float _x, float _y, int _w, int _h,
                                           std::default_random_engine &_rnd,
                                           float &weight) const = 0;
 

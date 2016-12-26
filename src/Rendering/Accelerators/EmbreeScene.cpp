@@ -124,12 +124,17 @@ bool EmbreeScene::Trace(const DirectX::SimpleMath::Ray &_ray,
   auto face = minIntersect.hitObject->GetIndexBuffer()[ray.primID];
 
   auto uvBuffer = minIntersect.hitObject->GetUVBuffer();
-  auto uv0 = uvBuffer[face.m_Indices[0]];
-  auto uv1 = uvBuffer[face.m_Indices[1]];
-  auto uv2 = uvBuffer[face.m_Indices[2]];
 
-  minIntersect.uv = (1.0f - ray.u - ray.v) * uv0 + ray.u * uv1 + ray.v * uv2;
+  if (uvBuffer) {
+    auto uv0 = uvBuffer[face.m_Indices[0]];
+    auto uv1 = uvBuffer[face.m_Indices[1]];
+    auto uv2 = uvBuffer[face.m_Indices[2]];
 
+    minIntersect.uv = (1.0f - ray.u - ray.v) * uv0 + ray.u * uv1 + ray.v * uv2;
+  } else {
+    minIntersect.uv = {0, 0};
+  }
+  
   minIntersect.material = minIntersect.hitObject->GetMaterial();
   return true;
 }

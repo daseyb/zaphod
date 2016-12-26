@@ -6,9 +6,15 @@
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
 
+enum class InteractionType {
+  Diffuse,
+  Specular
+};
+
 struct BRDFSample {
   Vector3 Direction;
   float PDF;
+  InteractionType Type;
 };
 
 inline Vector3 HemisphereSample(float theta, float phi, Vector3 n) {
@@ -142,7 +148,7 @@ inline BRDFSample BRDFDiffuse(Vector3 normal, Vector3 view,
   float inside = sign(view.Dot(normal));
   normal *= -inside;
   auto out = CosWeightedRandomHemisphereDirection2(normal, _rnd);
-  return {out, 1.0f};
+  return {out, 1.0f, InteractionType::Diffuse};
 }
 
 inline float pow5(float val) {
@@ -153,8 +159,6 @@ inline float FresnelSchlick(Vector3 H, Vector3 norm, float n1) {
     float r0 = n1 * n1;
     return r0 + (1 - r0)*pow5(1 - H.Dot(norm));
 }
-
-
 
 inline BRDFSample BRDFPhong(Vector3 normal, Vector3 view, float kd, float ks, float kt,
                             float roughness, std::default_random_engine &_rnd) {
@@ -196,5 +200,5 @@ inline BRDFSample BRDFPhong(Vector3 normal, Vector3 view, float kd, float ks, fl
 
     w1 = HemisphereSample(theta, phi, ref);
   }
-  return { w1, 1.0f};
+  return { w1, 1.0f, InteractionType::Specular};
 }
