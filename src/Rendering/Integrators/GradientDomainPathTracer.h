@@ -17,6 +17,12 @@ public:
   virtual DirectX::SimpleMath::Color Sample(float x, float y, int w, int h, std::default_random_engine& _rnd) const override;
 private:
 
+  enum class ShiftResult {
+    Invertible,
+    NotInvertible,
+    NotSymmetric
+  };
+
   struct PathVertex {
     enum Type {
       Camera,
@@ -33,6 +39,6 @@ private:
   typedef std::array<PathVertex, 15> Path;
 
   Path TracePath(const DirectX::SimpleMath::Ray & _ray, int _depth, std::default_random_engine & _rnd, int& length) const;
-  bool GradientDomainPathTracer::OffsetPath(const Path& base, const Ray &startRay, int length, Path& offset, float& weight, float& jacobian) const;
+  GradientDomainPathTracer::ShiftResult GradientDomainPathTracer::OffsetPath(const Path& base, const Ray &startRay, int length, Path& offset, int& shiftLength, float& weight, float& jacobian) const;
   DirectX::SimpleMath::Color EvaluatePath(const Path & path, int length) const;
 };

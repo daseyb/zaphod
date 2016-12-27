@@ -6,6 +6,8 @@
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
 
+
+
 Color GradientDomainPathTracer::Sample(float x, float y, int w, int h, std::default_random_engine& _rnd) const {
   Color result = { 0, 0, 0, 0 };
 
@@ -19,7 +21,7 @@ Color GradientDomainPathTracer::Sample(float x, float y, int w, int h, std::defa
       m_Camera->GetRay(x - 1, y, w, h, _rnd, weightOffset),
       m_Camera->GetRay(x, y - 1, w, h, _rnd, weightOffset),
     };
-    
+
     int baseLength;
     auto basePath = TracePath(ray, 8, _rnd, baseLength);
     auto basePathValue = EvaluatePath(basePath, baseLength);
@@ -27,24 +29,49 @@ Color GradientDomainPathTracer::Sample(float x, float y, int w, int h, std::defa
     for (int i = 0; i < 4; i++) {
       Path offsetPath;
       float weight, jacobian;
-      bool valid = OffsetPath(basePath, offsetRays[i], baseLength, offsetPath, weight, jacobian);
-      if(valid) result += weight * (basePathValue - EvaluatePath(offsetPath, baseLength) * jacobian);
-    }
+      int shiftLength;
 
-    result *= camWeight * 0.25f;
-    result = { abs(result.x),abs(result.y),abs(result.z)};
+      auto shiftResult = OffsetPath(basePath, offsetRays[i], baseLength, offsetPath, shiftLength, weight, jacobian);
+      Color accum = { 0,0,0 };
+      switch (shiftResult) {
+        case ShiftResult::NotInvertible:
+        {
+          offsetPath = TracePath(offsetRays[i], 8, _rnd, shiftLength);
+          accum = basePathValue - EvaluatePath(offsetPath, shiftLength);
+          break;
+        }
+        case ShiftResult::Invertible:
+        {
+          float w_ij = 0.5f; //TODO: MIS
+          accum = w_ij * (basePathValue - EvaluatePath(offsetPath, shiftLength) * jacobian);
+          break;
+        }
+        case ShiftResult::NotSymmetric:
+        {
+          float w_ij = 1.0;
+          accum = w_ij * (basePathValue - EvaluatePath(offsetPath, shiftLength) * jacobian);
+        }
+      }
+
+      result += accum * (i > 1 ? -1 : 1);
+    }
+    result *= camWeight;
+    result = Color{ 0.5, 0.5, 0.5 } + Color{ result.x, result.y, result.z }*0.5f;
   }
   return result;
 }
 
 #include <iostream>
 
-bool GradientDomainPathTracer::OffsetPath(const Path& base, const Ray &startRay, int length, Path& offset, float& weight, float& jacobian) const {
-
+GradientDomainPathTracer::ShiftResult GradientDomainPathTracer::OffsetPath(const Path& base, const Ray &startRay, int length, Path& offset, int& shiftLength, float& weight, float& jacobian) const {
   weight = 1;
   jacobian = 1;
+  shiftLength = 1;
+
   Ray currentRay = startRay;
   offset[0] = { { currentRay.position, currentRay.direction, { 0,0 }, nullptr, nullptr }, { currentRay.direction, 1, InteractionType::Diffuse }, PathVertex::Camera };
+
+  auto result = ShiftResult::Invertible;
 
   int i = 1;
   for (; i < length; i++) {
@@ -53,7 +80,7 @@ bool GradientDomainPathTracer::OffsetPath(const Path& base, const Ray &startRay,
     bool intersectFound = m_Scene->Trace(currentRay, minIntersect);
 
     if (!intersectFound) {
-      return false;
+      return ShiftResult::NotInvertible;
     }
 
     if (minIntersect.material->IsLight()) {
@@ -71,6 +98,8 @@ bool GradientDomainPathTracer::OffsetPath(const Path& base, const Ray &startRay,
 
     offset[i] = { minIntersect, sample, sample.Type == InteractionType::Diffuse ? PathVertex::Diffuse : PathVertex::Specular };
 
+    if (offset[i].type != base[i].type) result = ShiftResult::NotSymmetric;
+
     bool thisIsDiffuse = base[i].type == PathVertex::Diffuse && offset[i].type == PathVertex::Diffuse;
     bool nextIsDiffuse = base[i + 1].type == PathVertex::Diffuse || base[i + 1].type == PathVertex::Light;
 
@@ -83,7 +112,10 @@ bool GradientDomainPathTracer::OffsetPath(const Path& base, const Ray &startRay,
       offset[i].sample.Direction = currentRay.direction;
       offset[i].sample.PDF = minIntersect.material->F(offset[i - 1].sample.Direction, offset[i].sample.Direction)/ minIntersect.material->F(base[i - 1].sample.Direction, base[i].sample.Direction);
       // Connection failed
-      if (!m_Scene->Test(offset[i].intersect.position, base[i + 1].intersect.position)) return false;
+      if (!m_Scene->Test(offset[i].intersect.position, base[i + 1].intersect.position)) {
+        shiftLength = i;
+        return ShiftResult::NotSymmetric;
+      }
       // Connection succeeded, copy the rest of the vertices
 
       i++;
@@ -96,8 +128,8 @@ bool GradientDomainPathTracer::OffsetPath(const Path& base, const Ray &startRay,
   for (; i < length; i++) {
     offset[i] = base[i];
   }
-
-  return true;
+  shiftLength = length;
+  return result;
 }
 
 GradientDomainPathTracer::Path GradientDomainPathTracer::TracePath(const Ray &_ray, int _depth, std::default_random_engine &_rnd, int& length) const {
