@@ -6,8 +6,6 @@
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
 
-
-
 Color GradientDomainPathTracer::Sample(float x, float y, int w, int h, std::default_random_engine& _rnd) const {
   Color result = { 0, 0, 0, 0 };
 
@@ -53,15 +51,20 @@ Color GradientDomainPathTracer::Sample(float x, float y, int w, int h, std::defa
         }
       }
 
-      result += accum * (i > 1 ? -1 : 1);
+      float fwdFactor = (i > 1 ? 1 : -1);
+      ds[i % 2].get()[m_Width * int(y) + int(x)] += accum * fwdFactor;
+      result = accum * fwdFactor;
     }
-    result *= camWeight;
+    base.get()[m_Width * int(y) + int(x)] += basePathValue;
     result = Color{ 0.5, 0.5, 0.5 } + Color{ result.x, result.y, result.z }*0.5f;
   }
   return result;
 }
 
-#include <iostream>
+void GradientDomainPathTracer::Finalize(int totalSamples) const {
+  Integrator::Finalize(totalSamples);
+}
+
 
 GradientDomainPathTracer::ShiftResult GradientDomainPathTracer::OffsetPath(const Path& base, const Ray &startRay, int length, Path& offset, int& shiftLength, float& weight, float& jacobian) const {
   weight = 1;

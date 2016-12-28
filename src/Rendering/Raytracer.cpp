@@ -7,6 +7,7 @@
 #include "ComponentFactories.h"
 #include <iostream>
 #include "../IO/SceneLoader.h"
+#include "../IO/pfm.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -45,7 +46,7 @@ bool Raytracer::Initialize(int _width, int _height, std::string _integrator,
   m_pCamera.reset(cam);
 
   m_pScene = std::make_unique<Scene>(m_pCamera.get(), objects);
-  m_pIntegrator.reset(IntegratorFactory(_integrator, m_pScene.get(), m_pCamera.get()));
+  m_pIntegrator.reset(IntegratorFactory(_integrator, m_pScene.get(), m_pCamera.get(), m_Width, m_Height));
 
   return true;
 }
@@ -86,7 +87,7 @@ void Raytracer::RenderPart(int _x, int _y, int _width, int _height, int _spp) {
   std::random_device d;
   std::default_random_engine rnd(d());
 
-  std::uniform_real_distribution<float> pixel_dist(-1, 1);
+  std::uniform_real_distribution<float> pixel_dist(-0.5, 0.5);
 
   for (int i = 0; i < _spp; i++) {
     for (int x = _x; x < _x + _width; x++) {
@@ -149,6 +150,8 @@ void Raytracer::Render(int frameIndex) {
   m_pScene->SetTime(frameIndex);
   memset(m_RawPixels, 0, m_Height * m_Width * sizeof(Color));
 
+  m_pIntegrator->Reset();
+
 #ifndef HEADLESS
   memset(m_Pixels, 0, m_Height * m_Width * sizeof(sf::Uint8) * 4);
 #endif
@@ -190,6 +193,47 @@ void Raytracer::Render(int frameIndex) {
 #else
   RenderPart(0, 0, m_Width, m_Height, m_SPP);
 #endif
+}
+
+void Raytracer::SaveImages(std::string basename) {
+
+  m_pIntegrator->Finalize(m_SPP);
+
+  stbi_write_hdr((basename + ".hdr").c_str(),
+    m_Width, m_Height, 4, (float *)GetRawPixels());
+
+  auto outputs = m_pIntegrator->getOutputs();
+
+  for (auto& output : outputs) {
+    Color* data = output.Data.get();
+    switch (output.format) {
+      case OutputFormat::HDR:
+        stbi_write_hdr((basename + "-" + output.name + ".hdr").c_str(),
+          m_Width, m_Height, 4, (float*)data);
+        break;
+      case OutputFormat::PNG:
+        stbi_write_png((basename + "-" + output.name + ".png").c_str(),
+          m_Width, m_Height, 4, data, 0);
+        break;
+      case OutputFormat::PFM:
+        float* data3 = (float*)malloc(m_Width * m_Height * 3 * sizeof(float));
+        for (int x = 0; x < m_Width; x++) {
+          for (int y = 0; y < m_Height; y++) {
+            int i = x + m_Width * (m_Height - y - 1);
+            int j = x + m_Width * y;
+            Color col = data[j];
+            data3[i * 3 + 0] = col.R();
+            data3[i * 3 + 1] = col.G();
+            data3[i * 3 + 2] = col.B();
+          }
+        }
+        
+        write_pfm_file3((basename + "-" + output.name + ".pfm").c_str(), data3, m_Width, m_Height);
+        free(data3);
+        break;
+    }
+  }
+
 }
 
 #ifndef HEADLESS

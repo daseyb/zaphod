@@ -5,17 +5,30 @@
 #include "../Materials/Material.h"
 
 #include <array>
+#include <memory>
 
 
 class GradientDomainPathTracer : Integrator {
 public:
-  GradientDomainPathTracer(Scene *scene, Camera* camera) : Integrator(scene, camera) {}
+  GradientDomainPathTracer(Scene *scene, Camera* camera, int w, int h) : Integrator(scene, camera, w, h) {
+    ds[0] = AddOutput("dx", OutputFormat::PFM, w, h);
+    ds[1] = AddOutput("dy", OutputFormat::PFM, w, h);
+
+    base = AddOutput("primal", OutputFormat::PFM, w, h);
+
+  }
   virtual DirectX::SimpleMath::Color
-  Intersect(const DirectX::SimpleMath::Ray &_ray, int _depth, bool _isSecondary,
-            std::default_random_engine &_rnd) const override;
+    Intersect(const DirectX::SimpleMath::Ray &_ray, int _depth, bool _isSecondary,
+      std::default_random_engine &_rnd) const override;
 
   virtual DirectX::SimpleMath::Color Sample(float x, float y, int w, int h, std::default_random_engine& _rnd) const override;
+  virtual void Finalize(int totalSamples) const override;
+
 private:
+
+  std::shared_ptr<Color> base;
+  std::shared_ptr<Color> ds[2];
+
 
   enum class ShiftResult {
     Invertible,

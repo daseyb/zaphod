@@ -4,6 +4,7 @@
 #include <mutex>
 #include <atomic>
 #include <vector>
+#include "../IO/stb_image_write.h"
 
 #ifndef HEADLESS
 #include <SFML/Graphics.hpp>
@@ -74,6 +75,8 @@ public:
   void Wait();
 
   void Render(int frameIndex);
+
+  void SaveImages(std::string basename);
 
 #ifndef HEADLESS
   sf::Uint8 *GetPixels(void) const;

@@ -25,10 +25,9 @@ std::string get_time_string() {
   return file_name.str();
 }
 
-void padTo(std::string &str, const size_t num, const char paddingChar = ' ')
-{
-	if (num > str.size())
-		str.insert(0, num - str.size(), paddingChar);
+void padTo(std::string &str, const size_t num, const char paddingChar = ' ') {
+  if (num > str.size())
+    str.insert(0, num - str.size(), paddingChar);
 }
 
 #ifndef HEADLESS
@@ -52,9 +51,9 @@ int display_window(int width, int height, Raytracer &rt) {
         window.close();
 
       if (event.type == sf::Event::KeyPressed &&
-          event.key.code == sf::Keyboard::O) {
+        event.key.code == sf::Keyboard::O) {
         stbi_write_hdr((get_time_string() + ".hdr").c_str(), width, height, 4,
-                       (float *)rt.GetRawPixels());
+          (float *)rt.GetRawPixels());
       }
     }
 
@@ -67,16 +66,14 @@ int display_window(int width, int height, Raytracer &rt) {
 
     if (FrameIndex <= FrameEnd && rt.FrameDone()) {
       std::cout << "=========== Rendered frame " + std::to_string(FrameIndex) +
-                       " ===========\n";
+        " ===========\n";
 
-			std::string frameIndexStr = std::to_string(FrameIndex);
-			padTo(frameIndexStr, 5, '0');
+      std::string frameIndexStr = std::to_string(FrameIndex);
+      padTo(frameIndexStr, 5, '0');
 
-            auto filename = std::string(scene_file) + " " + frameIndexStr;
-      stbi_write_hdr(
-          (filename + ".hdr")
-              .c_str(),
-          width, height, 4, (float *)rt.GetRawPixels());
+
+      auto filename = std::string(scene_file) + " " + frameIndexStr;
+      rt.SaveImages(filename);
 
       auto img = tex.copyToImage();
       img.saveToFile(filename + ".png");
@@ -84,8 +81,8 @@ int display_window(int width, int height, Raytracer &rt) {
       FrameIndex++;
       if (FrameIndex <= FrameEnd) {
         rt.Render(FrameIndex);
-      } else if(batchmode) {
-          window.close();
+      } else if (batchmode) {
+        window.close();
       }
     }
   }
@@ -103,8 +100,8 @@ int main(int argc, char **argv) {
   }
 
   if (argc == 11) {
-      batchmode = true;
-      argc--;
+    batchmode = true;
+    argc--;
   }
 
   if (argc != 10) {
@@ -129,7 +126,7 @@ int main(int argc, char **argv) {
   // Initialize the Raytracer class with width, height and horizontal FOV
   Raytracer rt;
   if (!rt.Initialize(width, height, integrator, spp, tile_size, thread_count,
-                     scene_file)) {
+    scene_file)) {
     std::cout << "Failed to initialized the renderer!" << std::endl;
     return -1;
   }
@@ -143,15 +140,20 @@ int main(int argc, char **argv) {
   while (true) {
     rt.Wait();
     std::cout << "=========== Rendered frame " + std::to_string(FrameIndex) +
-                     " ===========\n";
+      " ===========\n";
 
-		std::string frameIndexStr = std::to_string(FrameIndex);
-		padTo(frameIndexStr, 5, '0');
+    std::string frameIndexStr = std::to_string(FrameIndex);
+    padTo(frameIndexStr, 5, '0');
 
-		stbi_write_hdr(
-			(std::string(scene_file) + " " + frameIndexStr + ".hdr")
-			.c_str(),
-			width, height, 4, (float *)rt.GetRawPixels());
+    stbi_write_hdr(
+      (std::string(scene_file) + " " + frameIndexStr + ".hdr")
+      .c_str(),
+      width, height, 4, (float *)rt.GetRawPixels());
+
+
+
+    auto filename = std::string(scene_file) + " " + frameIndexStr;
+    rt.SaveImages(filename);
 
     if (FrameIndex < FrameEnd) {
       FrameIndex++;
