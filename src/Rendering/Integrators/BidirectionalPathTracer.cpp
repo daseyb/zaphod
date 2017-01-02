@@ -73,7 +73,7 @@ Color BidirectionalPathTracer::EvalPath(const Path &eye, int nEye,
   Color L(1, 1, 1, 1);
 
   const static auto evalV = [](const PathVertex &v) {
-    return v.Material->F(v.In, v.Out) * v.Material->GetColor(v.Intersect) *
+    return v.Material->F(v.In, v.Out, v.Normal) * v.Material->GetColor(v.Intersect) *
            std::abs(v.Out.Dot(v.Normal)) / (v.BrdfWeight * v.RelativeWeight);
   };
 
@@ -85,10 +85,10 @@ Color BidirectionalPathTracer::EvalPath(const Path &eye, int nEye,
   w.Normalize();
   Vector3 ww = -w;
 
-  L *= eye[nEye - 1].Material->F(eye[nEye - 1].In, w) *
+  L *= eye[nEye - 1].Material->F(eye[nEye - 1].In, w, eye[nEye-1].Normal) *
        eye[nEye - 1].Material->GetColor(eye[nEye - 1].Intersect) *
        G(eye[nEye - 1], light[nLight - 1]) *
-       light[nLight - 1].Material->F(ww, light[nLight - 1].In) /
+       light[nLight - 1].Material->F(ww, light[nLight - 1].In, light[nLight - 1].Normal) /
        (eye[nEye - 1].RelativeWeight * light[nLight - 1].RelativeWeight);
 
   for (int i = nLight - 2; i >= 0; --i) {

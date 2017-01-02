@@ -8,8 +8,7 @@ struct Intersection;
 struct Material {
   InteractionType type;
 
-  virtual float Material::F(DirectX::SimpleMath::Vector3 _in,
-                                   DirectX::SimpleMath::Vector3 _out) const {
+  virtual float Material::F(DirectX::SimpleMath::Vector3 _in, DirectX::SimpleMath::Vector3 _out, DirectX::SimpleMath::Vector3 _normal) const {
     return 1.0f;
   }
 

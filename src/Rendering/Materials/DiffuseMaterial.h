@@ -9,9 +9,8 @@ struct DiffuseMaterial : public Material {
     type = InteractionType::Diffuse;
   };
 
-  inline virtual float F(DirectX::SimpleMath::Vector3 _in,
-                         DirectX::SimpleMath::Vector3 _out) const override {
-    return std::abs((-_in).Dot(_out));
+  virtual float F(DirectX::SimpleMath::Vector3 _in, DirectX::SimpleMath::Vector3 _out, DirectX::SimpleMath::Vector3 _normal) const {
+    return 1.0f;
   }
 
   inline virtual BRDFSample

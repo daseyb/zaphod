@@ -8,9 +8,8 @@ struct EmissionMaterial : public Material {
 
   EmissionMaterial(std::shared_ptr<Texture> _color, float strength) : Emittance(_color), strength(strength) {};
 
-  virtual float F(DirectX::SimpleMath::Vector3 _in,
-                         DirectX::SimpleMath::Vector3 _out) const override {
-    return XM_PI;
+  virtual float F(DirectX::SimpleMath::Vector3 _in, DirectX::SimpleMath::Vector3 _out, DirectX::SimpleMath::Vector3 _normal) const {
+	return std::abs((_normal).Dot(_out));
   }
 
   virtual BRDFSample

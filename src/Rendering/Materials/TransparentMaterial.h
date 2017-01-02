@@ -11,9 +11,8 @@ struct TransparentMaterial : public Material {
     type = ChildMat->type;
   };
 
-  inline virtual float F(DirectX::SimpleMath::Vector3 _in,
-                         DirectX::SimpleMath::Vector3 _out) const override {
-    return ChildMat->F(_in, _out);
+  virtual float F(DirectX::SimpleMath::Vector3 _in, DirectX::SimpleMath::Vector3 _out, DirectX::SimpleMath::Vector3 _normal) const {
+    return ChildMat->F(_in, _out, _normal);
   }
 
   inline virtual BRDFSample

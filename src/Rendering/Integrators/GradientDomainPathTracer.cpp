@@ -51,8 +51,10 @@ Color GradientDomainPathTracer::Sample(float x, float y, int w, int h, std::defa
         }
       }
 
-      float fwdFactor = (i > 1 ? 1 : -1);
-      ds[i % 2].get()[m_Width * int(y) + int(x)] += accum * fwdFactor;
+	  float fwdFactor = (i > 1 ? -1 : 1);
+      int gradientOffsetX = ( (i == 2 && int(x) != 0) ? -1 : 0);
+      int gradientOffsetY = ( (i == 3 && int(y) != 0) ? -1 : 0);
+      ds[i % 2].get()[m_Width * (int(y) + gradientOffsetY) + int(x) + gradientOffsetX] +=  accum * fwdFactor;
       result = accum * fwdFactor;
     }
     base.get()[m_Width * int(y) + int(x)] += basePathValue;
@@ -96,7 +98,7 @@ GradientDomainPathTracer::ShiftResult GradientDomainPathTracer::OffsetPath(const
     auto halfVec = (-base[i - 1].sample.Direction + base[i].sample.Direction);
     halfVec.Normalize();
     sample.Direction = Vector3::Reflect(-offset[i - 1].sample.Direction, halfVec);
-    sample.PDF = minIntersect.material->F(offset[i - 1].sample.Direction, sample.Direction);
+    sample.PDF = minIntersect.material->F(offset[i - 1].sample.Direction, sample.Direction, minIntersect.normal);
     sample.Type = minIntersect.material->type;
 
     offset[i] = { minIntersect, sample, sample.Type == InteractionType::Diffuse ? PathVertex::Diffuse : PathVertex::Specular };
@@ -113,7 +115,17 @@ GradientDomainPathTracer::ShiftResult GradientDomainPathTracer::OffsetPath(const
       currentRay.direction.Normalize();
 
       offset[i].sample.Direction = currentRay.direction;
-      offset[i].sample.PDF = minIntersect.material->F(offset[i - 1].sample.Direction, offset[i].sample.Direction)/ minIntersect.material->F(base[i - 1].sample.Direction, base[i].sample.Direction);
+      offset[i].sample.PDF = minIntersect.material->F(offset[i - 1].sample.Direction, offset[i-1].intersect.normal, offset[i].sample.Direction) 
+							 / minIntersect.material->F(base[i - 1].sample.Direction, base[i-1].intersect.normal, base[i].sample.Direction);
+      
+      float squaredDistX = (base[i + 1].intersect.position - base[i].intersect.position).LengthSquared();
+      float squaredDistY = (base[i + 1].intersect.position - offset[i].intersect.position).LengthSquared();
+      
+      float cosX = abs(base[i].sample.Direction.Dot(base[i].intersect.normal));
+      float cosY = abs(offset[i].sample.Direction.Dot(offset[i].intersect.normal));
+
+      jacobian *= 1; // (cosX * squaredDistX) / (0.000001f + cosY * squaredDistY);
+
       // Connection failed
       if (!m_Scene->Test(offset[i].intersect.position, base[i + 1].intersect.position)) {
         shiftLength = i;
@@ -124,6 +136,7 @@ GradientDomainPathTracer::ShiftResult GradientDomainPathTracer::OffsetPath(const
       i++;
       break;
     } else {
+      // TODO: Jacobian
       currentRay = Ray(minIntersect.position + sample.Direction * 0.001f, sample.Direction);
     }
   }
@@ -188,7 +201,7 @@ Color GradientDomainPathTracer::EvaluatePath(const Path& path, int length) const
       break;
     }
 
-    weight *= pathVertex.intersect.material->GetColor(pathVertex.intersect) * pathVertex.sample.PDF;
+    weight *= pathVertex.intersect.material->F(path[i-1].sample.Direction, path[i].sample.Direction, path[i].intersect.normal) * pathVertex.intersect.material->GetColor(pathVertex.intersect) / pathVertex.sample.PDF;
   }
 
   return L * weight;

@@ -148,7 +148,7 @@ inline BRDFSample BRDFDiffuse(Vector3 normal, Vector3 view,
   float inside = sign(view.Dot(normal));
   normal *= -inside;
   auto out = CosWeightedRandomHemisphereDirection2(normal, _rnd);
-  return {out, 1.0f, InteractionType::Diffuse};
+  return {out, std::abs(out.Dot(normal)), InteractionType::Diffuse};
 }
 
 inline float pow5(float val) {
@@ -174,19 +174,25 @@ inline BRDFSample BRDFPhong(Vector3 normal, Vector3 view, float kd, float ks, fl
 
   float u = dist(_rnd);
   if (u < kd) {
-    return BRDFDiffuse(-inside * normal, view, _rnd);
+    auto sample = BRDFDiffuse(-inside * normal, view, _rnd);
+		sample.PDF *= kd;
+		return sample;
   }
+
+	float fac = 1.0f;
 
   float ior = 1.5f;
   Vector3 w1, ref;
   if (u < kd + ks) {
       ref = Vector3::Reflect(view, -inside * normal);
+			fac = ks;
   } else {
       float eta = inside < 0 ? 1.0f / ior : ior;
       ref = Vector3::Refract(view, -inside * normal, eta);
       if (ref.LengthSquared() < 0.5f) {
           ref = Vector3::Reflect(view, -inside * normal);
       }
+			fac = kt;
   }
 
   if (roughness == 0) {
@@ -200,5 +206,12 @@ inline BRDFSample BRDFPhong(Vector3 normal, Vector3 view, float kd, float ks, fl
 
     w1 = HemisphereSample(theta, phi, ref);
   }
-  return { w1, 1.0f, InteractionType::Specular};
+
+  float dot = std::abs(ref.Dot(w1));
+
+  float pdf = 0;
+  if (roughness == 0) pdf = dot > 0.99 ? 1 : 0;
+	else pdf = pow(dot, 1.0f / roughness);
+
+  return { w1, pdf * fac, InteractionType::Specular};
 }

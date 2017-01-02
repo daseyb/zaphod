@@ -51,8 +51,7 @@ Color PathTracer::Intersect(const Ray &_ray, int _depth, bool _isSecondary,
     auto sample =
         minIntersect.material->Sample(minIntersect, currentRay.direction, _rnd);
 
-    weight *=
-        minIntersect.material->GetColor(minIntersect) * sample.PDF * rr_weight;
+		weight *= minIntersect.material->F(currentRay.direction, sample.Direction, minIntersect.normal) * minIntersect.material->GetColor(minIntersect) * std::abs(sample.Direction.Dot(minIntersect.normal)) / sample.PDF * rr_weight;
 
     currentRay = Ray(minIntersect.position + sample.Direction * 0.001f,
                      sample.Direction);
@@ -62,5 +61,8 @@ Color PathTracer::Intersect(const Ray &_ray, int _depth, bool _isSecondary,
     }
   }
 
-  return L;
+	auto vec = L.ToVector3();
+	//vec.Clamp({ 0, 0, 0 }, { 100,100,100 });
+
+	return Color(vec);
 }
