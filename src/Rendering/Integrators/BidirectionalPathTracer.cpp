@@ -38,13 +38,13 @@ BidirectionalPathTracer::MakePath(const DirectX::SimpleMath::Ray &_startRay,
 
     v.RelativeWeight = 1;
 
-    if (i > 2) {
+    /*if (i > 2) {
       if (dist(_rnd) > RUSSIAN_ROULETTE) {
         break;
       } else {
         v.RelativeWeight = 1.0f / RUSSIAN_ROULETTE;
       }
-    }
+    }*/
 
     auto sample =
         minIntersect.material->Sample(minIntersect, ray.direction, _rnd);
@@ -52,7 +52,12 @@ BidirectionalPathTracer::MakePath(const DirectX::SimpleMath::Ray &_startRay,
     v.BrdfWeight = sample.PDF;
 
     path.push_back(v);
-    ray = {minIntersect.position + sample.Direction * 0.001f, sample.Direction};
+    
+		if (minIntersect.material->IsLight()) {
+			break;
+		}
+
+		ray = {minIntersect.position + sample.Direction * 0.001f, sample.Direction};
   }
 
   return path;
@@ -85,11 +90,12 @@ Color BidirectionalPathTracer::EvalPath(const Path &eye, int nEye,
   w.Normalize();
   Vector3 ww = -w;
 
-  L *= eye[nEye - 1].Material->F(eye[nEye - 1].In, w, eye[nEye-1].Normal) *
+/*  L *= eye[nEye - 1].Material->F(eye[nEye - 1].In, w, eye[nEye-1].Normal) *
        eye[nEye - 1].Material->GetColor(eye[nEye - 1].Intersect) *
        G(eye[nEye - 1], light[nLight - 1]) *
        light[nLight - 1].Material->F(ww, light[nLight - 1].In, light[nLight - 1].Normal) /
        (eye[nEye - 1].RelativeWeight * light[nLight - 1].RelativeWeight);
+			 */
 
   for (int i = nLight - 2; i >= 0; --i) {
     L *= evalV(light[i]);
@@ -104,6 +110,23 @@ Color BidirectionalPathTracer::EvalPath(const Path &eye, int nEye,
   }
 
   return L;
+}
+
+Color BidirectionalPathTracer::EvalPath(const Path &eye, int nEye) const {
+
+	if (nEye == 0) return{ 0, 0, 0 };
+	Color L(1, 1, 1, 1);
+
+	const static auto evalV = [](const PathVertex &v) {
+		return v.Material->F(v.In, v.Out, v.Normal) * v.Material->GetColor(v.Intersect) *
+			std::abs(v.Out.Dot(v.Normal)) / (v.BrdfWeight * v.RelativeWeight);
+	};
+
+	for (int i = 0; i < nEye-1; ++i) {
+		L *= evalV(eye[i]);
+	}
+
+	return L;
 }
 
 Color BidirectionalPathTracer::IlluminatePoint(
@@ -147,7 +170,14 @@ Color BidirectionalPathTracer::Intersect(const Ray &_ray, int _depth, bool _isSe
   Color L(0, 0, 0, 0);
   size_t i, j;
 
-  L = EvalPath(eyePath, eyePath.size(), lightPath, lightPath.size()) * Color(1,1,1);
+	auto& lastEye = eyePath[eyePath.size() - 1];
+
+	/*if (lastEye.Material->IsLight()) {
+		L = EvalPath(eyePath, eyePath.size()) * lastEye.Material->GetColor(lastEye.Intersect);
+	} else */ {
+		L = EvalPath(eyePath, eyePath.size(), lightPath, lightPath.size()) * Color(3,3,3);
+
+	}
 
 #if 0
   // Connect bidirectional path prefixes and evaluate throughput
@@ -167,5 +197,5 @@ Color BidirectionalPathTracer::Intersect(const Ray &_ray, int _depth, bool _isSe
   }
 #endif
 
-  return L * Le;
+  return L;
 }

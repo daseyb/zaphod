@@ -38,12 +38,12 @@ Scene::Scene(Camera *_cam, std::vector<BaseObject *> &sceneObjects) {
     }
 
     if (renderObject->GetMaterial()->IsLight()) {
-      m_SceneLights.push_back(renderObject);
       float weight = renderObject->CalculateWeight();
       if (weight == 0) {
         continue;
       }
-      m_LightWeights.push_back(weight);
+			m_SceneLights.push_back(renderObject);
+			m_LightWeights.push_back(weight);
       m_TotalLightWeight += weight;
     }
   }

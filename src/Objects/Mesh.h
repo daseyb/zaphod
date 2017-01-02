@@ -13,6 +13,8 @@ private:
 
   bool m_Smooth;
 
+	std::discrete_distribution<int> m_TriSampleWeights;
+
 public:
   Mesh::Mesh(DirectX::SimpleMath::Vector3 _pos, std::vector<Triangle> &_tris,
              std::vector<DirectX::SimpleMath::Vector3> &_verts, std::vector<DirectX::SimpleMath::Vector3> &_normals,

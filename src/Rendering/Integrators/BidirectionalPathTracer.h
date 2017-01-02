@@ -28,6 +28,8 @@ private:
   DirectX::SimpleMath::Color EvalPath(const Path &eye, int nEye,
                                       const Path &light, int nLight) const;
 
+	DirectX::SimpleMath::Color EvalPath(const Path & eye, int nEye) const;
+
   DirectX::SimpleMath::Color
   IlluminatePoint(DirectX::SimpleMath::Vector3 pos,
                   DirectX::SimpleMath::Vector3 normal,

@@ -115,8 +115,7 @@ GradientDomainPathTracer::ShiftResult GradientDomainPathTracer::OffsetPath(const
       currentRay.direction.Normalize();
 
       offset[i].sample.Direction = currentRay.direction;
-      offset[i].sample.PDF = minIntersect.material->F(offset[i - 1].sample.Direction, offset[i-1].intersect.normal, offset[i].sample.Direction) 
-							 / minIntersect.material->F(base[i - 1].sample.Direction, base[i-1].intersect.normal, base[i].sample.Direction);
+			offset[i].sample.PDF = minIntersect.material->F(offset[i - 1].sample.Direction, offset[i].sample.Direction, offset[i - 1].intersect.normal);
       
       float squaredDistX = (base[i + 1].intersect.position - base[i].intersect.position).LengthSquared();
       float squaredDistY = (base[i + 1].intersect.position - offset[i].intersect.position).LengthSquared();
@@ -124,7 +123,7 @@ GradientDomainPathTracer::ShiftResult GradientDomainPathTracer::OffsetPath(const
       float cosX = abs(base[i].sample.Direction.Dot(base[i].intersect.normal));
       float cosY = abs(offset[i].sample.Direction.Dot(offset[i].intersect.normal));
 
-      jacobian *= 1; // (cosX * squaredDistX) / (0.000001f + cosY * squaredDistY);
+      jacobian *= (cosX * squaredDistX) / (0.000001f + cosY * squaredDistY);
 
       // Connection failed
       if (!m_Scene->Test(offset[i].intersect.position, base[i + 1].intersect.position)) {
@@ -201,7 +200,8 @@ Color GradientDomainPathTracer::EvaluatePath(const Path& path, int length) const
       break;
     }
 
-    weight *= pathVertex.intersect.material->F(path[i-1].sample.Direction, path[i].sample.Direction, path[i].intersect.normal) * pathVertex.intersect.material->GetColor(pathVertex.intersect) / pathVertex.sample.PDF;
+    weight *= pathVertex.intersect.material->F(path[i-1].sample.Direction, path[i].sample.Direction, path[i].intersect.normal) 
+			* pathVertex.intersect.material->GetColor(pathVertex.intersect) * std::abs(path[i].sample.Direction.Dot(path[i].intersect.normal)) / pathVertex.sample.PDF;
   }
 
   return L * weight;
