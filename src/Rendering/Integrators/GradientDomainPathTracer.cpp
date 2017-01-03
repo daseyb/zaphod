@@ -54,7 +54,7 @@ Color GradientDomainPathTracer::Sample(float x, float y, int w, int h, std::defa
 	  float fwdFactor = (i > 1 ? -1 : 1);
       int gradientOffsetX = ( (i == 2 && int(x) != 0) ? -1 : 0);
       int gradientOffsetY = ( (i == 3 && int(y) != 0) ? -1 : 0);
-      ds[i % 2].get()[m_Width * (int(y) + gradientOffsetY) + int(x) + gradientOffsetX] +=  accum * fwdFactor;
+      ds[i % 2].get()[m_Width * (int(y) + gradientOffsetY) + int(x) + gradientOffsetX] +=  -accum * fwdFactor;
       result = accum * fwdFactor;
     }
     base.get()[m_Width * int(y) + int(x)] += basePathValue;
@@ -91,7 +91,7 @@ GradientDomainPathTracer::ShiftResult GradientDomainPathTracer::OffsetPath(const
     if (minIntersect.material->IsLight()) {
       offset[i] = { minIntersect,{ { 0, 0, 0 }, 1 },  PathVertex::Light };
       i++;
-      break;
+			return ShiftResult::NotInvertible;
     }
 
     BRDFSample sample;
@@ -115,7 +115,7 @@ GradientDomainPathTracer::ShiftResult GradientDomainPathTracer::OffsetPath(const
       currentRay.direction.Normalize();
 
       offset[i].sample.Direction = currentRay.direction;
-			offset[i].sample.PDF = minIntersect.material->F(offset[i - 1].sample.Direction, offset[i].sample.Direction, offset[i - 1].intersect.normal);
+			offset[i].sample.PDF = minIntersect.material->F(offset[i - 1].sample.Direction, offset[i].sample.Direction, offset[i].intersect.normal);
       
       float squaredDistX = (base[i + 1].intersect.position - base[i].intersect.position).LengthSquared();
       float squaredDistY = (base[i + 1].intersect.position - offset[i].intersect.position).LengthSquared();

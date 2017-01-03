@@ -90,12 +90,12 @@ Color BidirectionalPathTracer::EvalPath(const Path &eye, int nEye,
   w.Normalize();
   Vector3 ww = -w;
 
-/*  L *= eye[nEye - 1].Material->F(eye[nEye - 1].In, w, eye[nEye-1].Normal) *
+  L *= eye[nEye - 1].Material->F(eye[nEye - 1].In, w, eye[nEye-1].Normal) *
        eye[nEye - 1].Material->GetColor(eye[nEye - 1].Intersect) *
-       G(eye[nEye - 1], light[nLight - 1]) *
+       //G(eye[nEye - 1], light[nLight - 1]) *
        light[nLight - 1].Material->F(ww, light[nLight - 1].In, light[nLight - 1].Normal) /
        (eye[nEye - 1].RelativeWeight * light[nLight - 1].RelativeWeight);
-			 */
+	
 
   for (int i = nLight - 2; i >= 0; --i) {
     L *= evalV(light[i]);
@@ -174,12 +174,12 @@ Color BidirectionalPathTracer::Intersect(const Ray &_ray, int _depth, bool _isSe
 
 	/*if (lastEye.Material->IsLight()) {
 		L = EvalPath(eyePath, eyePath.size()) * lastEye.Material->GetColor(lastEye.Intersect);
-	} else */ {
-		L = EvalPath(eyePath, eyePath.size(), lightPath, lightPath.size()) * Color(3,3,3);
+	} else */{
+		//L = EvalPath(eyePath, eyePath.size(), lightPath, lightPath.size()) * Color(3,3,3);
 
 	}
 
-#if 0
+#if 1
   // Connect bidirectional path prefixes and evaluate throughput
   Color directWt(1.0f, 1.0f, 1.0f);
   for (i = 1; i <= eyePath.size(); ++i) {
@@ -192,7 +192,7 @@ Color BidirectionalPathTracer::Intersect(const Ray &_ray, int _depth, bool _isSe
     eyePath[i - 1].BrdfWeight;*/
 
     for (j = 1; j <= lightPath.size(); ++j) {
-      L += EvalPath(eyePath, i, lightPath, j) / (float)(i + j);
+      L += EvalPath(eyePath, i, lightPath, j) * 3 / (float)(i + j);
     }
   }
 #endif
