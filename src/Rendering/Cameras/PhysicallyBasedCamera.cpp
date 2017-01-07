@@ -42,6 +42,7 @@ Ray PhysicallyBasedCamera::GetRay(float _x, float _y, int _w, int _h,
   Matrix viewMatrix = GetViewMatrix();
   result.position = Vector3::Transform(result.position, viewMatrix);
   result.direction = Vector3::TransformNormal(result.direction, viewMatrix);
+	result.direction.Normalize();
 
   return result;
 }

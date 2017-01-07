@@ -1,6 +1,7 @@
 #pragma once
 #include "Integrator.h"
 #include "../../Geometry/Intersection.h"
+#include "../BRDFs.h"
 
 struct Material;
 class BaseObject;
@@ -13,6 +14,7 @@ private:
     DirectX::SimpleMath::Vector3 In;
     DirectX::SimpleMath::Vector3 Out;
 
+		InteractionType Type;
     Intersection Intersect;
     Material *Material;
     BaseObject *Prim;

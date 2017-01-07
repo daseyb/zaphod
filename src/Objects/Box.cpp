@@ -7,7 +7,7 @@ using namespace DirectX::SimpleMath;
 Box::Box(Vector3 _pos, Vector3 _extends, BaseObject* parent) : RenderObject(parent) {
   SetPosition(_pos);
   m_Box.Center = Vector3(0, 0, 0);
-  m_Box.Extents = _extends;
+  m_Box.Extents = Vector3(1,1,1);
 }
 
 void Box::SetPosition(Vector3 _pos) {
@@ -65,7 +65,7 @@ bool Box::Intersect(const Ray &_ray, Intersection &_intersect) {
   float dist;
   Ray ray = _ray;
   auto objToWorld = GetTransform();
-  auto worldToObj = objToWorld.Invert();
+  auto worldToObj = GetTransformInv();
   ray.position = Vector3::Transform(_ray.position, worldToObj);
   ray.direction = Vector3::TransformNormal(_ray.direction, worldToObj);
   ray.direction.Normalize();
@@ -73,7 +73,7 @@ bool Box::Intersect(const Ray &_ray, Intersection &_intersect) {
     if (dist < 0.001f)
       return false;
 
-    _intersect.position = _ray.position + dist * _ray.direction;
+    _intersect.position = ray.position + dist * ray.direction;
 
     // Calculate normal (based on which axis the intersection point lies most)
     Vector3 fromCenter = _intersect.position;

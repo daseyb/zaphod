@@ -4,13 +4,21 @@
 
 struct SpecularMaterial : public Material {
   std::shared_ptr<Texture> DiffuseColor;
-  float Kd, Ks, Kt, Roughness;
+	std::shared_ptr<Texture> SpecularColor;
+	float Kd, Ks, Kt, Roughness;
 
   SpecularMaterial(std::shared_ptr<Texture> _color, float _kd, float _ks, float _kt,
                    float _roughness)
-      : DiffuseColor(_color), Kd(_kd), Ks(_ks), Kt(_kt), Roughness(_roughness){
+      : DiffuseColor(_color), SpecularColor(_color), Kd(_kd), Ks(_ks), Kt(_kt), Roughness(_roughness){
     type = InteractionType::Specular;
   };
+
+	SpecularMaterial(std::shared_ptr<Texture> _color, std::shared_ptr<Texture> _spec, float _kd, float _ks, float _kt,
+		float _roughness)
+		: DiffuseColor(_color), SpecularColor(_spec), Kd(_kd), Ks(_ks), Kt(_kt), Roughness(_roughness) {
+		type = InteractionType::Specular;
+	};
+
 
 	virtual float F(DirectX::SimpleMath::Vector3 _in, DirectX::SimpleMath::Vector3 _out, DirectX::SimpleMath::Vector3 _normal) const {
 		
@@ -23,8 +31,10 @@ struct SpecularMaterial : public Material {
 		else specBrdf = pow(dot, 1.0f / Roughness);
 
 		const float ior = 1.5f;
-		float eta = inside < 0 ? 1.0f / ior : ior;
-		auto refr = Vector3::Refract(_in, -inside * _normal, eta);
+		float n1 = inside < 0 ? 1.0 / ior : ior;
+		float n2 = 1.0 / n1;
+
+		auto refr = Vector3::Refract(_in, -inside * _normal, n1);
 		if (refr.LengthSquared() < 0.5f) {
 			auto refr = Vector3::Reflect(_in, -inside * _normal);
 		}
@@ -36,10 +46,17 @@ struct SpecularMaterial : public Material {
 
 		float diffBrdf = 1.0f;
 
-		float total = Kd + Ks + Kt;
-		float kd = Kd/total;
-		float ks = Ks/total;
-		float kt = Kt/total;
+		float fresnel = FresnelSchlick(_in, _normal, (n1 - n2) / (n1 + n2));
+
+		float ks = Ks;// *fresnel;
+		float kd = Kd;// * (1.0f - fresnel);
+		float kt = Kt;// * (1.0f - fresnel);
+
+		float total = kd + ks + kt;
+		
+		kd = kd/total;
+		ks = ks/total;
+		kt = kt/total;
 		
 		float gs = std::abs(_out.Dot(_normal));
 
@@ -53,12 +70,11 @@ struct SpecularMaterial : public Material {
   Sample(const Intersection &_intersect, DirectX::SimpleMath::Vector3 _view,
          std::default_random_engine &_rnd) const override {
     auto sample = BRDFPhong(_intersect.normal, _view, Kd, Ks, Kt, Roughness, _rnd);
-    sample.Type = type;
     return sample;
   }
 
-  virtual Color GetColor(const Intersection &_intersect) const override {
-    return DiffuseColor->Sample(_intersect.uv);
+  virtual Color GetColor(const Intersection &_intersect, InteractionType type) const override {
+    return type == InteractionType::Diffuse ? DiffuseColor->Sample(_intersect.uv) : SpecularColor->Sample(_intersect.uv);
   }
 
   virtual SpecularMaterial *Copy() {

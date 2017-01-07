@@ -11,9 +11,6 @@ private:
 
 public:
   Box(DirectX::SimpleMath::Vector3 _pos, DirectX::SimpleMath::Vector3 _extends, BaseObject* parent = nullptr);
-  void SetExtendX(float _x);
-  void SetExtendY(float _y);
-  void SetExtendZ(float _z);
   void SetPosition(DirectX::SimpleMath::Vector3 _pos) override;
   bool Intersect(const DirectX::SimpleMath::Ray &_ray,
                  Intersection &_intersect)  override;

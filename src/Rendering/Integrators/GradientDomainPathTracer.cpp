@@ -94,12 +94,15 @@ GradientDomainPathTracer::ShiftResult GradientDomainPathTracer::OffsetPath(const
 			return ShiftResult::NotInvertible;
     }
 
+
     BRDFSample sample;
     auto halfVec = (-base[i - 1].sample.Direction + base[i].sample.Direction);
     halfVec.Normalize();
     sample.Direction = Vector3::Reflect(-offset[i - 1].sample.Direction, halfVec);
     sample.PDF = minIntersect.material->F(offset[i - 1].sample.Direction, sample.Direction, minIntersect.normal);
     sample.Type = minIntersect.material->type;
+
+		if (base[i].type == PathVertex::Specular) return ShiftResult::NotInvertible;
 
     offset[i] = { minIntersect, sample, sample.Type == InteractionType::Diffuse ? PathVertex::Diffuse : PathVertex::Specular };
 
@@ -128,7 +131,7 @@ GradientDomainPathTracer::ShiftResult GradientDomainPathTracer::OffsetPath(const
       // Connection failed
       if (!m_Scene->Test(offset[i].intersect.position, base[i + 1].intersect.position)) {
         shiftLength = i;
-        return ShiftResult::NotSymmetric;
+        return ShiftResult::NotInvertible;
       }
       // Connection succeeded, copy the rest of the vertices
 
@@ -196,12 +199,12 @@ Color GradientDomainPathTracer::EvaluatePath(const Path& path, int length) const
     auto& pathVertex = path[i];
 
     if (pathVertex.type == PathVertex::Light) {
-      L = pathVertex.intersect.material->GetColor(pathVertex.intersect);
+      L = pathVertex.intersect.material->GetColor(pathVertex.intersect, pathVertex.sample.Type);
       break;
     }
 
     weight *= pathVertex.intersect.material->F(path[i-1].sample.Direction, path[i].sample.Direction, path[i].intersect.normal) 
-			* pathVertex.intersect.material->GetColor(pathVertex.intersect) * std::abs(path[i].sample.Direction.Dot(path[i].intersect.normal)) / pathVertex.sample.PDF;
+			* pathVertex.intersect.material->GetColor(pathVertex.intersect, pathVertex.sample.Type) * std::abs(path[i].sample.Direction.Dot(path[i].intersect.normal)) / pathVertex.sample.PDF;
   }
 
   return L * weight;

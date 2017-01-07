@@ -18,10 +18,9 @@ struct TransparentMaterial : public Material {
   inline virtual BRDFSample
   Sample(const Intersection &_intersect, DirectX::SimpleMath::Vector3 _view,
          std::default_random_engine &_rnd) const override {
-    auto color = ChildMat->GetColor(_intersect);
     auto opacity = Opacity->Sample(_intersect.uv);
 
-    auto prob = color.R() * opacity.R() + color.G() * opacity.G() + color.B() * opacity.B();
+    auto prob = opacity.R() + opacity.G() + opacity.B();
 
     prob *= 1.0f / 3.0f;
 
@@ -30,15 +29,15 @@ struct TransparentMaterial : public Material {
     auto fac = dist(_rnd);
 
     if (fac < prob) {
-        return{ _view, 1.0 };
+        return{ _view, 1.0, InteractionType::Passthrough };
     } else {
         return ChildMat->Sample(_intersect, _view, _rnd);
     }
 
   }
 
-  inline virtual Color GetColor(const Intersection &_intersect) const override {
-    return ChildMat->GetColor(_intersect);
+	virtual DirectX::SimpleMath::Color GetColor(const Intersection &_intersect, InteractionType type) const override {
+    return type == InteractionType::Passthrough ? Opacity->Sample(_intersect.uv) : ChildMat->GetColor(_intersect, type);
   }
 
   inline virtual TransparentMaterial *Copy() { return new TransparentMaterial(*this); };

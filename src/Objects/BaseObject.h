@@ -19,6 +19,7 @@ private:
   BaseObject *m_Parent;
   bool m_TransformIsDirty;
   DirectX::SimpleMath::Matrix m_Transform;
+	DirectX::SimpleMath::Matrix m_TransformInverse;
 
   Timeline<DirectX::SimpleMath::Vector3> m_PositionTimeline;
   Timeline<DirectX::SimpleMath::Quaternion> m_RotationTimeline;
@@ -34,9 +35,12 @@ protected:
 public:
   BaseObject(BaseObject *_parent);
 
+
   bool IsTransformDirty() const {
     return m_TransformIsDirty || (m_Parent && m_Parent->IsTransformDirty());
   }
+
+	DirectX::SimpleMath::Matrix GetTransformInv();
   DirectX::SimpleMath::Matrix GetTransform();
   void SetParent(BaseObject *parent);
   float GetWeight() const;

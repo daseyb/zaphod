@@ -20,7 +20,7 @@ struct EmissionMaterial : public Material {
 
   virtual bool IsLight() const override { return true; }
 
-  virtual Color GetColor(const Intersection &_intersect) const override {
+  virtual Color GetColor(const Intersection &_intersect, InteractionType type) const override {
     return Emittance->Sample(_intersect.uv) * strength;
   }
 

@@ -37,6 +37,8 @@ public:
 
         uv.Clamp(Vector2(0, 0), Vector2(1, 1));
 
+				uv.y = 1.0f - uv.y;
+
         auto pixel = uv * Vector2{ (float)texData->width-1, (float)texData->height-1 };
         auto id = int(pixel.x) + int(pixel.y) * texData->width;
         return texData->pixels.get()[id];

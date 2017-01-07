@@ -8,7 +8,8 @@ using namespace DirectX::SimpleMath;
 
 enum class InteractionType {
   Diffuse,
-  Specular
+  Specular,
+	Passthrough
 };
 
 struct BRDFSample {
@@ -165,12 +166,22 @@ inline BRDFSample BRDFPhong(Vector3 normal, Vector3 view, float kd, float ks, fl
   std::uniform_real_distribution<float> dist =
       std::uniform_real_distribution<float>(0, 1);
 
+	float inside = sign(view.Dot(normal));
+	float ior = 1.5f;
+
+	float n1 = inside < 0 ? 1.0 / ior : ior;
+	float n2 = 1.0 / n1;
+
+	float fresnel = FresnelSchlick(view, normal, (n1 - n2) / (n1 + n2));
+
+	//ks *= fresnel;
+	//kd *= (1.0f - fresnel);
+	//kt *= (1.0f - fresnel);
+
   float total = kd + ks + kt;
   kd /= total;
   ks /= total;
   kt /= total;
-
-  float inside = sign(view.Dot(normal));
 
   float u = dist(_rnd);
   if (u < kd) {
@@ -181,7 +192,6 @@ inline BRDFSample BRDFPhong(Vector3 normal, Vector3 view, float kd, float ks, fl
 
 	float fac = 1.0f;
 
-  float ior = 1.5f;
   Vector3 w1, ref;
   if (u < kd + ks) {
       ref = Vector3::Reflect(view, -inside * normal);

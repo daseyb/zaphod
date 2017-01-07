@@ -19,7 +19,7 @@ struct DiffuseMaterial : public Material {
     return BRDFDiffuse(_intersect.normal, _view, _rnd);
   }
 
-  inline virtual Color GetColor(const Intersection &_intersect) const override {
+  inline virtual Color GetColor(const Intersection &_intersect, InteractionType type) const override {
     return DiffuseColor->Sample(_intersect.uv);
   }
 

@@ -18,13 +18,13 @@ void Sphere::SetPosition(DirectX::SimpleMath::Vector3 _pos) {
 bool Sphere::Intersect(const Ray &_ray, Intersection &_intersect) {
   float dist;
   auto objToWorld = GetTransform();
-  auto worldToObj = objToWorld.Invert();
+	auto worldToObj = GetTransformInv();
   Ray ray = _ray;
   ray.position = Vector3::Transform(_ray.position, worldToObj);
   ray.direction = Vector3::TransformNormal(_ray.direction, worldToObj);
   ray.direction.Normalize();
   if (ray.Intersects(m_Sphere, dist)) {
-    if (dist < 0.001f)
+    if (dist < 0.0001f)
       return false;
 
     _intersect.position = ray.position + dist * ray.direction;

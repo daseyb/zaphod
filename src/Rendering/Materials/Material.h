@@ -19,8 +19,7 @@ struct Material {
     return BRDFSample();
   }
   virtual bool Material::IsLight() const { return false; }
-  virtual DirectX::SimpleMath::Color
-  Material::GetColor(const Intersection &_intersect) const {
+  virtual DirectX::SimpleMath::Color GetColor(const Intersection &_intersect, InteractionType type) const {
     return Color(0.0f, 0.0f, 0.0f);
   }
   virtual Material *Copy() { return new Material(*this); };

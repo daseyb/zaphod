@@ -6,7 +6,6 @@ void Camera::SetPosition(Vector3 _pos) {
   m_Position = _pos; 
   m_ViewMatrix = (Matrix::CreateFromQuaternion(m_Rotation) *
     Matrix::CreateTranslation(m_Position));
-  m_ViewMatrix.Invert();
 }
 
 void Camera::SetRotation(Vector3 _rot) {
@@ -16,7 +15,6 @@ void Camera::SetRotation(Vector3 _rot) {
 
   m_ViewMatrix = (Matrix::CreateFromQuaternion(m_Rotation) *
     Matrix::CreateTranslation(m_Position));
-  m_ViewMatrix.Invert();
 }
 
 void Camera::LookAt(DirectX::SimpleMath::Vector3 _eye,
@@ -28,7 +26,6 @@ void Camera::LookAt(DirectX::SimpleMath::Vector3 _eye,
 
   m_ViewMatrix = (Matrix::CreateFromQuaternion(m_Rotation) *
     Matrix::CreateTranslation(m_Position));
-  m_ViewMatrix.Invert();
 }
 
 Matrix Camera::GetViewMatrix(void) const {
@@ -41,7 +38,6 @@ void Camera::SetViewMatrix(DirectX::SimpleMath::Matrix matrix) {
 
     m_ViewMatrix = (Matrix::CreateFromQuaternion(m_Rotation) *
       Matrix::CreateTranslation(m_Position));
-    m_ViewMatrix.Invert();
 }
 
 Camera::~Camera(void) {}

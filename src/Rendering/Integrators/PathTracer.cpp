@@ -34,7 +34,7 @@ Color PathTracer::Intersect(const Ray &_ray, int _depth, bool _isSecondary,
     }
 
     if (minIntersect.material->IsLight()) {
-        L += minIntersect.material->GetColor(minIntersect) * weight;
+        L += minIntersect.material->GetColor(minIntersect, InteractionType::Diffuse) * weight;
         break;
     }
 
@@ -53,7 +53,7 @@ Color PathTracer::Intersect(const Ray &_ray, int _depth, bool _isSecondary,
 
 		if (sample.PDF < 0.01) break;
 
-		weight *= minIntersect.material->F(currentRay.direction, sample.Direction, minIntersect.normal) * minIntersect.material->GetColor(minIntersect) * std::abs(sample.Direction.Dot(minIntersect.normal)) / sample.PDF * rr_weight;
+		weight *= minIntersect.material->F(currentRay.direction, sample.Direction, minIntersect.normal) * minIntersect.material->GetColor(minIntersect, sample.Type) * std::abs(sample.Direction.Dot(minIntersect.normal)) / sample.PDF * rr_weight;
 
     currentRay = Ray(minIntersect.position + sample.Direction * 0.001f,
                      sample.Direction);

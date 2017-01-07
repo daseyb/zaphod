@@ -230,8 +230,13 @@ bool LoadZSF(std::istream& sceneStream, std::string sceneFileName, std::vector<B
         std::vector<ObjectData*> result;
         auto type = GetValue<std::string>(values, "type");
         auto pos = GetValue<Vector3>(values, "position");
+				Vector3 scaleMulti = Vector3(1, 1, 1);
+
         if (type == "box") {
-            root = new Box(pos, GetValue<Vector3>(values, "extends"));
+						scaleMulti = GetValue<Vector3>(values, "extends");
+
+						root = new Box(pos, Vector3(1,1,1));
+
             result.push_back(new ObjectData{ "", root });
         } else if (type == "sphere") {
             root = new Sphere(pos, GetValue<float>(values, "radius"));
@@ -268,7 +273,7 @@ bool LoadZSF(std::istream& sceneStream, std::string sceneFileName, std::vector<B
 
         root->SetPosition(GetValue<Vector3>(values, "position"));
         root->SetRotation(GetValue<Vector3>(values, "rotation"));
-        root->SetScale(GetValue<Vector3>(values, "scale", Vector3(1, 1, 1)));
+        root->SetScale(GetValue<Vector3>(values, "scale", Vector3(1, 1, 1)) * scaleMulti);
 
         for (auto& res : result) {
             if (res->MaterialName == "") {
@@ -1123,14 +1128,14 @@ Material* GetMaterialFromBsdf(MitsubaBsdf* bsdf) {
 
             auto reflectance = conductorMat->specularReflectance.get();
             auto reflectanceTex = GetTextureFromColorSource(reflectance);
-            return new SpecularMaterial(reflectanceTex, 0, 1, 0, conductorMat->alpha);
+            return new SpecularMaterial(std::make_shared<ConstantColor>(Color(0.0f, 0.0f, 0.0f)), reflectanceTex, 0, 1, 0, conductorMat->alpha);
         }
         case MitsubaBsdf::Type::Conductor: {
             auto conductorMat = (MitsubaBsdfConductor*)bsdf;
 
             auto reflectance = conductorMat->specularReflectance.get();
             auto reflectanceTex = GetTextureFromColorSource(reflectance);
-            return new SpecularMaterial(reflectanceTex, 0, 1, 0, 0);
+            return new SpecularMaterial(std::make_shared<ConstantColor>(Color(0.0f, 0.0f, 0.0f)), reflectanceTex, 0, 1, 0, 0);
         }
         case MitsubaBsdf::Type::RoughPlastic: {
             auto plasticMat = (MitsubaBsdfRoughPlastic*)bsdf;
@@ -1138,7 +1143,7 @@ Material* GetMaterialFromBsdf(MitsubaBsdf* bsdf) {
             auto reflectance = plasticMat->diffuseReflectance.get();
             auto reflectanceTex = GetTextureFromColorSource(reflectance);
 
-            return new SpecularMaterial(reflectanceTex, 0.2f, 0.8f, 0.0f, plasticMat->alpha);
+            return new SpecularMaterial(reflectanceTex, std::make_shared<ConstantColor>(Color(1.0f, 1.0f, 1.0f)), 0.8f, 0.2f, 0.0f, plasticMat->alpha * 0.01f);
         }
         case MitsubaBsdf::Type::Plastic: {
             auto plasticMat = (MitsubaBsdfPlastic*)bsdf;
@@ -1146,19 +1151,19 @@ Material* GetMaterialFromBsdf(MitsubaBsdf* bsdf) {
             auto reflectance = plasticMat->diffuseReflectance.get();
             auto reflectanceTex = GetTextureFromColorSource(reflectance);
 
-            return new SpecularMaterial(reflectanceTex, 0.2f, 0.8f, 0.0f, 0);
+            return new SpecularMaterial(reflectanceTex, std::make_shared<ConstantColor>(Color(1.0f, 1.0f, 1.0f)), 0.8f, 0.2f, 0.0f, 0);
         }
         case MitsubaBsdf::Type::Dielectric: {
             auto dielectricMat = (MitsubaBsdfDielectric*)bsdf;
-            return new SpecularMaterial(std::make_shared<ConstantColor>(Color(1.0f, 1.0f, 1.0f)), 0, 0.3f, 0.7f, 0);
+            return new SpecularMaterial(std::make_shared<ConstantColor>(Color(0.0f, 0.0f, 0.0f)), std::make_shared<ConstantColor>(Color(1.0f, 1.0f, 1.0f)), 0, 0.3f, 0.7f, 0);
         }
         case MitsubaBsdf::Type::RoughDielectric: {
             auto dielectricMat = (MitsubaBsdfRoughDielectric*)bsdf;
-            return new SpecularMaterial(std::make_shared<ConstantColor>(Color(1.0f, 1.0f, 1.0f)), 0, 0.3f, 0.7f, 0.1f * dielectricMat->alpha);
+            return new SpecularMaterial(std::make_shared<ConstantColor>(Color(0.0f, 0.0f, 0.0f)), std::make_shared<ConstantColor>(Color(1.0f, 1.0f, 1.0f)), 0, 0.3f, 0.7f, 0.1f * dielectricMat->alpha);
         }
         case MitsubaBsdf::Type::ThinDielectric: {
             auto dielectricMat = (MitsubaBsdfThinDielectric*)bsdf;
-            return new SpecularMaterial(std::make_shared<ConstantColor>(Color(1.0f, 1.0f, 1.0f)), 0, 0.3f, 0.7f, 0);
+            return new SpecularMaterial(std::make_shared<ConstantColor>(Color(0.0f, 0.0f, 0.0f)), std::make_shared<ConstantColor>(Color(1.0f, 1.0f, 1.0f)), 0, 0.3f, 0.7f, 0);
         }
         case MitsubaBsdf::Type::Mask: {
             auto maskMaterial = (MitsubaBsdfMask*)bsdf;
@@ -1224,6 +1229,7 @@ bool LoadMitsuba(std::istream& sceneStream, std::string sceneFileName, std::vect
                 auto shape = (MitsubaShape*)obj.second.get();
 
                 RenderObject* renderObj;
+
 
                 switch (shape->type) {
                     case MitsubaShape::Type::Obj: {
